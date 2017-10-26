@@ -1,3 +1,3 @@
-# Vineyard Blockchain Scanner
+# Vineyard Blockchain Monitor
 
-Scans blockchains using the Vineyard Blockchain Protocol
+Monitors blockchains using the Vineyard Blockchain Protocol

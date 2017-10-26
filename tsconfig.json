@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "strict": true,
     "sourceMap": true,
     "declaration": true,
-    "newLine": "lf",
-    "lib": [
-      "es2015"
-    ]
+    "newLine": "lf"
   }
 }
