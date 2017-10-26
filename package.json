@@ -1,0 +1,25 @@
+{
+  "name": "vineyard-blockchain-scanner",
+  "version": "1.0.0-beta.0",
+  "description": "Scans blockchains using the Vineyard Blockchain Protocol",
+  "main": "source/index.js",
+  "types": "source/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "git@github.com:vineyard-bloom/vineyard-blockchain-scanner.git",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "vineyard-ground": "vineyard-bloom/vineyard-ground#1.0.0-beta",
+    "vineyard-blockchain": "vineyard-bloom/vineyard-blockchain#1.0.0-beta"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.4",
+    "@types/mocha": "^2.2.40",
+    "@types/node": "^7.0.5",
+    "chai": "^4.1.2",
+    "mocha": "^3.2.0",
+    "source-map-support": "^0.4.14"
+  }
+}
