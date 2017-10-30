@@ -84,19 +84,21 @@ class TransactionMonitor {
             const block = yield this.model.saveBlock({
                 hash: blocklist.hash,
                 index: blocklist.index,
-                timeMined: blocklist.timeMined
+                timeMined: blocklist.timeMined,
+                currency: this.currency.id
             });
             if (blocklist.transactions.length == 0)
                 return [];
-            this.saveExternalTransactions(blocklist.transactions, block);
+            yield this.saveExternalTransactions(blocklist.transactions, block);
             return blocklist.lastBlock
                 ? yield this.model.setLastBlockByHash(blocklist.lastBlock, currency)
-                : Promise.resolve();
+                    .then(() => [])
+                : Promise.resolve([]);
         });
     }
     updatePendingTransactions() {
         return __awaiter(this, void 0, void 0, function* () {
-            const transactions = yield this.model.listPending();
+            const transactions = yield this.model.listPending(this.currency.id);
             for (let transaction of transactions) {
                 try {
                     yield this.updatePendingTransaction(transaction);

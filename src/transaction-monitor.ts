@@ -81,21 +81,23 @@ export class TransactionMonitor {
     const block = await this.model.saveBlock({
       hash: blocklist.hash,
       index: blocklist.index,
-      timeMined: blocklist.timeMined
+      timeMined: blocklist.timeMined,
+      currency: this.currency.id
     })
 
     if (blocklist.transactions.length == 0)
       return []
 
-      this.saveExternalTransactions(blocklist.transactions, block)
+    await this.saveExternalTransactions(blocklist.transactions, block)
 
     return blocklist.lastBlock
       ? await this.model.setLastBlockByHash(blocklist.lastBlock, currency)
-      : Promise.resolve()
+        .then(() => [])
+      : Promise.resolve([])
   }
 
   async updatePendingTransactions(): Promise<any> {
-    const transactions = await this.model.listPending()
+    const transactions = await this.model.listPending(this.currency.id)
     for (let transaction of transactions) {
       try {
         await this.updatePendingTransaction(transaction)

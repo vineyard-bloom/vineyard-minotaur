@@ -1,4 +1,4 @@
-import {Address, BaseTransaction, Block, Transaction, TransactionStatus} from "vineyard-blockchain"
+import {Address, BaseBlock, BaseTransaction, Block, Transaction, TransactionStatus} from "vineyard-blockchain"
 import {Collection, Modeler} from "vineyard-ground"
 
 export interface TransactionToSave extends BaseTransaction {
@@ -83,7 +83,7 @@ export class BlockchainModel {
     return await this.model.LastBlock.update({block: block}, {currency: currency})
   }
 
-  async saveBlock(block:Block) {
-
+  async saveBlock(block: BaseBlock): Promise<Block> {
+    return await this.model.Block.create(block)
   }
 }

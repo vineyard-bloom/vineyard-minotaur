@@ -1,4 +1,4 @@
-import { Address, BaseTransaction, Block, Transaction, TransactionStatus } from "vineyard-blockchain";
+import { Address, BaseBlock, BaseTransaction, Block, Transaction, TransactionStatus } from "vineyard-blockchain";
 import { Collection, Modeler } from "vineyard-ground";
 export interface TransactionToSave extends BaseTransaction {
     status: TransactionStatus;
@@ -32,5 +32,5 @@ export declare class BlockchainModel {
     getLastBlock(currency: string): Promise<Block | undefined>;
     setLastBlock(block: string, currency: string): Promise<LastBlock>;
     setLastBlockByHash(hash: string, currency: string): Promise<LastBlock>;
-    saveBlock(block: Block): Promise<void>;
+    saveBlock(block: BaseBlock): Promise<Block>;
 }
