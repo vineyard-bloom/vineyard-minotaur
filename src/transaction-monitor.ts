@@ -1,17 +1,20 @@
-import {ExternalTransaction, Transaction, TransactionStatus, ReadClient, Currency, Block} from 'vineyard-blockchain'
+import {ExternalTransaction, Transaction, TransactionStatus, ReadClient, Currency, FullBlock, BlockInfo} from 'vineyard-blockchain'
 import {BlockchainModel} from "./blockchain-model";
+import {TransactionHandler} from "./types"
 
 export class TransactionMonitor {
   private model: BlockchainModel
   private client: ReadClient
   private currency: Currency
   private minimumConfirmations: number
+  private transactionHandler: TransactionHandler
 
-  constructor(model: BlockchainModel, client: ReadClient, currency: Currency, minimumConfirmations: number) {
+  constructor(model: BlockchainModel, client: ReadClient, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
     this.model = model;
     this.client = client;
     this.currency = currency;
     this.minimumConfirmations = minimumConfirmations;
+    this.transactionHandler = transactionHandler;
   }
 
   private convertStatus(source: ExternalTransaction) {
@@ -20,7 +23,7 @@ export class TransactionMonitor {
       : TransactionStatus.pending
   }
 
-  private async saveExternalTransaction(source: ExternalTransaction, block: Block): Promise<Transaction | undefined> {
+  private async saveExternalTransaction(source: ExternalTransaction, block: BlockInfo): Promise<Transaction | undefined> {
     try {
       const existing = await this.model.getTransactionByTxid(source.txid, this.currency.id)
       if (existing) {
@@ -44,7 +47,7 @@ export class TransactionMonitor {
       })
 
       if (source.confirmations >= this.minimumConfirmations) {
-        return await this.model.onConfirm(transaction)
+        return await this.transactionHandler.onConfirm(transaction)
       }
     }
     catch (error) {
@@ -53,16 +56,18 @@ export class TransactionMonitor {
     }
   }
 
-  private async saveExternalTransactions(transactions: ExternalTransaction [], block: Block): Promise<void> {
+  private async saveExternalTransactions(transactions: ExternalTransaction [], block: BlockInfo): Promise<void> {
     for (let transaction of transactions) {
-      await this.saveExternalTransaction(transaction, block)
+      if(await this.transactionHandler.shouldTrackTransaction(transaction)) {
+        await this.saveExternalTransaction(transaction, block)
+      }
     }
   }
 
   private async confirmExistingTransaction(transaction: Transaction): Promise<Transaction> {
     transaction.status = TransactionStatus.accepted
     const ExternalTransaction = await this.model.setStatus(transaction, TransactionStatus.accepted)
-    return await this.model.onConfirm(ExternalTransaction)
+    return await this.transactionHandler.onConfirm(ExternalTransaction)
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
@@ -72,28 +77,26 @@ export class TransactionMonitor {
       : transaction
   }
 
-  async gatherTransactions(currency: string): Promise<Transaction[]> {
+  async gatherTransactions(currency: string): Promise<void> {
     const lastBlock = await this.model.getLastBlock(currency)
-    const blocklist = await this.client.getNextFullBlock(lastBlock)
-    if (!blocklist)
-      return []
-
+    const blockInfo: BlockInfo = await this.client.getNextBlockInfo(lastBlock)
+    if (!blockInfo)
+      return 
+    const fullBlock: FullBlock = await this.client.getFullBlock(blockInfo)
     const block = await this.model.saveBlock({
-      hash: blocklist.hash,
-      index: blocklist.index,
-      timeMined: blocklist.timeMined,
+      hash: fullBlock.hash,
+      index: fullBlock.index,
+      timeMined: fullBlock.timeMined,
       currency: this.currency.id
     })
 
-    if (blocklist.transactions.length == 0)
-      return []
+    if (fullBlock.transactions.length == 0)
+      return 
 
-    await this.saveExternalTransactions(blocklist.transactions, block)
+    await this.saveExternalTransactions(fullBlock.transactions, block)
 
-    return blocklist.lastBlock
-      ? await this.model.setLastBlockByHash(blocklist.lastBlock, currency)
-        .then(() => [])
-      : Promise.resolve([])
+    await this.model.setLastBlock(block.id, currency)
+   
   }
 
   async updatePendingTransactions(): Promise<any> {
@@ -110,6 +113,6 @@ export class TransactionMonitor {
 
   update(): Promise<any> {
     return this.updatePendingTransactions()
-      .then(() => this.gatherExternalTransactions())
+      .then(() => this.gatherTransactions(this.currency.name))
   }
 }

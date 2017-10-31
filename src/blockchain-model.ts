@@ -1,14 +1,9 @@
-import {Address, BaseBlock, BaseTransaction, Block, Transaction, TransactionStatus} from "vineyard-blockchain"
+import {Address, BaseBlock, BaseTransaction, BlockInfo, Transaction, TransactionStatus} from "vineyard-blockchain"
 import {Collection, Modeler} from "vineyard-ground"
 
 export interface TransactionToSave extends BaseTransaction {
   status: TransactionStatus
 }
-
-export type ConfirmationHandler = (transaction: Transaction) => Promise<Transaction>
-
-export const emptyConfirmationHandler: ConfirmationHandler = t => Promise.resolve(t)
-
 export interface LastBlock {
   block: string,
   currency: string
@@ -20,7 +15,7 @@ export interface Scan {
 
 export interface Model {
   Address: Collection<Address>
-  Block: Collection<Block>
+  Block: Collection<BlockInfo>
   Transaction: Collection<Transaction>
   LastBlock: Collection<LastBlock>
   Scan: Collection<Scan>
@@ -30,11 +25,9 @@ export interface Model {
 
 export class BlockchainModel {
   model: Model
-  confirmationHandler: ConfirmationHandler
 
-  constructor(model: Model, confirmationHandler: ConfirmationHandler = emptyConfirmationHandler) {
+  constructor(model: Model) {
     this.model = model;
-    this.confirmationHandler = confirmationHandler;
   }
 
   async getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined> {
@@ -47,10 +40,6 @@ export class BlockchainModel {
 
   async saveTransaction(transaction: TransactionToSave): Promise<Transaction> {
     return await this.model.Transaction.create(transaction)
-  }
-
-  async onConfirm(transaction: Transaction): Promise<Transaction> {
-    return await this.confirmationHandler(transaction)
   }
 
   async setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction> {
@@ -66,7 +55,7 @@ export class BlockchainModel {
     }).exec()
   }
 
-  async getLastBlock(currency: string): Promise<Block | undefined> {
+  async getLastBlock(currency: string): Promise<BlockInfo | undefined> {
     const last = await this.model.LastBlock.first({currency: currency}).exec()
     if (!last)
       return last
@@ -83,7 +72,7 @@ export class BlockchainModel {
     return await this.model.LastBlock.update({block: block}, {currency: currency})
   }
 
-  async saveBlock(block: BaseBlock): Promise<Block> {
+  async saveBlock(block: BaseBlock): Promise<BlockInfo> {
     return await this.model.Block.create(block)
   }
 }

@@ -10,11 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const vineyard_blockchain_1 = require("vineyard-blockchain");
 class TransactionMonitor {
-    constructor(model, client, currency, minimumConfirmations) {
+    constructor(model, client, currency, minimumConfirmations, transactionHandler) {
         this.model = model;
         this.client = client;
         this.currency = currency;
         this.minimumConfirmations = minimumConfirmations;
+        this.transactionHandler = transactionHandler;
     }
     convertStatus(source) {
         return source.confirmations >= this.minimumConfirmations
@@ -44,7 +45,7 @@ class TransactionMonitor {
                     block: block.id
                 });
                 if (source.confirmations >= this.minimumConfirmations) {
-                    return yield this.model.onConfirm(transaction);
+                    return yield this.transactionHandler.onConfirm(transaction);
                 }
             }
             catch (error) {
@@ -56,7 +57,9 @@ class TransactionMonitor {
     saveExternalTransactions(transactions, block) {
         return __awaiter(this, void 0, void 0, function* () {
             for (let transaction of transactions) {
-                yield this.saveExternalTransaction(transaction, block);
+                if (yield this.transactionHandler.shouldTrackTransaction(transaction)) {
+                    yield this.saveExternalTransaction(transaction, block);
+                }
             }
         });
     }
@@ -64,7 +67,7 @@ class TransactionMonitor {
         return __awaiter(this, void 0, void 0, function* () {
             transaction.status = vineyard_blockchain_1.TransactionStatus.accepted;
             const ExternalTransaction = yield this.model.setStatus(transaction, vineyard_blockchain_1.TransactionStatus.accepted);
-            return yield this.model.onConfirm(ExternalTransaction);
+            return yield this.transactionHandler.onConfirm(ExternalTransaction);
         });
     }
     updatePendingTransaction(transaction) {
@@ -78,22 +81,20 @@ class TransactionMonitor {
     gatherTransactions(currency) {
         return __awaiter(this, void 0, void 0, function* () {
             const lastBlock = yield this.model.getLastBlock(currency);
-            const blocklist = yield this.client.getNextFullBlock(lastBlock);
-            if (!blocklist)
-                return [];
+            const blockInfo = yield this.client.getNextBlockInfo(lastBlock);
+            if (!blockInfo)
+                return;
+            const fullBlock = yield this.client.getFullBlock(blockInfo);
             const block = yield this.model.saveBlock({
-                hash: blocklist.hash,
-                index: blocklist.index,
-                timeMined: blocklist.timeMined,
+                hash: fullBlock.hash,
+                index: fullBlock.index,
+                timeMined: fullBlock.timeMined,
                 currency: this.currency.id
             });
-            if (blocklist.transactions.length == 0)
-                return [];
-            yield this.saveExternalTransactions(blocklist.transactions, block);
-            return blocklist.lastBlock
-                ? yield this.model.setLastBlockByHash(blocklist.lastBlock, currency)
-                    .then(() => [])
-                : Promise.resolve([]);
+            if (fullBlock.transactions.length == 0)
+                return;
+            yield this.saveExternalTransactions(fullBlock.transactions, block);
+            yield this.model.setLastBlock(block.id, currency);
         });
     }
     updatePendingTransactions() {
@@ -111,7 +112,7 @@ class TransactionMonitor {
     }
     update() {
         return this.updatePendingTransactions()
-            .then(() => this.gatherExternalTransactions());
+            .then(() => this.gatherTransactions(this.currency.name));
     }
 }
 exports.TransactionMonitor = TransactionMonitor;

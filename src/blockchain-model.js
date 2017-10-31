@@ -9,11 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const vineyard_blockchain_1 = require("vineyard-blockchain");
-exports.emptyConfirmationHandler = t => Promise.resolve(t);
 class BlockchainModel {
-    constructor(model, confirmationHandler = exports.emptyConfirmationHandler) {
+    constructor(model) {
         this.model = model;
-        this.confirmationHandler = confirmationHandler;
     }
     getTransactionByTxid(txid, currency) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -26,11 +24,6 @@ class BlockchainModel {
     saveTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.model.Transaction.create(transaction);
-        });
-    }
-    onConfirm(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield this.confirmationHandler(transaction);
         });
     }
     setStatus(transaction, status) {
