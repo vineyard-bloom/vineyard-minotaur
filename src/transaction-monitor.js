@@ -57,7 +57,7 @@ class TransactionMonitor {
     saveExternalTransactions(transactions, block) {
         return __awaiter(this, void 0, void 0, function* () {
             for (let transaction of transactions) {
-                if (yield this.transactionHandler.shouldTrackTransaction(transaction)) {
+                if (this.transactionHandler.shouldTrackTransaction(transaction)) {
                     yield this.saveExternalTransaction(transaction, block);
                 }
             }

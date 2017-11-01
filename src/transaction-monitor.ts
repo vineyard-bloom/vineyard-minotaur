@@ -58,7 +58,7 @@ export class TransactionMonitor {
 
   private async saveExternalTransactions(transactions: ExternalTransaction [], block: BlockInfo): Promise<void> {
     for (let transaction of transactions) {
-      if(await this.transactionHandler.shouldTrackTransaction(transaction)) {
+      if(this.transactionHandler.shouldTrackTransaction(transaction)) {
         await this.saveExternalTransaction(transaction, block)
       }
     }
