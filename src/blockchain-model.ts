@@ -15,7 +15,7 @@ export interface Scan {
 
 export interface Model {
   Address: Collection<Address>
-  Block: Collection<BlockInfo>
+  BlockInfo: Collection<BlockInfo>
   Transaction: Collection<Transaction>
   LastBlock: Collection<LastBlock>
   Scan: Collection<Scan>
