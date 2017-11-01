@@ -60,7 +60,7 @@ export class BlockchainModel {
     if (!last)
       return last
 
-    return await this.model.Block.first({id: last.block}).exec()
+    return await this.model.BlockInfo.first({id: last.block}).exec()
   }
 
   async setLastBlock(block: string, currency: string) {
@@ -68,11 +68,11 @@ export class BlockchainModel {
   }
 
   async setLastBlockByHash(hash: string, currency: string) {
-    const block = await this.model.Block.first({hash: hash}).exec()
+    const block = await this.model.BlockInfo.first({hash: hash}).exec()
     return await this.model.LastBlock.update({block: block}, {currency: currency})
   }
 
   async saveBlock(block: BaseBlock): Promise<BlockInfo> {
-    return await this.model.Block.create(block)
+    return await this.model.BlockInfo.create(block)
   }
 }

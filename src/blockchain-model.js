@@ -46,7 +46,7 @@ class BlockchainModel {
             const last = yield this.model.LastBlock.first({ currency: currency }).exec();
             if (!last)
                 return last;
-            return yield this.model.Block.first({ id: last.block }).exec();
+            return yield this.model.BlockInfo.first({ id: last.block }).exec();
         });
     }
     setLastBlock(block, currency) {
@@ -56,13 +56,13 @@ class BlockchainModel {
     }
     setLastBlockByHash(hash, currency) {
         return __awaiter(this, void 0, void 0, function* () {
-            const block = yield this.model.Block.first({ hash: hash }).exec();
+            const block = yield this.model.BlockInfo.first({ hash: hash }).exec();
             return yield this.model.LastBlock.update({ block: block }, { currency: currency });
         });
     }
     saveBlock(block) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.model.Block.create(block);
+            return yield this.model.BlockInfo.create(block);
         });
     }
 }
