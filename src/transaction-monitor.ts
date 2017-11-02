@@ -77,8 +77,15 @@ export class TransactionMonitor {
       : transaction
   }
 
-  async gatherTransactions(currency: string): Promise<void> {
-    const lastBlock = await this.model.getLastBlock(currency)
+   async scanBlocks() {
+    let lastBlock = await this.model.getLastBlock(this.currency.id)
+    do {
+      lastBlock = await this.gatherTransactions(lastBlock)
+    } while (lastBlock)
+   }
+
+  async gatherTransactions(lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined> {
+
     const blockInfo: BlockInfo = await this.client.getNextBlockInfo(lastBlock)
     if (!blockInfo)
       return 
@@ -95,8 +102,10 @@ export class TransactionMonitor {
 
     await this.saveExternalTransactions(fullBlock.transactions, block)
 
-    await this.model.setLastBlock(block.id, currency)
-   
+    await this.model.setLastBlock(block.id, this.currency.id)
+
+    return block
+  
   }
 
   async updatePendingTransactions(): Promise<any> {
@@ -113,6 +122,6 @@ export class TransactionMonitor {
 
   update(): Promise<any> {
     return this.updatePendingTransactions()
-      .then(() => this.gatherTransactions(this.currency.name))
+      .then(() => this.scanBlocks())
   }
 }

@@ -1,4 +1,4 @@
-import { ReadClient, Currency } from 'vineyard-blockchain';
+import { ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
 import { BlockchainModel } from "./blockchain-model";
 import { TransactionHandler } from "./types";
 export declare class TransactionMonitor {
@@ -13,7 +13,8 @@ export declare class TransactionMonitor {
     private saveExternalTransactions(transactions, block);
     private confirmExistingTransaction(transaction);
     private updatePendingTransaction(transaction);
-    gatherTransactions(currency: string): Promise<void>;
+    scanBlocks(): Promise<void>;
+    gatherTransactions(lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined>;
     updatePendingTransactions(): Promise<any>;
     update(): Promise<any>;
 }

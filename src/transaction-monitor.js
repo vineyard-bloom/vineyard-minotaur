@@ -78,9 +78,16 @@ class TransactionMonitor {
                 : transaction;
         });
     }
-    gatherTransactions(currency) {
+    scanBlocks() {
         return __awaiter(this, void 0, void 0, function* () {
-            const lastBlock = yield this.model.getLastBlock(currency);
+            let lastBlock = yield this.model.getLastBlock(this.currency.id);
+            do {
+                lastBlock = yield this.gatherTransactions(lastBlock);
+            } while (lastBlock);
+        });
+    }
+    gatherTransactions(lastBlock) {
+        return __awaiter(this, void 0, void 0, function* () {
             const blockInfo = yield this.client.getNextBlockInfo(lastBlock);
             if (!blockInfo)
                 return;
@@ -94,7 +101,8 @@ class TransactionMonitor {
             if (fullBlock.transactions.length == 0)
                 return;
             yield this.saveExternalTransactions(fullBlock.transactions, block);
-            yield this.model.setLastBlock(block.id, currency);
+            yield this.model.setLastBlock(block.id, this.currency.id);
+            return block;
         });
     }
     updatePendingTransactions() {
@@ -112,7 +120,7 @@ class TransactionMonitor {
     }
     update() {
         return this.updatePendingTransactions()
-            .then(() => this.gatherTransactions(this.currency.name));
+            .then(() => this.gatherTransactions(this.currency.id));
     }
 }
 exports.TransactionMonitor = TransactionMonitor;
