@@ -120,7 +120,7 @@ class TransactionMonitor {
     }
     update() {
         return this.updatePendingTransactions()
-            .then(() => this.gatherTransactions(this.currency.id));
+            .then(() => this.scanBlocks());
     }
 }
 exports.TransactionMonitor = TransactionMonitor;
