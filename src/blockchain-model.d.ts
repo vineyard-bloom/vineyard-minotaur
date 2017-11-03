@@ -29,4 +29,5 @@ export declare class BlockchainModel {
     setLastBlock(block: string, currency: string): Promise<LastBlock>;
     setLastBlockByHash(hash: string, currency: string): Promise<LastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
+    saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock>;
 }

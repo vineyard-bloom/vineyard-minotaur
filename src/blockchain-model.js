@@ -65,6 +65,14 @@ class BlockchainModel {
             return yield this.model.BlockInfo.create(block);
         });
     }
+    saveLastBlock(block, currency) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let lastBlock = block;
+            lastBlock.block = block.index;
+            lastBlock.currency = currency;
+            return yield this.model.LastBlock.create(lastBlock);
+        });
+    }
 }
 exports.BlockchainModel = BlockchainModel;
 //# sourceMappingURL=blockchain-model.js.map
