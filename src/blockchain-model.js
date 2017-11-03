@@ -67,8 +67,8 @@ class BlockchainModel {
     }
     saveLastBlock(block, currency) {
         return __awaiter(this, void 0, void 0, function* () {
-            let lastBlock = block;
-            lastBlock.block = block.index;
+            let lastBlock;
+            lastBlock.block = block;
             lastBlock.currency = currency;
             return yield this.model.LastBlock.create(lastBlock);
         });

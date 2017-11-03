@@ -77,8 +77,8 @@ export class BlockchainModel {
   }
 
   async saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock> {
-    let lastBlock: any = block
-    lastBlock.block = block.index
+    let lastBlock: any
+    lastBlock.block = block
     lastBlock.currency = currency
     return await this.model.LastBlock.create(lastBlock)
   }
