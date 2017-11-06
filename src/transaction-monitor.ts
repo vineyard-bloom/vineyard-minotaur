@@ -1,4 +1,12 @@
-import {ExternalTransaction, Transaction, TransactionStatus, ReadClient, Currency, FullBlock, BlockInfo} from 'vineyard-blockchain'
+import {
+  ExternalTransaction,
+  Transaction,
+  TransactionStatus,
+  ReadClient,
+  Currency,
+  FullBlock,
+  BlockInfo
+} from 'vineyard-blockchain'
 import {BlockchainModel} from "./blockchain-model";
 import {TransactionHandler} from "./types"
 
@@ -58,7 +66,7 @@ export class TransactionMonitor {
 
   private async saveExternalTransactions(transactions: ExternalTransaction [], block: BlockInfo): Promise<void> {
     for (let transaction of transactions) {
-      if(await this.transactionHandler.shouldTrackTransaction(transaction)) {
+      if (await this.transactionHandler.shouldTrackTransaction(transaction)) {
         await this.saveExternalTransaction(transaction, block)
       }
     }
@@ -71,41 +79,41 @@ export class TransactionMonitor {
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
-    const source = await this.client.getTransaction(transaction.txid)
+    const source = await this.client.getTransactionStatus(transaction.txid)
     return source.confirmations >= this.minimumConfirmations
       ? await this.confirmExistingTransaction(transaction)
       : transaction
   }
 
-   async scanBlocks() {
+  async scanBlocks() {
     let lastBlock = await this.model.getLastBlock(this.currency.id)
     do {
       lastBlock = await this.gatherTransactions(lastBlock)
     } while (lastBlock)
-   }
+  }
 
   async gatherTransactions(lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined> {
 
     const blockInfo: BlockInfo = await this.client.getNextBlockInfo(lastBlock)
     if (!blockInfo)
-      return 
+      return
     const fullBlock: FullBlock = await this.client.getFullBlock(blockInfo)
     const block = await this.model.saveBlock({
       hash: fullBlock.hash,
-      index: fullBlock.index,
+      index: fullBlock.index || 0,
       timeMined: fullBlock.timeMined,
       currency: this.currency.id
     })
 
     if (fullBlock.transactions.length == 0)
-      return 
+      return
 
     await this.saveExternalTransactions(fullBlock.transactions, block)
 
     await this.model.setLastBlock(block.id, this.currency.id)
 
     return block
-  
+
   }
 
   async updatePendingTransactions(): Promise<any> {

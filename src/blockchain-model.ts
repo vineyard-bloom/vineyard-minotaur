@@ -73,6 +73,14 @@ export class BlockchainModel {
   }
 
   async saveBlock(block: BaseBlock): Promise<BlockInfo> {
+    const filter = block.hash
+    ? { currency: block.currency, hash: block.hash }
+    : { currency: block.currency, index: block.index }
+
+    const existing = await this.model.BlockInfo.first(filter)
+    if (existing)
+      return existing;
+
     return await this.model.BlockInfo.create(block)
   }
 

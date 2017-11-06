@@ -62,6 +62,12 @@ class BlockchainModel {
     }
     saveBlock(block) {
         return __awaiter(this, void 0, void 0, function* () {
+            const filter = block.hash
+                ? { currency: block.currency, hash: block.hash }
+                : { currency: block.currency, index: block.index };
+            const existing = yield this.model.BlockInfo.first(filter);
+            if (existing)
+                return existing;
             return yield this.model.BlockInfo.create(block);
         });
     }

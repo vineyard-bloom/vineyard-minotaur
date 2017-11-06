@@ -72,7 +72,7 @@ class TransactionMonitor {
     }
     updatePendingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const source = yield this.client.getTransaction(transaction.txid);
+            const source = yield this.client.getTransactionStatus(transaction.txid);
             return source.confirmations >= this.minimumConfirmations
                 ? yield this.confirmExistingTransaction(transaction)
                 : transaction;
@@ -94,7 +94,7 @@ class TransactionMonitor {
             const fullBlock = yield this.client.getFullBlock(blockInfo);
             const block = yield this.model.saveBlock({
                 hash: fullBlock.hash,
-                index: fullBlock.index,
+                index: fullBlock.index || 0,
                 timeMined: fullBlock.timeMined,
                 currency: this.currency.id
             });
