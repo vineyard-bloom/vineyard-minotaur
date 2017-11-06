@@ -79,10 +79,11 @@ export class TransactionMonitor {
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
-    const source = await this.client.getTransactionStatus(transaction.txid)
-    return source.confirmations >= this.minimumConfirmations
-      ? await this.confirmExistingTransaction(transaction)
-      : transaction
+    const status = await this.client.getTransactionStatus(transaction.txid)
+    if (status == TransactionStatus.pending)
+      return await this.confirmExistingTransaction(transaction)
+
+    return transaction
   }
 
   async scanBlocks() {
@@ -97,10 +98,16 @@ export class TransactionMonitor {
     const blockInfo: BlockInfo = await this.client.getNextBlockInfo(lastBlock)
     if (!blockInfo)
       return
-    const fullBlock: FullBlock = await this.client.getFullBlock(blockInfo)
+
+    const fullBlock = await this.client.getFullBlock(blockInfo)
+    if (!fullBlock) {
+      console.error('Invalid block', blockInfo)
+      return undefined
+    }
+
     const block = await this.model.saveBlock({
       hash: fullBlock.hash,
-      index: fullBlock.index || 0,
+      index: fullBlock.index,
       timeMined: fullBlock.timeMined,
       currency: this.currency.id
     })
@@ -116,8 +123,8 @@ export class TransactionMonitor {
 
   }
 
-  async updatePendingTransactions(): Promise<any> {
-    const transactions = await this.model.listPending(this.currency.id)
+  async updatePendingTransactions(maxBlockIndex: number): Promise<any> {
+    const transactions = await this.model.listPending(this.currency.id, maxBlockIndex)
     for (let transaction of transactions) {
       try {
         await this.updatePendingTransaction(transaction)
@@ -128,8 +135,9 @@ export class TransactionMonitor {
     }
   }
 
-  update(): Promise<any> {
-    return this.updatePendingTransactions()
-      .then(() => this.scanBlocks())
+  async update(): Promise<any> {
+    const block = await this.client.getLastBlock()
+    await this.updatePendingTransactions(block.index - this.minimumConfirmations)
+    await this.scanBlocks()
   }
 }

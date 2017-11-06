@@ -72,10 +72,10 @@ class TransactionMonitor {
     }
     updatePendingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const source = yield this.client.getTransactionStatus(transaction.txid);
-            return source.confirmations >= this.minimumConfirmations
-                ? yield this.confirmExistingTransaction(transaction)
-                : transaction;
+            const status = yield this.client.getTransactionStatus(transaction.txid);
+            if (status == vineyard_blockchain_1.TransactionStatus.pending)
+                return yield this.confirmExistingTransaction(transaction);
+            return transaction;
         });
     }
     scanBlocks() {
@@ -92,9 +92,13 @@ class TransactionMonitor {
             if (!blockInfo)
                 return;
             const fullBlock = yield this.client.getFullBlock(blockInfo);
+            if (!fullBlock) {
+                console.error('Invalid block', blockInfo);
+                return undefined;
+            }
             const block = yield this.model.saveBlock({
                 hash: fullBlock.hash,
-                index: fullBlock.index || 0,
+                index: fullBlock.index,
                 timeMined: fullBlock.timeMined,
                 currency: this.currency.id
             });
@@ -105,9 +109,9 @@ class TransactionMonitor {
             return block;
         });
     }
-    updatePendingTransactions() {
+    updatePendingTransactions(maxBlockIndex) {
         return __awaiter(this, void 0, void 0, function* () {
-            const transactions = yield this.model.listPending(this.currency.id);
+            const transactions = yield this.model.listPending(this.currency.id, maxBlockIndex);
             for (let transaction of transactions) {
                 try {
                     yield this.updatePendingTransaction(transaction);
@@ -119,8 +123,11 @@ class TransactionMonitor {
         });
     }
     update() {
-        return this.updatePendingTransactions()
-            .then(() => this.scanBlocks());
+        return __awaiter(this, void 0, void 0, function* () {
+            const block = yield this.client.getLastBlock();
+            yield this.updatePendingTransactions(block.index - this.minimumConfirmations);
+            yield this.scanBlocks();
+        });
     }
 }
 exports.TransactionMonitor = TransactionMonitor;

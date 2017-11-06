@@ -4,6 +4,7 @@ import {Collection, Modeler} from "vineyard-ground"
 export interface TransactionToSave extends BaseTransaction {
   status: TransactionStatus
 }
+
 export interface LastBlock {
   block: string,
   currency: string
@@ -48,11 +49,17 @@ export class BlockchainModel {
     })
   }
 
-  async listPending(currency: string): Promise<Transaction[]> {
-    return await this.model.Transaction.filter({
-      status: TransactionStatus.pending,
+  async listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]> {
+    const sql = `
+    SELECT transactions.* FROM transactions
+    JOIN blocks ON blocks.id = transactions.block
+    AND block.index < :maxBlockIndex
+    WHERE status = 1 AND currency = :currency`
+
+    return await this.model.ground.query(sql, {
+      maxBlockIndex: maxBlockIndex,
       currency: currency
-    }).exec()
+    })
   }
 
   async getLastBlock(currency: string): Promise<BlockInfo | undefined> {
@@ -74,8 +81,8 @@ export class BlockchainModel {
 
   async saveBlock(block: BaseBlock): Promise<BlockInfo> {
     const filter = block.hash
-    ? { currency: block.currency, hash: block.hash }
-    : { currency: block.currency, index: block.index }
+      ? {currency: block.currency, hash: block.hash}
+      : {currency: block.currency, index: block.index}
 
     const existing = await this.model.BlockInfo.first(filter)
     if (existing)

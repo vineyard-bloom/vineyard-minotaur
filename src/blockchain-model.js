@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const vineyard_blockchain_1 = require("vineyard-blockchain");
 class BlockchainModel {
     constructor(model) {
         this.model = model;
@@ -33,12 +32,17 @@ class BlockchainModel {
             });
         });
     }
-    listPending(currency) {
+    listPending(currency, maxBlockIndex) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.model.Transaction.filter({
-                status: vineyard_blockchain_1.TransactionStatus.pending,
+            const sql = `
+    SELECT transactions.* FROM transactions
+    JOIN blocks ON blocks.id = transactions.block
+    AND block.index < :maxBlockIndex
+    WHERE status = 1 AND currency = :currency`;
+            return yield this.model.ground.query(sql, {
+                maxBlockIndex: maxBlockIndex,
                 currency: currency
-            }).exec();
+            });
         });
     }
     getLastBlock(currency) {

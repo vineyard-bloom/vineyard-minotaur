@@ -15,6 +15,6 @@ export declare class TransactionMonitor {
     private updatePendingTransaction(transaction);
     scanBlocks(): Promise<void>;
     gatherTransactions(lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined>;
-    updatePendingTransactions(): Promise<any>;
+    updatePendingTransactions(maxBlockIndex: number): Promise<any>;
     update(): Promise<any>;
 }

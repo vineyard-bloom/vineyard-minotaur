@@ -24,7 +24,7 @@ export declare class BlockchainModel {
     getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined>;
     saveTransaction(transaction: TransactionToSave): Promise<Transaction>;
     setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
-    listPending(currency: string): Promise<Transaction[]>;
+    listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]>;
     getLastBlock(currency: string): Promise<BlockInfo | undefined>;
     setLastBlock(block: string, currency: string): Promise<LastBlock>;
     setLastBlockByHash(hash: string, currency: string): Promise<LastBlock>;
