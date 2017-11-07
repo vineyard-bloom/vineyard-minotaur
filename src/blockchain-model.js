@@ -55,7 +55,13 @@ class BlockchainModel {
     }
     setLastBlock(block, currency) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.model.LastBlock.update({ block: block }, { currency: currency });
+            const exists = yield this.getLastBlock(currency);
+            if (exists) {
+                return yield this.model.LastBlock.update({ block: block }, { currency: currency });
+            }
+            else {
+                yield this.model.LastBlock.create({ block: block });
+            }
         });
     }
     setLastBlockByHash(hash, currency) {

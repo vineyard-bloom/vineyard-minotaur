@@ -26,7 +26,7 @@ export declare class BlockchainModel {
     setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
     listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]>;
     getLastBlock(currency: string): Promise<BlockInfo | undefined>;
-    setLastBlock(block: string, currency: string): Promise<LastBlock>;
+    setLastBlock(block: string, currency: string): Promise<LastBlock | undefined>;
     setLastBlockByHash(hash: string, currency: string): Promise<LastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
     saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock>;

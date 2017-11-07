@@ -71,7 +71,12 @@ export class BlockchainModel {
   }
 
   async setLastBlock(block: string, currency: string) {
-    return await this.model.LastBlock.update({block: block}, {currency: currency})
+    const exists = await this.getLastBlock(currency)
+    if(exists) {
+      return await this.model.LastBlock.update({block: block}, {currency: currency})
+    } else {
+      await this.model.LastBlock.create({block: block})
+    }
   }
 
   async setLastBlockByHash(hash: string, currency: string) {
