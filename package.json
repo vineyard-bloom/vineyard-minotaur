@@ -1,6 +1,6 @@
 {
   "name": "vineyard-blockchain-monitor",
-  "version": "1.0.0-beta.8",
+  "version": "1.0.0-beta.9",
   "description": "Monitors blockchains using the Vineyard Blockchain Protocol",
   "main": "src/index.js",
   "types": "src/index.d.ts",
