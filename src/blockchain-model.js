@@ -37,8 +37,8 @@ class BlockchainModel {
             const sql = `
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
-    AND block.index < :maxBlockIndex
-    WHERE status = 1 AND currency = :currency`;
+    AND blocks.index < :maxBlockIndex
+    WHERE status = 1 AND transactions.currency = :currency`;
             return yield this.model.ground.query(sql, {
                 maxBlockIndex: maxBlockIndex,
                 currency: currency
