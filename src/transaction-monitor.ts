@@ -112,9 +112,6 @@ export class TransactionMonitor {
       currency: this.currency.id
     })
 
-    if (fullBlock.transactions.length == 0)
-      return
-
     await this.saveExternalTransactions(fullBlock.transactions, block)
 
     await this.model.setLastBlock(block.id, this.currency.id)
