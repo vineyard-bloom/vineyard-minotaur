@@ -44,16 +44,13 @@ export class TransactionMonitor {
     }
 
     try {
-      if(source.time) {
-        source.timeReceived = source.time 
-      }
       const transaction = await this.model.saveTransaction({
         txid: source.txid,
         to: source.to,
         from: source.from,
         status: this.convertStatus(source),
         amount: source.amount,
-        timeReceived: source.timeReceived,
+        timeReceived: source.timeReceived || source.timereceived,
         block: block.id
       })
 
@@ -67,7 +64,7 @@ export class TransactionMonitor {
     }
   }
 
-  private async saveExternalTransactions(transactions: ExternalTransaction [], block: BlockInfo): Promise<void> {
+  private async saveExternalTransactions(transactions: ExternalTransaction[], block: BlockInfo): Promise<void> {
     for (let transaction of transactions) {
       if (await this.transactionHandler.shouldTrackTransaction(transaction)) {
         await this.saveExternalTransaction(transaction, block)

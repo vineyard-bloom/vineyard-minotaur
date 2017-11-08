@@ -35,16 +35,13 @@ class TransactionMonitor {
                 return undefined;
             }
             try {
-                if (source.time) {
-                    source.timeReceived = source.time;
-                }
                 const transaction = yield this.model.saveTransaction({
                     txid: source.txid,
                     to: source.to,
                     from: source.from,
                     status: this.convertStatus(source),
                     amount: source.amount,
-                    timeReceived: source.timeReceived,
+                    timeReceived: source.timeReceived || source.timereceived,
                     block: block.id
                 });
                 if (source.confirmations >= this.minimumConfirmations) {
