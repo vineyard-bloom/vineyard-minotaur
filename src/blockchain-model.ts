@@ -52,8 +52,8 @@ export class BlockchainModel {
   async listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
-    AND blocks.index < :maxBlockIndex
+    JOIN block_infos ON block_infos.id = transactions.block
+    AND block_infos.index < :maxBlockIndex
     WHERE status = 1 AND transactions.currency = :currency`
 
     return await this.model.ground.query(sql, {

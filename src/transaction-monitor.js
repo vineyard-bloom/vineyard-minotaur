@@ -35,6 +35,9 @@ class TransactionMonitor {
                 return undefined;
             }
             try {
+                if (source.time) {
+                    source.timeReceived = source.time;
+                }
                 const transaction = yield this.model.saveTransaction({
                     txid: source.txid,
                     to: source.to,
