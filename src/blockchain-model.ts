@@ -53,8 +53,8 @@ export class BlockchainModel {
   async listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
-    JOIN block_infos ON block_infos.id = transactions.block
-    AND block_infos.index < :maxBlockIndex
+    JOIN blocks ON blocks.id = transactions.block
+    AND blocks.index < :maxBlockIndex
     WHERE status = 1 AND transactions.currency = :currency`
 
     return await this.model.ground.query(sql, {
@@ -68,7 +68,7 @@ export class BlockchainModel {
     if (!last)
       return last
 
-    return await this.model.BlockInfo.first({id: last.block}).exec()
+    return await this.model.Block.first({id: last.block}).exec()
   }
 
   async setLastBlock(block: string, currency: string) {
@@ -81,7 +81,7 @@ export class BlockchainModel {
   }
 
   async setLastBlockByHash(hash: string, currency: string) {
-    const block = await this.model.BlockInfo.first({hash: hash}).exec()
+    const block = await this.model.Block.first({hash: hash}).exec()
     return await this.model.LastBlock.update({block: block}, {currency: currency})
   }
 
@@ -90,11 +90,11 @@ export class BlockchainModel {
       ? {currency: block.currency, hash: block.hash}
       : {currency: block.currency, index: block.index}
 
-    const existing = await this.model.BlockInfo.first(filter)
+    const existing = await this.model.Block.first(filter)
     if (existing)
       return existing;
 
-    return await this.model.BlockInfo.create(block)
+    return await this.model.Block.create(block)
   }
 
   async saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock> {

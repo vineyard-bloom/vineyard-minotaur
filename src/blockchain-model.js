@@ -36,8 +36,8 @@ class BlockchainModel {
         return __awaiter(this, void 0, void 0, function* () {
             const sql = `
     SELECT transactions.* FROM transactions
-    JOIN block_infos ON block_infos.id = transactions.block
-    AND block_infos.index < :maxBlockIndex
+    JOIN blocks ON blocks.id = transactions.block
+    AND blocks.index < :maxBlockIndex
     WHERE status = 1 AND transactions.currency = :currency`;
             return yield this.model.ground.query(sql, {
                 maxBlockIndex: maxBlockIndex,
@@ -50,7 +50,7 @@ class BlockchainModel {
             const last = yield this.model.LastBlock.first({ currency: currency }).exec();
             if (!last)
                 return last;
-            return yield this.model.BlockInfo.first({ id: last.block }).exec();
+            return yield this.model.Block.first({ id: last.block }).exec();
         });
     }
     setLastBlock(block, currency) {
@@ -66,7 +66,7 @@ class BlockchainModel {
     }
     setLastBlockByHash(hash, currency) {
         return __awaiter(this, void 0, void 0, function* () {
-            const block = yield this.model.BlockInfo.first({ hash: hash }).exec();
+            const block = yield this.model.Block.first({ hash: hash }).exec();
             return yield this.model.LastBlock.update({ block: block }, { currency: currency });
         });
     }
@@ -75,10 +75,10 @@ class BlockchainModel {
             const filter = block.hash
                 ? { currency: block.currency, hash: block.hash }
                 : { currency: block.currency, index: block.index };
-            const existing = yield this.model.BlockInfo.first(filter);
+            const existing = yield this.model.Block.first(filter);
             if (existing)
                 return existing;
-            return yield this.model.BlockInfo.create(block);
+            return yield this.model.Block.create(block);
         });
     }
     saveLastBlock(block, currency) {
