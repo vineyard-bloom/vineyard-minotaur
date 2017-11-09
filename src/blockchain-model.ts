@@ -2,7 +2,8 @@ import {Address, BaseBlock, BaseTransaction, BlockInfo, Transaction, Transaction
 import {Collection, Modeler} from "vineyard-ground"
 
 export interface TransactionToSave extends BaseTransaction {
-  status: TransactionStatus
+  status: TransactionStatus,
+  currency: string
 }
 
 export interface LastBlock {

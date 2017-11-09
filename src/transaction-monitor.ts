@@ -51,7 +51,8 @@ export class TransactionMonitor {
         status: this.convertStatus(source),
         amount: source.amount,
         timeReceived: source.timeReceived || source.timereceived,
-        block: block.id
+        block: block.id,
+        currency: this.currency.id 
       })
 
       if (source.confirmations >= this.minimumConfirmations) {
