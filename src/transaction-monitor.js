@@ -102,6 +102,9 @@ class TransactionMonitor {
                 timeMined: fullBlock.timeMined,
                 currency: this.currency.id
             });
+            if (!fullBlock.transactions) {
+                return block;
+            }
             yield this.saveExternalTransactions(fullBlock.transactions, block);
             yield this.model.setLastBlock(block.id, this.currency.id);
             return block;

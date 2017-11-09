@@ -104,14 +104,15 @@ export class TransactionMonitor {
       console.error('Invalid block', blockInfo)
       return undefined
     }
-
     const block = await this.model.saveBlock({
       hash: fullBlock.hash,
       index: fullBlock.index,
       timeMined: fullBlock.timeMined,
       currency: this.currency.id
     })
-
+    if (!fullBlock.transactions) {
+      return block
+    }
     await this.saveExternalTransactions(fullBlock.transactions, block)
 
     await this.model.setLastBlock(block.id, this.currency.id)
