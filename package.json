@@ -1,13 +1,13 @@
 {
-  "name": "vineyard-blockchain-monitor",
+  "name": "vineyard-minotaur",
   "version": "1.0.0-beta.19",
-  "description": "Monitors blockchains using the Vineyard Blockchain Protocol",
+  "description": "Blockchain monitor",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": "git@github.com:vineyard-bloom/vineyard-blockchain-monitor.git",
+  "repository": "git@github.com:vineyard-bloom/vineyard-minotaur.git",
   "author": "",
   "license": "MIT",
   "dependencies": {

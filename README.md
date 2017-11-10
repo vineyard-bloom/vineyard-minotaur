@@ -1,3 +1,3 @@
-# Vineyard Blockchain Monitor
+# Vineyard Minotaur
 
 Monitors blockchains using the Vineyard Blockchain Protocol
