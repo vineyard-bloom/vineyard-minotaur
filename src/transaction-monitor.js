@@ -41,7 +41,7 @@ class TransactionMonitor {
                     from: source.from,
                     status: this.convertStatus(source),
                     amount: source.amount,
-                    timeReceived: source.timeReceived || source.timereceived,
+                    timeReceived: source.timeReceived,
                     block: block.id,
                     currency: this.currency.id
                 });

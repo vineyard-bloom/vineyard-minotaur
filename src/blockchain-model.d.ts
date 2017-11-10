@@ -1,6 +1,6 @@
-import { Address, BaseBlock, BaseTransaction, BlockInfo, Transaction, TransactionStatus } from "vineyard-blockchain";
+import { Address, BaseBlock, BlockInfo, NewSingleTransaction, SingleTransaction as Transaction, TransactionStatus } from "vineyard-blockchain";
 import { Collection, Modeler } from "vineyard-ground";
-export interface TransactionToSave extends BaseTransaction {
+export interface TransactionToSave extends NewSingleTransaction {
     status: TransactionStatus;
     currency: string;
 }
@@ -13,13 +13,13 @@ export interface Scan {
 }
 export interface Model {
     Address: Collection<Address>;
-    BlockInfo: Collection<BlockInfo>;
+    Block: Collection<BlockInfo>;
     Transaction: Collection<Transaction>;
     LastBlock: Collection<LastBlock>;
     Scan: Collection<Scan>;
     ground: Modeler;
 }
-export declare class BlockchainModel {
+export declare class SingleTransactionBlockchainModel {
     model: Model;
     constructor(model: Model);
     getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined>;

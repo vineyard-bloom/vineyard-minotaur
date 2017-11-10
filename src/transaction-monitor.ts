@@ -1,23 +1,23 @@
 import {
-  ExternalTransaction,
-  Transaction,
+  ExternalSingleTransaction as ExternalTransaction,
+  SingleTransaction as Transaction,
   TransactionStatus,
   ReadClient,
   Currency,
   FullBlock,
   BlockInfo
 } from 'vineyard-blockchain'
-import {BlockchainModel} from "./blockchain-model";
+import {SingleTransactionBlockchainModel} from "./blockchain-model";
 import {TransactionHandler} from "./types"
 
 export class TransactionMonitor {
-  private model: BlockchainModel
-  private client: ReadClient
+  private model: SingleTransactionBlockchainModel
+  private client: ReadClient<ExternalTransaction>
   private currency: Currency
   private minimumConfirmations: number
   private transactionHandler: TransactionHandler
 
-  constructor(model: BlockchainModel, client: ReadClient, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
+  constructor(model: SingleTransactionBlockchainModel, client: ReadClient<ExternalTransaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
     this.model = model;
     this.client = client;
     this.currency = currency;
@@ -50,7 +50,7 @@ export class TransactionMonitor {
         from: source.from,
         status: this.convertStatus(source),
         amount: source.amount,
-        timeReceived: source.timeReceived || source.timereceived,
+        timeReceived: source.timeReceived,
         block: block.id,
         currency: this.currency.id 
       })
