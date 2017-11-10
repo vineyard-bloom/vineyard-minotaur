@@ -10,7 +10,7 @@ import {
 import {SingleTransactionBlockchainModel} from "./blockchain-model";
 import {TransactionHandler} from "./types"
 
-export class TransactionMonitor {
+export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
   private client: ReadClient<ExternalTransaction>
   private currency: Currency

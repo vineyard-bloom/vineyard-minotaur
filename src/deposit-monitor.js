@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const vineyard_blockchain_1 = require("vineyard-blockchain");
-class TransactionMonitor {
+class DepositMonitor {
     constructor(model, client, currency, minimumConfirmations, transactionHandler) {
         this.model = model;
         this.client = client;
@@ -132,5 +132,5 @@ class TransactionMonitor {
         });
     }
 }
-exports.TransactionMonitor = TransactionMonitor;
-//# sourceMappingURL=transaction-monitor.js.map
+exports.DepositMonitor = DepositMonitor;
+//# sourceMappingURL=deposit-monitor.js.map
