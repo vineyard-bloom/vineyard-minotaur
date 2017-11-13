@@ -1,4 +1,4 @@
-import { SingleTransaction as Transaction, ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
+import { ExternalSingleTransaction as ExternalTransaction, ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
 import { SingleTransactionBlockchainModel } from "./blockchain-model";
 import { TransactionHandler } from "./types";
 export declare class DepositMonitor {
@@ -7,7 +7,7 @@ export declare class DepositMonitor {
     private currency;
     private minimumConfirmations;
     private transactionHandler;
-    constructor(model: SingleTransactionBlockchainModel, client: ReadClient<Transaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler);
+    constructor(model: SingleTransactionBlockchainModel, client: ReadClient<ExternalTransaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler);
     private convertStatus(source);
     private saveExternalTransaction(source, block);
     private saveExternalTransactions(transactions, block);

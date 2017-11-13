@@ -12,12 +12,12 @@ import {TransactionHandler} from "./types"
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
-  private client: ReadClient<Transaction>
+  private client: ReadClient<ExternalTransaction>
   private currency: Currency
   private minimumConfirmations: number
   private transactionHandler: TransactionHandler
 
-  constructor(model: SingleTransactionBlockchainModel, client: ReadClient<Transaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
+  constructor(model: SingleTransactionBlockchainModel, client: ReadClient<ExternalTransaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
     this.model = model;
     this.client = client;
     this.currency = currency;
