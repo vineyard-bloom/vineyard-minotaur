@@ -12,12 +12,12 @@ import {TransactionHandler} from "./types"
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
-  private client: ReadClient<ExternalTransaction>
+  private client: ReadClient<Transaction>
   private currency: Currency
   private minimumConfirmations: number
   private transactionHandler: TransactionHandler
 
-  constructor(model: SingleTransactionBlockchainModel, client: ReadClient<ExternalTransaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
+  constructor(model: SingleTransactionBlockchainModel, client: ReadClient<Transaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler) {
     this.model = model;
     this.client = client;
     this.currency = currency;
@@ -96,7 +96,7 @@ export class DepositMonitor {
 
   async gatherTransactions(lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined> {
 
-    const blockInfo: BlockInfo = await this.client.getNextBlockInfo(lastBlock)
+    const blockInfo = await this.client.getNextBlockInfo(lastBlock)
     if (!blockInfo)
       return
 
