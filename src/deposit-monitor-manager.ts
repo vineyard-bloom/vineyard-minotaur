@@ -25,7 +25,7 @@ export interface Model {
   ground: Modeler
 }
 
-export class SingleTransactionBlockchainModel {
+export class DepositMonitorManager {
   model: Model
 
   constructor(model: Model) {
@@ -104,3 +104,6 @@ export class SingleTransactionBlockchainModel {
     return await this.model.LastBlock.create(lastBlock)
   }
 }
+
+export type SingleTransactionBlockchainManager = DepositMonitorManager
+export type SingleTransactionBlockchainModel = DepositMonitorManager

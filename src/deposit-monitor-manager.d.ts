@@ -19,7 +19,7 @@ export interface Model {
     Scan: Collection<Scan>;
     ground: Modeler;
 }
-export declare class SingleTransactionBlockchainModel {
+export declare class DepositMonitorManager {
     model: Model;
     constructor(model: Model);
     getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined>;
@@ -32,3 +32,5 @@ export declare class SingleTransactionBlockchainModel {
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
     saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock>;
 }
+export declare type SingleTransactionBlockchainManager = DepositMonitorManager;
+export declare type SingleTransactionBlockchainModel = DepositMonitorManager;

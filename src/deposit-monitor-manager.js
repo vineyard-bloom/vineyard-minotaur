@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-class SingleTransactionBlockchainModel {
+class DepositMonitorManager {
     constructor(model) {
         this.model = model;
     }
@@ -90,5 +90,5 @@ class SingleTransactionBlockchainModel {
         });
     }
 }
-exports.SingleTransactionBlockchainModel = SingleTransactionBlockchainModel;
-//# sourceMappingURL=blockchain-model.js.map
+exports.DepositMonitorManager = DepositMonitorManager;
+//# sourceMappingURL=deposit-monitor-manager.js.map

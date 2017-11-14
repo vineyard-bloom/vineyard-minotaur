@@ -7,7 +7,7 @@ import {
   FullBlock,
   BlockInfo
 } from 'vineyard-blockchain'
-import {SingleTransactionBlockchainModel} from "./blockchain-model";
+import {SingleTransactionBlockchainModel} from "./deposit-monitor-manager";
 import {TransactionHandler} from "./types"
 
 export class DepositMonitor {

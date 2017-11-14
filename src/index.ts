@@ -1,3 +1,3 @@
 export * from './deposit-monitor'
-export * from './blockchain-model'
+export * from './deposit-monitor-manager'
 export * from './types'

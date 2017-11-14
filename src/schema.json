@@ -1,0 +1,8 @@
+{
+  "BitcoinTransaction": {
+    "properties": {
+      "outputIndex": "int",
+      "used": "bool"
+    }
+  }
+}

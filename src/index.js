@@ -4,5 +4,5 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./deposit-monitor"));
-__export(require("./blockchain-model"));
+__export(require("./deposit-monitor-manager"));
 //# sourceMappingURL=index.js.map
