@@ -3,7 +3,7 @@ import {Collection, Modeler} from "vineyard-ground"
 
 export interface TransactionToSave extends NewSingleTransaction {
   status: TransactionStatus,
-  currency: string
+  currency: number
 }
 
 export interface LastBlock {
@@ -32,7 +32,7 @@ export class SingleTransactionBlockchainModel {
     this.model = model;
   }
 
-  async getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined> {
+  async getTransactionByTxid(txid: string, currency: number): Promise<Transaction | undefined> {
     return await this.model.Transaction.first(
       {
         txid: txid,
@@ -50,7 +50,7 @@ export class SingleTransactionBlockchainModel {
     })
   }
 
-  async listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]> {
+  async listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
@@ -63,7 +63,7 @@ export class SingleTransactionBlockchainModel {
     })
   }
 
-  async getLastBlock(currency: string): Promise<BlockInfo | undefined> {
+  async getLastBlock(currency: number): Promise<BlockInfo | undefined> {
     const last = await this.model.LastBlock.first({currency: currency}).exec()
     if (!last)
       return last
@@ -71,7 +71,7 @@ export class SingleTransactionBlockchainModel {
     return await this.model.Block.first({id: last.block}).exec()
   }
 
-  async setLastBlock(block: string, currency: string) {
+  async setLastBlock(block: string, currency: number) {
     const exists = await this.getLastBlock(currency)
     if(exists) {
       return await this.model.LastBlock.update({block: block}, {currency: currency})
@@ -80,7 +80,7 @@ export class SingleTransactionBlockchainModel {
     }
   }
 
-  async setLastBlockByHash(hash: string, currency: string) {
+  async setLastBlockByHash(hash: string, currency: number) {
     const block = await this.model.Block.first({hash: hash}).exec()
     return await this.model.LastBlock.update({block: block}, {currency: currency})
   }
@@ -97,7 +97,7 @@ export class SingleTransactionBlockchainModel {
     return await this.model.Block.create(block)
   }
 
-  async saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock> {
+  async saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock> {
     let lastBlock: any
     lastBlock.block = block
     lastBlock.currency = currency

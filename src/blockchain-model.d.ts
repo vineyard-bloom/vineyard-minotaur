@@ -2,7 +2,7 @@ import { Address, BaseBlock, BlockInfo, NewSingleTransaction, SingleTransaction 
 import { Collection, Modeler } from "vineyard-ground";
 export interface TransactionToSave extends NewSingleTransaction {
     status: TransactionStatus;
-    currency: string;
+    currency: number;
 }
 export interface LastBlock {
     block: string;
@@ -22,13 +22,13 @@ export interface Model {
 export declare class SingleTransactionBlockchainModel {
     model: Model;
     constructor(model: Model);
-    getTransactionByTxid(txid: string, currency: string): Promise<Transaction | undefined>;
+    getTransactionByTxid(txid: string, currency: number): Promise<Transaction | undefined>;
     saveTransaction(transaction: TransactionToSave): Promise<Transaction>;
     setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
-    listPending(currency: string, maxBlockIndex: number): Promise<Transaction[]>;
-    getLastBlock(currency: string): Promise<BlockInfo | undefined>;
-    setLastBlock(block: string, currency: string): Promise<LastBlock | undefined>;
-    setLastBlockByHash(hash: string, currency: string): Promise<LastBlock>;
+    listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]>;
+    getLastBlock(currency: number): Promise<BlockInfo | undefined>;
+    setLastBlock(block: string, currency: number): Promise<LastBlock | undefined>;
+    setLastBlockByHash(hash: string, currency: number): Promise<LastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
-    saveLastBlock(block: BaseBlock, currency: string): Promise<LastBlock>;
+    saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock>;
 }
