@@ -1,5 +1,5 @@
 import { ExternalSingleTransaction as ExternalTransaction, ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
-import { SingleTransactionBlockchainModel } from "./blockchain-model";
+import { SingleTransactionBlockchainModel } from "./deposit-monitor-manager";
 import { TransactionHandler } from "./types";
 export declare class DepositMonitor {
     private model;
