@@ -27,7 +27,7 @@ export declare class DepositMonitorManager {
     setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
     listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]>;
     getLastBlock(currency: number): Promise<BlockInfo | undefined>;
-    setLastBlock(block: string, currency: number): Promise<LastBlock | undefined>;
+    setLastBlock(block: string, currency: number): Promise<any>;
     setLastBlockByHash(hash: string, currency: number): Promise<LastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
     saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock>;

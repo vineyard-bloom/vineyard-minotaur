@@ -1,4 +1,12 @@
-import {Address, BaseBlock, BaseTransaction, BlockInfo, NewSingleTransaction, SingleTransaction as Transaction, TransactionStatus} from "vineyard-blockchain"
+import {
+  Address,
+  BaseBlock,
+  BaseTransaction,
+  BlockInfo,
+  NewSingleTransaction,
+  SingleTransaction as Transaction,
+  TransactionStatus
+} from "vineyard-blockchain"
 import {Collection, Modeler} from "vineyard-ground"
 
 export interface TransactionToSave extends NewSingleTransaction {
@@ -73,8 +81,12 @@ export class DepositMonitorManager {
 
   async setLastBlock(block: string, currency: number) {
     const exists = await this.getLastBlock(currency)
-    if(exists) {
-      return await this.model.LastBlock.update({block: block}, {currency: currency})
+    if (exists) {
+      const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`
+      return await this.model.ground.query(sql, {
+        block: block,
+        currency: currency,
+      })
     } else {
       await this.model.LastBlock.create({block: block, currency: currency})
     }

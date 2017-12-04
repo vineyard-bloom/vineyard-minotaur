@@ -57,7 +57,11 @@ class DepositMonitorManager {
         return __awaiter(this, void 0, void 0, function* () {
             const exists = yield this.getLastBlock(currency);
             if (exists) {
-                return yield this.model.LastBlock.update({ block: block }, { currency: currency });
+                const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`;
+                return yield this.model.ground.query(sql, {
+                    block: block,
+                    currency: currency,
+                });
             }
             else {
                 yield this.model.LastBlock.create({ block: block, currency: currency });
