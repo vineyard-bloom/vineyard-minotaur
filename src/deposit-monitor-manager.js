@@ -60,7 +60,7 @@ class DepositMonitorManager {
                 return yield this.model.LastBlock.update({ block: block }, { currency: currency });
             }
             else {
-                yield this.model.LastBlock.create({ block: block });
+                yield this.model.LastBlock.create({ block: block, currency: currency });
             }
         });
     }

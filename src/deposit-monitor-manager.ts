@@ -76,7 +76,7 @@ export class DepositMonitorManager {
     if(exists) {
       return await this.model.LastBlock.update({block: block}, {currency: currency})
     } else {
-      await this.model.LastBlock.create({block: block})
+      await this.model.LastBlock.create({block: block, currency: currency})
     }
   }
 
