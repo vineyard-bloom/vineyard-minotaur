@@ -1,10 +1,4 @@
 {
-  "BitcoinTransaction": {
-    "properties": {
-      "outputIndex": "int",
-      "used": "bool"
-    }
-  },
   "LastBlock": {
     "properties": {
       "block": {
@@ -15,5 +9,5 @@
         "unique": true
       }
     }
-  },
+  }
 }
