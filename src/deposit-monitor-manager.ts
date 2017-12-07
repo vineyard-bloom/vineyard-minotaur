@@ -63,7 +63,7 @@ export class DepositMonitorManager {
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
     AND blocks.index < :maxBlockIndex
-    WHERE status = 1 AND transactions.currency = :currency`
+    WHERE status = 0 AND transactions.currency = :currency`
 
     return await this.model.ground.query(sql, {
       maxBlockIndex: maxBlockIndex,
