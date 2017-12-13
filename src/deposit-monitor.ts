@@ -136,7 +136,7 @@ export class DepositMonitor {
 
   async update(): Promise<any> {
     const block = await this.client.getBlockIndex()
-    await this.updatePendingTransactions(block.index - this.minimumConfirmations)
+    await this.updatePendingTransactions(block - this.minimumConfirmations)
     await this.scanBlocks()
   }
 }
