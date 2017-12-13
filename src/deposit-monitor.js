@@ -126,7 +126,7 @@ class DepositMonitor {
     }
     update() {
         return __awaiter(this, void 0, void 0, function* () {
-            const block = yield this.client.getLastBlock();
+            const block = yield this.client.getBlockIndex();
             yield this.updatePendingTransactions(block.index - this.minimumConfirmations);
             yield this.scanBlocks();
         });
