@@ -9,12 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const types_1 = require("vineyard-blockchain/src/types");
-function convertStatus(minimumConfirmations, source) {
-    return source.confirmations >= minimumConfirmations
-        ? types_1.TransactionStatus.accepted
-        : types_1.TransactionStatus.pending;
-}
-function saveExternalTransaction(dao, currency, onConfirm, minimumConfirmations, source, block) {
+function saveExternalTransaction(dao, source, block) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const existing = yield dao.getTransactionByTxid(source.txid);
@@ -27,19 +22,15 @@ function saveExternalTransaction(dao, currency, onConfirm, minimumConfirmations,
             return undefined;
         }
         try {
-            const transaction = yield dao.saveTransaction({
+            yield dao.saveTransaction({
                 txid: source.txid,
                 to: source.to,
                 from: source.from,
-                status: convertStatus(minimumConfirmations, source),
+                status: types_1.TransactionStatus.accepted,
                 amount: source.amount,
                 timeReceived: source.timeReceived,
-                block: block.id,
-                currency: currency
+                block: block.id
             });
-            if (source.confirmations >= minimumConfirmations) {
-                return yield onConfirm(transaction);
-            }
         }
         catch (error) {
             console.error('Error saving transaction', error, source);
@@ -59,34 +50,6 @@ function isReadyToConfirm(dao, transaction) {
         return !!transactionFromDatabase && transactionFromDatabase.status == types_1.TransactionStatus.pending;
     });
 }
-function gatherTransactions(dao, shouldTrackTransaction, saveTransaction, client, currency, lastBlock) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const blockInfo = yield client.getNextBlockInfo(lastBlock);
-        if (!blockInfo)
-            return;
-        const fullBlock = yield client.getFullBlock(blockInfo);
-        if (!fullBlock) {
-            console.error('Invalid block', blockInfo);
-            return undefined;
-        }
-        const block = yield dao.blockDao.saveBlock({
-            hash: fullBlock.hash,
-            index: fullBlock.index,
-            timeMined: fullBlock.timeMined,
-            currency: currency
-        });
-        if (!fullBlock.transactions) {
-            return block;
-        }
-        for (let transaction of fullBlock.transactions) {
-            if (yield shouldTrackTransaction(transaction)) {
-                yield saveTransaction(transaction, block);
-            }
-        }
-        yield dao.lastBlockDao.setLastBlock(block.id);
-        return block;
-    });
-}
 function updatePendingTransactions(dao, onConfirm, currency, maxBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
         const transactions = yield dao.transactionDao.listPendingTransactions(maxBlockIndex);
@@ -103,16 +66,39 @@ function updatePendingTransactions(dao, onConfirm, currency, maxBlockIndex) {
         }
     });
 }
-function scanBlocksStandard(dao, client, shouldTrackTransaction, onConfirm, minimumConfirmations, currency) {
+function scanBlock(dao, client) {
     return __awaiter(this, void 0, void 0, function* () {
         const block = yield client.getBlockIndex();
-        yield updatePendingTransactions(dao, onConfirm, currency, block - minimumConfirmations);
-        const saveTransaction = saveExternalTransaction.bind(null, dao.transactionDao, currency, onConfirm, minimumConfirmations);
-        let lastBlock = yield dao.lastBlockDao.getLastBlock();
-        do {
-            lastBlock = yield gatherTransactions(dao, shouldTrackTransaction, saveTransaction, client, currency, lastBlock);
-        } while (lastBlock);
     });
 }
-exports.scanBlocksStandard = scanBlocksStandard;
-//# sourceMappingURL=monitor-logic.js.map
+exports.scanBlock = scanBlock;
+function scanExplorerBlocks(dao, client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let lastBlock = yield dao.lastBlockDao.getLastBlock();
+        do {
+            const blockInfo = yield client.getNextBlockInfo(lastBlock);
+            if (!blockInfo)
+                return;
+            const fullBlock = yield client.getFullBlock(blockInfo);
+            if (!fullBlock) {
+                console.error('Invalid block', blockInfo);
+                return undefined;
+            }
+            const block = yield dao.blockDao.saveBlock({
+                hash: fullBlock.hash,
+                index: fullBlock.index,
+                timeMined: fullBlock.timeMined
+            });
+            if (!fullBlock.transactions) {
+                return block;
+            }
+            for (let transaction of fullBlock.transactions) {
+                saveExternalTransaction(dao.transactionDao, transaction, block);
+            }
+            yield dao.lastBlockDao.setLastBlock(block.id);
+            lastBlock = block;
+        } while (true);
+    });
+}
+exports.scanExplorerBlocks = scanExplorerBlocks;
+//# sourceMappingURL=monitor-logic-new.js.map

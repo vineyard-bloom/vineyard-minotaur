@@ -4,4 +4,8 @@ function getFullMinotaurSchema() {
     return require('./schema.json');
 }
 exports.getFullMinotaurSchema = getFullMinotaurSchema;
-//# sourceMappingURL=schema.js.map
+function getEthereumExplorerSchema() {
+    return require('./ethereum-explorer-schema.json');
+}
+exports.getEthereumExplorerSchema = getEthereumExplorerSchema;
+//# sourceMappingURL=index.js.map

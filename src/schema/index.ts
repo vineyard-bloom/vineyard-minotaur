@@ -10,3 +10,7 @@ export interface FullSchema {
 export function getFullMinotaurSchema(): FullSchema {
   return require('./schema.json')
 }
+
+export function getEthereumExplorerSchema(): FullSchema {
+  return require('./ethereum-explorer-schema.json')
+}

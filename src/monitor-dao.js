@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-function getTransactionByTxid(transactionCollection, txid, currency) {
+function getTransactionByTxidAndCurrency(transactionCollection, txid, currency) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield transactionCollection.first({
             txid: txid,
@@ -16,11 +16,13 @@ function getTransactionByTxid(transactionCollection, txid, currency) {
         }).exec();
     });
 }
+exports.getTransactionByTxidAndCurrency = getTransactionByTxidAndCurrency;
 function saveTransaction(transactionCollection, transaction) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield transactionCollection.create(transaction);
     });
 }
+exports.saveTransaction = saveTransaction;
 function setStatus(transactionCollection, transaction, status) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield transactionCollection.update(transaction, {
@@ -28,6 +30,7 @@ function setStatus(transactionCollection, transaction, status) {
         });
     });
 }
+exports.setStatus = setStatus;
 function listPendingTransactions(ground, transactionCollection, currency, maxBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
         const sql = `
@@ -41,15 +44,17 @@ function listPendingTransactions(ground, transactionCollection, currency, maxBlo
         });
     });
 }
+exports.listPendingTransactions = listPendingTransactions;
 function getLastBlock(ground, currency) {
     return __awaiter(this, void 0, void 0, function* () {
         const sql = `
   SELECT * FROM blocks
-  JOIN last_blocks ON lastblocks.block = blocks.id
+  JOIN last_blocks ON last_blocks.block = blocks.id
   `;
         return ground.querySingle(sql);
     });
 }
+exports.getLastBlock = getLastBlock;
 function setLastBlock(ground, block, currency) {
     return __awaiter(this, void 0, void 0, function* () {
         const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`;
@@ -59,6 +64,7 @@ function setLastBlock(ground, block, currency) {
         });
     });
 }
+exports.setLastBlock = setLastBlock;
 function saveBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const filter = block.hash
@@ -70,16 +76,36 @@ function saveBlock(blockCollection, block) {
         return yield blockCollection.create(block);
     });
 }
-function createMonitorDao(model) {
+exports.saveBlock = saveBlock;
+function createBlockDao(model) {
+    return {
+        saveBlock: saveBlock.bind(null, model.Block)
+    };
+}
+exports.createBlockDao = createBlockDao;
+function createLastBlockDao(model) {
     const ground = model.ground;
     return {
-        getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
+        getLastBlock: getLastBlock.bind(null, ground),
+        setLastBlock: setLastBlock.bind(null, ground)
+    };
+}
+exports.createLastBlockDao = createLastBlockDao;
+function createTransactionDao(model) {
+    const ground = model.ground;
+    return {
+        getTransactionByTxid: getTransactionByTxidAndCurrency.bind(null, model.Transaction),
         saveTransaction: saveTransaction.bind(null, model.Transaction),
         setStatus: setStatus.bind(null, model.Transaction),
         listPendingTransactions: listPendingTransactions.bind(null, ground),
-        getLastBlock: getLastBlock.bind(null, ground),
-        setLastBlock: setLastBlock.bind(null, ground),
-        saveBlock: saveBlock.bind(null, model.Block)
+    };
+}
+exports.createTransactionDao = createTransactionDao;
+function createMonitorDao(model) {
+    return {
+        blockDao: createBlockDao(model),
+        lastBlockDao: createLastBlockDao(model),
+        transactionDao: createTransactionDao(model)
     };
 }
 exports.createMonitorDao = createMonitorDao;

@@ -3,4 +3,5 @@ import { MonitorDao } from "./types";
 export declare type TransactionDelegate = (transaction: Transaction) => Promise<Transaction>;
 export declare type TransactionCheck = (transaction: ExternalTransaction) => Promise<boolean>;
 export declare type TransactionSaver = (source: ExternalTransaction, block: BlockInfo) => Promise<Transaction | undefined>;
-export declare function scanBlocksStandard(dao: MonitorDao, client: ReadClient<ExternalTransaction>, shouldTrackTransaction: TransactionCheck, onConfirm: TransactionDelegate, minimumConfirmations: number, currency: number): Promise<any>;
+export declare function scanBlock(dao: MonitorDao, client: ReadClient<ExternalTransaction>): Promise<void>;
+export declare function scanExplorerBlocks(dao: MonitorDao, client: ReadClient<ExternalTransaction>): Promise<any>;

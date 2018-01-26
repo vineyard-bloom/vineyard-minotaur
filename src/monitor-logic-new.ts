@@ -8,15 +8,7 @@ export type TransactionDelegate = (transaction: Transaction) => Promise<Transact
 export type TransactionCheck = (transaction: ExternalTransaction) => Promise<boolean>
 export type TransactionSaver = (source: ExternalTransaction, block: BlockInfo) => Promise<Transaction | undefined>
 
-function convertStatus(minimumConfirmations: number, source: ExternalTransaction) {
-  return source.confirmations >= minimumConfirmations
-    ? TransactionStatus.accepted
-    : TransactionStatus.pending
-}
-
-async function saveExternalTransaction(dao: TransactionDao, currency: number,
-                                       onConfirm: TransactionDelegate,
-                                       minimumConfirmations: number,
+async function saveExternalTransaction(dao: TransactionDao,
                                        source: ExternalTransaction,
                                        block: BlockInfo): Promise<Transaction | undefined> {
   try {
@@ -31,20 +23,15 @@ async function saveExternalTransaction(dao: TransactionDao, currency: number,
   }
 
   try {
-    const transaction = await dao.saveTransaction({
+    await dao.saveTransaction({
       txid: source.txid,
       to: source.to,
       from: source.from,
-      status: convertStatus(minimumConfirmations, source),
+      status: TransactionStatus.accepted,
       amount: source.amount,
       timeReceived: source.timeReceived,
-      block: block.id,
-      currency: currency
+      block: block.id
     })
-
-    if (source.confirmations >= minimumConfirmations) {
-      return await onConfirm(transaction)
-    }
   }
   catch (error) {
     console.error('Error saving transaction', error, source)
@@ -60,46 +47,6 @@ async function confirmExistingTransaction(dao: MonitorDao, transaction: Transact
 async function isReadyToConfirm(dao: MonitorDao, transaction: Transaction): Promise<boolean> {
   const transactionFromDatabase = await dao.transactionDao.getTransactionByTxid(transaction.txid)
   return !!transactionFromDatabase && transactionFromDatabase.status == TransactionStatus.pending
-}
-
-async function gatherTransactions(dao: MonitorDao, shouldTrackTransaction: TransactionCheck,
-                                  saveTransaction: TransactionSaver, client: ReadClient<ExternalTransaction>,
-                                  currency: number,
-                                  lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined> {
-
-  const blockInfo = await client.getNextBlockInfo(lastBlock)
-  if (!blockInfo)
-    return
-
-  const fullBlock = await
-    client.getFullBlock(blockInfo)
-  if (!fullBlock) {
-    console.error('Invalid block', blockInfo)
-    return undefined
-  }
-  const block = await
-    dao.blockDao.saveBlock({
-      hash: fullBlock.hash,
-      index: fullBlock.index,
-      timeMined: fullBlock.timeMined,
-      currency: currency
-    })
-  if (!fullBlock.transactions) {
-    return block
-  }
-
-  for (let transaction of fullBlock.transactions) {
-    if (await shouldTrackTransaction(transaction)
-    ) {
-      await
-        saveTransaction(transaction, block)
-    }
-  }
-
-  await
-    dao.lastBlockDao.setLastBlock(block.id)
-
-  return block
 }
 
 async function updatePendingTransactions(dao: MonitorDao, onConfirm: TransactionDelegate, currency: number,
@@ -118,15 +65,37 @@ async function updatePendingTransactions(dao: MonitorDao, onConfirm: Transaction
   }
 }
 
-export async function scanBlocksStandard(dao: MonitorDao, client: ReadClient<ExternalTransaction>,
-                      shouldTrackTransaction: TransactionCheck, onConfirm: TransactionDelegate,
-                      minimumConfirmations: number, currency: number): Promise<any> {
+export async function scanBlock(dao: MonitorDao, client: ReadClient<ExternalTransaction>) {
   const block = await client.getBlockIndex()
-  await updatePendingTransactions(dao, onConfirm, currency, block - minimumConfirmations)
-  const saveTransaction = saveExternalTransaction.bind(null,
-    dao.transactionDao, currency, onConfirm, minimumConfirmations)
+
+}
+
+export async function scanExplorerBlocks(dao: MonitorDao, client: ReadClient<ExternalTransaction>): Promise<any> {
   let lastBlock = await dao.lastBlockDao.getLastBlock()
   do {
-    lastBlock = await gatherTransactions(dao, shouldTrackTransaction, saveTransaction, client, currency, lastBlock)
-  } while (lastBlock)
+    const blockInfo = await client.getNextBlockInfo(lastBlock)
+    if (!blockInfo)
+      return
+
+    const fullBlock = await client.getFullBlock(blockInfo)
+    if (!fullBlock) {
+      console.error('Invalid block', blockInfo)
+      return undefined
+    }
+    const block = await dao.blockDao.saveBlock({
+      hash: fullBlock.hash,
+      index: fullBlock.index,
+      timeMined: fullBlock.timeMined
+    })
+    if (!fullBlock.transactions) {
+      return block
+    }
+
+    for (let transaction of fullBlock.transactions) {
+      saveExternalTransaction(dao.transactionDao,transaction, block)
+    }
+
+    await dao.lastBlockDao.setLastBlock(block.id)
+    lastBlock = block
+  } while (true)
 }

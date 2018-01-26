@@ -1,20 +1,17 @@
 import { SingleTransaction as Transaction } from "vineyard-blockchain";
+import { Collection } from "vineyard-ground/source/collection";
 import { Model, TransactionToSave } from "./deposit-monitor-manager";
 import { BaseBlock, BlockInfo, TransactionStatus } from "vineyard-blockchain/src/types";
-export declare type TransactionQueryDelegate = (txid: string, currency: number) => Promise<Transaction | undefined>;
-export declare type TransactionSaveDelegate = (transaction: TransactionToSave) => Promise<Transaction>;
-export declare type TransactionStatusDelegate = (transaction: Transaction, status: TransactionStatus) => Promise<Transaction>;
-export declare type PendingTransactionDelegate = (currency: number, maxBlockIndex: number) => Promise<Transaction[]>;
-export declare type CurrencyDelegate = (currency: number) => Promise<BlockInfo | undefined>;
-export declare type LastBlockDelegate = (block: string, currency: number) => Promise<BlockInfo | undefined>;
-export declare type BlockCurrencyDelegate = (block: BaseBlock) => Promise<BlockInfo>;
-export interface MonitorDao {
-    getTransactionByTxid: TransactionQueryDelegate;
-    saveTransaction: TransactionSaveDelegate;
-    setStatus: TransactionStatusDelegate;
-    listPendingTransactions: PendingTransactionDelegate;
-    getLastBlock: CurrencyDelegate;
-    setLastBlock: LastBlockDelegate;
-    saveBlock: BlockCurrencyDelegate;
-}
+import { Modeler } from "vineyard-ground/source/modeler";
+import { BlockDao, LastBlockDao, MonitorDao, TransactionDao } from "./types";
+export declare function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string, currency: number): Promise<Transaction | undefined>;
+export declare function saveTransaction(transactionCollection: Collection<Transaction>, transaction: TransactionToSave): Promise<Transaction>;
+export declare function setStatus(transactionCollection: Collection<Transaction>, transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
+export declare function listPendingTransactions(ground: Modeler, transactionCollection: Collection<Transaction>, currency: number, maxBlockIndex: number): Promise<Transaction[]>;
+export declare function getLastBlock(ground: Modeler, currency: number): Promise<BlockInfo | undefined>;
+export declare function setLastBlock(ground: Modeler, block: string, currency: number): Promise<any>;
+export declare function saveBlock(blockCollection: Collection<BlockInfo>, block: BaseBlock): Promise<BlockInfo>;
+export declare function createBlockDao(model: Model): BlockDao;
+export declare function createLastBlockDao(model: Model): LastBlockDao;
+export declare function createTransactionDao(model: Model): TransactionDao;
 export declare function createMonitorDao(model: Model): MonitorDao;
