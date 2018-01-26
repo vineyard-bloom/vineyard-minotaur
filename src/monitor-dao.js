@@ -86,8 +86,8 @@ exports.createBlockDao = createBlockDao;
 function createLastBlockDao(model) {
     const ground = model.ground;
     return {
-        getLastBlock: getLastBlock.bind(null, ground),
-        setLastBlock: setLastBlock.bind(null, ground)
+        getLastBlock: getLastBlock.bind(null, ground, 1),
+        setLastBlock: setLastBlock.bind(null, ground, 1)
     };
 }
 exports.createLastBlockDao = createLastBlockDao;

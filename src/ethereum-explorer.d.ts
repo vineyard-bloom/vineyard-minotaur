@@ -3,7 +3,7 @@ import { AddressIdentityDelegate, BaseAddress, MonitorDao, TransactionDao } from
 import { Modeler } from "vineyard-ground/source/modeler";
 import { Collection } from "vineyard-ground/source/collection";
 import { BaseBlock, BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction } from "vineyard-blockchain";
-export declare function listPendingSingleCurrencyTransactions(ground: Modeler, transactionCollection: Collection<Transaction>, maxBlockIndex: number): Promise<Transaction[]>;
+export declare function listPendingSingleCurrencyTransactions(ground: Modeler, maxBlockIndex: number): Promise<Transaction[]>;
 export declare function saveSingleCurrencyBlock(blockCollection: Collection<BlockInfo>, block: BaseBlock): Promise<BlockInfo>;
 export declare function getTransactionByTxid(transactionCollection: Collection<Transaction>, txid: string): Promise<Transaction | undefined>;
 export declare function getOrCreateAddressReturningId<Identity>(addressCollection: Collection<BaseAddress<Identity>>, externalAddress: string): Promise<Identity>;

@@ -10,7 +10,6 @@ import {
 import {scanBlocksStandard} from "./monitor-logic"
 
 export async function listPendingSingleCurrencyTransactions(ground: Modeler,
-                                                            transactionCollection: Collection<Transaction>,
                                                             maxBlockIndex: number): Promise<Transaction[]> {
   const sql = `
     SELECT transactions.* FROM transactions

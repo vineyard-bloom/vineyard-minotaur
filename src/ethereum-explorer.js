@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
 const monitor_logic_1 = require("./monitor-logic");
-function listPendingSingleCurrencyTransactions(ground, transactionCollection, maxBlockIndex) {
+function listPendingSingleCurrencyTransactions(ground, maxBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
         const sql = `
     SELECT transactions.* FROM transactions
