@@ -1,7 +1,7 @@
 import {
   BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction,
   TransactionStatus
-} from "vineyard-blockchain/src/types"
+} from "vineyard-blockchain"
 import {MonitorDao, TransactionDao} from "./types"
 
 export type TransactionDelegate = (transaction: Transaction) => Promise<Transaction>

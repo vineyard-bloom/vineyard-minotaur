@@ -55,7 +55,7 @@ function getLastBlock(ground, currency) {
     });
 }
 exports.getLastBlock = getLastBlock;
-function setLastBlock(ground, block, currency) {
+function setLastBlock(ground, currency, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`;
         return yield ground.query(sql, {

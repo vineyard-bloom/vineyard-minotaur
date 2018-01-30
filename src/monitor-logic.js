@@ -8,11 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const types_1 = require("vineyard-blockchain/src/types");
+const vineyard_blockchain_1 = require("vineyard-blockchain");
 function convertStatus(minimumConfirmations, source) {
     return source.confirmations >= minimumConfirmations
-        ? types_1.TransactionStatus.accepted
-        : types_1.TransactionStatus.pending;
+        ? vineyard_blockchain_1.TransactionStatus.accepted
+        : vineyard_blockchain_1.TransactionStatus.pending;
 }
 function saveExternalTransaction(dao, currency, onConfirm, minimumConfirmations, source, block) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -49,14 +49,14 @@ function saveExternalTransaction(dao, currency, onConfirm, minimumConfirmations,
 }
 function confirmExistingTransaction(dao, transaction) {
     return __awaiter(this, void 0, void 0, function* () {
-        transaction.status = types_1.TransactionStatus.accepted;
-        return yield dao.transactionDao.setStatus(transaction, types_1.TransactionStatus.accepted);
+        transaction.status = vineyard_blockchain_1.TransactionStatus.accepted;
+        return yield dao.transactionDao.setStatus(transaction, vineyard_blockchain_1.TransactionStatus.accepted);
     });
 }
 function isReadyToConfirm(dao, transaction) {
     return __awaiter(this, void 0, void 0, function* () {
         const transactionFromDatabase = yield dao.transactionDao.getTransactionByTxid(transaction.txid);
-        return !!transactionFromDatabase && transactionFromDatabase.status == types_1.TransactionStatus.pending;
+        return !!transactionFromDatabase && transactionFromDatabase.status == vineyard_blockchain_1.TransactionStatus.pending;
     });
 }
 function gatherTransactions(dao, shouldTrackTransaction, saveTransaction, client, currency, lastBlock) {

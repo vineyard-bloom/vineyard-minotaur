@@ -1,7 +1,7 @@
 import {SingleTransaction as Transaction} from "vineyard-blockchain"
 import {Collection} from "vineyard-ground/source/collection";
 import {Model, TransactionToSave} from "./deposit-monitor-manager";
-import {BaseBlock, BlockInfo, TransactionStatus} from "vineyard-blockchain/src/types";
+import {BaseBlock, BlockInfo, TransactionStatus} from "vineyard-blockchain"
 import {Modeler} from "vineyard-ground/source/modeler";
 import {BlockDao, LastBlockDao, MonitorDao, TransactionDao} from "./types";
 
@@ -48,7 +48,7 @@ export async function getLastBlock(ground: Modeler, currency: number): Promise<B
   return ground.querySingle(sql)
 }
 
-export async function setLastBlock(ground: Modeler, block: string, currency: number) {
+export async function setLastBlock(ground: Modeler, currency: number, block: string) {
   const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`
   return await ground.query(sql, {
     block: block,

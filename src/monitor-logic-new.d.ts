@@ -1,4 +1,4 @@
-import { BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction } from "vineyard-blockchain/src/types";
+import { BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction } from "vineyard-blockchain";
 import { MonitorDao } from "./types";
 export declare type TransactionDelegate = (transaction: Transaction) => Promise<Transaction>;
 export declare type TransactionCheck = (transaction: ExternalTransaction) => Promise<boolean>;
