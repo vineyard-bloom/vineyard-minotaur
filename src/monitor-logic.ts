@@ -1,12 +1,12 @@
 import {
-  BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction,
+  blockchain, BlockInfo, ExternalSingleTransaction as ExternalTransaction,
   TransactionStatus
 } from "vineyard-blockchain"
-import {MonitorDao, TransactionDao} from "./types"
+import { MonitorDao, TransactionDao } from "./types"
 
-export type TransactionDelegate = (transaction: Transaction) => Promise<Transaction>
+export type TransactionDelegate = (transaction: blockchain.SingleTransaction) => Promise<blockchain.SingleTransaction>
 export type TransactionCheck = (transaction: ExternalTransaction) => Promise<boolean>
-export type TransactionSaver = (source: ExternalTransaction, block: BlockInfo) => Promise<Transaction | undefined>
+export type TransactionSaver = (source: ExternalTransaction, block: BlockInfo) => Promise<blockchain.SingleTransaction | undefined>
 
 function convertStatus(minimumConfirmations: number, source: ExternalTransaction) {
   return source.confirmations >= minimumConfirmations
@@ -18,7 +18,7 @@ async function saveExternalTransaction(dao: TransactionDao, currency: number,
                                        onConfirm: TransactionDelegate,
                                        minimumConfirmations: number,
                                        source: ExternalTransaction,
-                                       block: BlockInfo): Promise<Transaction | undefined> {
+                                       block: BlockInfo): Promise<blockchain.SingleTransaction | undefined> {
   try {
     const existing = await dao.getTransactionByTxid(source.txid)
     if (existing) {
@@ -52,18 +52,19 @@ async function saveExternalTransaction(dao: TransactionDao, currency: number,
   }
 }
 
-async function confirmExistingTransaction(dao: MonitorDao, transaction: Transaction): Promise<Transaction> {
+async function confirmExistingTransaction(dao: MonitorDao, transaction: blockchain.SingleTransaction): Promise<blockchain.SingleTransaction> {
   transaction.status = TransactionStatus.accepted
   return await dao.transactionDao.setStatus(transaction, TransactionStatus.accepted)
 }
 
-async function isReadyToConfirm(dao: MonitorDao, transaction: Transaction): Promise<boolean> {
+async function isReadyToConfirm(dao: MonitorDao, transaction: blockchain.SingleTransaction): Promise<boolean> {
   const transactionFromDatabase = await dao.transactionDao.getTransactionByTxid(transaction.txid)
   return !!transactionFromDatabase && transactionFromDatabase.status == TransactionStatus.pending
 }
 
 async function gatherTransactions(dao: MonitorDao, shouldTrackTransaction: TransactionCheck,
-                                  saveTransaction: TransactionSaver, client: ReadClient<ExternalTransaction>,
+                                  saveTransaction: TransactionSaver,
+                                  client: blockchain.ReadClient<blockchain.SingleTransaction>,
                                   currency: number,
                                   lastBlock: BlockInfo | undefined): Promise<BlockInfo | undefined> {
 
@@ -118,9 +119,9 @@ async function updatePendingTransactions(dao: MonitorDao, onConfirm: Transaction
   }
 }
 
-export async function scanBlocksStandard(dao: MonitorDao, client: ReadClient<ExternalTransaction>,
-                      shouldTrackTransaction: TransactionCheck, onConfirm: TransactionDelegate,
-                      minimumConfirmations: number, currency: number): Promise<any> {
+export async function scanBlocksStandard(dao: MonitorDao, client: blockchain.ReadClient<blockchain.SingleTransaction>,
+                                         shouldTrackTransaction: TransactionCheck, onConfirm: TransactionDelegate,
+                                         minimumConfirmations: number, currency: number): Promise<any> {
   const block = await client.getBlockIndex()
   await updatePendingTransactions(dao, onConfirm, currency, block - minimumConfirmations)
   const saveTransaction = saveExternalTransaction.bind(null,

@@ -1,14 +1,10 @@
-import {
-  BlockInfo, ExternalSingleTransaction as ExternalTransaction, SingleTransaction as Transaction,
-  TransactionStatus
-} from "vineyard-blockchain"
-import {TransactionToSave} from "./deposit-monitor-manager";
-import {BigNumber} from 'bignumber.js'
+import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain"
+import { BigNumber } from 'bignumber.js'
 
 export interface TransactionHandler {
-  shouldTrackTransaction(transaction: ExternalTransaction): Promise<boolean>
+  shouldTrackTransaction(transaction: blockchain.SingleTransaction): Promise<boolean>
 
-  onConfirm(transaction: Transaction): Promise<Transaction>
+  onConfirm(transaction: blockchain.SingleTransaction): Promise<blockchain.SingleTransaction>
 }
 
 export interface BaseAddress<Identity> {
@@ -17,16 +13,16 @@ export interface BaseAddress<Identity> {
   balance: BigNumber
 }
 
-export interface SingleTransaction<Identity, AddressIdentity, BlockIdentity> {
-  id: Identity
-  txid: string
-  amount: BigNumber
-  to: AddressIdentity
-  from: AddressIdentity
-  block: BlockIdentity
-  timeReceived: Date
-  status: number
-}
+// export interface SingleTransaction<Identity, AddressIdentity, BlockIdentity> {
+//   id: Identity
+//   txid: string
+//   amount: BigNumber
+//   to: AddressIdentity
+//   from: AddressIdentity
+//   block: BlockIdentity
+//   timeReceived: Date
+//   status: number
+// }
 
 export interface BaseBlock {
   hash: string
@@ -34,14 +30,13 @@ export interface BaseBlock {
   timeMined: Date
 }
 
-export type TransactionQueryDelegate = (txid: string) => Promise<Transaction | undefined>
+export type TransactionQueryDelegate = (txid: string) => Promise<blockchain.SingleTransaction | undefined>
 
-export type TransactionSaveDelegate<Identity, AddressIdentity, BlockIdentity> =
-  (transaction: Partial<SingleTransaction<Identity, AddressIdentity, BlockIdentity>>) => Promise<void>
+export type TransactionSaveDelegate = (transaction: blockchain.SingleTransaction) => Promise<void>
 
-export type TransactionStatusDelegate = (transaction: Transaction, status: TransactionStatus) => Promise<Transaction>
+export type TransactionStatusDelegate = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>
 
-export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<Transaction[]>
+export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>
 
 export type BlockGetter = () => Promise<BlockInfo | undefined>
 
@@ -60,15 +55,15 @@ export interface LastBlockDao {
   setLastBlock: LastBlockDelegate
 }
 
-export interface TransactionDao<TransactionIdentity, AddressIdentity, BlockIdentity> {
+export interface TransactionDao {
   getTransactionByTxid: TransactionQueryDelegate
-  saveTransaction: TransactionSaveDelegate<TransactionIdentity, AddressIdentity, BlockIdentity>
+  saveTransaction: TransactionSaveDelegate
   setStatus: TransactionStatusDelegate
   listPendingTransactions: PendingTransactionDelegate
 }
 
-export interface MonitorDao<TransactionIdentity, AddressIdentity, BlockIdentity> {
+export interface MonitorDao {
   blockDao: BlockDao
   lastBlockDao: LastBlockDao
-  transactionDao: TransactionDao<TransactionIdentity, AddressIdentity, BlockIdentity>
+  transactionDao: TransactionDao
 }

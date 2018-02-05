@@ -56,8 +56,8 @@ function updatePendingTransactions(dao, onConfirm, currency, maxBlockIndex) {
         for (let transaction of transactions) {
             try {
                 if (yield isReadyToConfirm(dao, transaction)) {
-                    const ExternalTransaction = yield confirmExistingTransaction(dao, transaction);
-                    yield onConfirm(ExternalTransaction);
+                    const externalTransaction = yield confirmExistingTransaction(dao, transaction);
+                    yield onConfirm(externalTransaction);
                 }
             }
             catch (error) {

@@ -13,10 +13,8 @@
     }
   },
   "Block": {
+    "primaryKeys": ["index"],
     "properties": {
-      "id": {
-        "type": "int"
-      },
       "hash": {
         "type": "string"
       },

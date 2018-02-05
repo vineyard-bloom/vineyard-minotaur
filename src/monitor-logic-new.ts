@@ -1,16 +1,13 @@
-import {
-  BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient, SingleTransaction as Transaction,
-  TransactionStatus
-} from "vineyard-blockchain"
-import {MonitorDao, TransactionDao} from "./types"
+import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain"
+import { MonitorDao, TransactionDao } from "./types"
 
-export type TransactionDelegate = (transaction: Transaction) => Promise<Transaction>
-export type TransactionCheck = (transaction: ExternalTransaction) => Promise<boolean>
-export type TransactionSaver = (source: ExternalTransaction, block: BlockInfo) => Promise<Transaction | undefined>
+export type TransactionDelegate = (transaction: blockchain.SingleTransaction) => Promise<void>
+export type TransactionCheck = (transaction: blockchain.SingleTransaction) => Promise<boolean>
+export type TransactionSaver = (source: blockchain.SingleTransaction, block: BlockInfo) => Promise<blockchain.SingleTransaction | undefined>
 
 async function saveExternalTransaction(dao: TransactionDao,
-                                       source: ExternalTransaction,
-                                       block: BlockInfo): Promise<Transaction | undefined> {
+                                       source: blockchain.SingleTransaction,
+                                       block: BlockInfo): Promise<blockchain.SingleTransaction | undefined> {
   try {
     const existing = await dao.getTransactionByTxid(source.txid)
     if (existing) {
@@ -39,12 +36,12 @@ async function saveExternalTransaction(dao: TransactionDao,
   }
 }
 
-async function confirmExistingTransaction(dao: MonitorDao, transaction: Transaction): Promise<Transaction> {
+async function confirmExistingTransaction(dao: MonitorDao, transaction: blockchain.SingleTransaction): Promise<blockchain.SingleTransaction> {
   transaction.status = TransactionStatus.accepted
   return await dao.transactionDao.setStatus(transaction, TransactionStatus.accepted)
 }
 
-async function isReadyToConfirm(dao: MonitorDao, transaction: Transaction): Promise<boolean> {
+async function isReadyToConfirm(dao: MonitorDao, transaction: blockchain.SingleTransaction): Promise<boolean> {
   const transactionFromDatabase = await dao.transactionDao.getTransactionByTxid(transaction.txid)
   return !!transactionFromDatabase && transactionFromDatabase.status == TransactionStatus.pending
 }
@@ -55,8 +52,8 @@ async function updatePendingTransactions(dao: MonitorDao, onConfirm: Transaction
   for (let transaction of transactions) {
     try {
       if (await isReadyToConfirm(dao, transaction)) {
-        const ExternalTransaction = await confirmExistingTransaction(dao, transaction)
-        await onConfirm(ExternalTransaction)
+        const externalTransaction = await confirmExistingTransaction(dao, transaction)
+        await onConfirm(externalTransaction)
       }
     }
     catch (error) {
@@ -65,12 +62,13 @@ async function updatePendingTransactions(dao: MonitorDao, onConfirm: Transaction
   }
 }
 
-export async function scanBlock(dao: MonitorDao, client: ReadClient<ExternalTransaction>) {
+export async function scanBlock(dao: MonitorDao, client: blockchain.ReadClient<blockchain.SingleTransaction>) {
   const block = await client.getBlockIndex()
 
 }
 
-export async function scanExplorerBlocks(dao: MonitorDao, client: ReadClient<ExternalTransaction>): Promise<any> {
+export async function scanExplorerBlocks(dao: MonitorDao,
+                                         client: blockchain.ReadClient<blockchain.SingleTransaction>): Promise<any> {
   let lastBlock = await dao.lastBlockDao.getLastBlock()
   do {
     const blockInfo = await client.getNextBlockInfo(lastBlock)
@@ -92,7 +90,7 @@ export async function scanExplorerBlocks(dao: MonitorDao, client: ReadClient<Ext
     }
 
     for (let transaction of fullBlock.transactions) {
-      saveExternalTransaction(dao.transactionDao,transaction, block)
+      saveExternalTransaction(dao.transactionDao, transaction, block)
     }
 
     await dao.lastBlockDao.setLastBlock(block.id)

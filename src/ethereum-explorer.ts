@@ -1,16 +1,14 @@
 import {Model, TransactionToSave} from "./deposit-monitor-manager"
-import {AddressIdentityDelegate, BaseAddress, MonitorDao, SingleTransaction, TransactionDao} from "./types"
+import {AddressIdentityDelegate, BaseAddress, MonitorDao, TransactionDao} from "./types"
 import {createLastBlockDao, setStatus} from "./monitor-dao"
 import {Modeler} from "vineyard-ground/source/modeler"
 import {Collection} from "vineyard-ground/source/collection"
-import {
-  BaseBlock, BlockInfo, ExternalSingleTransaction as ExternalTransaction, ReadClient,
-  SingleTransaction as Transaction
-} from "vineyard-blockchain"
+import { blockchain } from "vineyard-blockchain"
 import {scanBlocksStandard} from "./monitor-logic"
+import { blockchain } from "vineyard-blockchain/src/blockchain";
 
 export async function listPendingSingleCurrencyTransactions(ground: Modeler,
-                                                            maxBlockIndex: number): Promise<Transaction[]> {
+                                                            maxBlockIndex: number): Promise<blockchain.SingleTransaction[]> {
   const sql = `
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
@@ -22,8 +20,8 @@ export async function listPendingSingleCurrencyTransactions(ground: Modeler,
   })
 }
 
-export async function saveSingleCurrencyBlock(blockCollection: Collection<BlockInfo>,
-                                              block: BaseBlock): Promise<BlockInfo> {
+export async function saveSingleCurrencyBlock(blockCollection: Collection<blockchain.Block>,
+                                              block: blockchain.Block): Promise<blockchain.Block> {
   const filter = block.hash
     ? {hash: block.hash}
     : {index: block.index}
@@ -39,8 +37,8 @@ export async function saveSingleCurrencyBlock(blockCollection: Collection<BlockI
   })
 }
 
-export async function getTransactionByTxid(transactionCollection: Collection<Transaction>,
-                                           txid: string): Promise<Transaction | undefined> {
+export async function getTransactionByTxid(transactionCollection: Collection<blockchain.SingleTransaction>,
+                                           txid: string): Promise<blockchain.SingleTransaction | undefined> {
   return await transactionCollection.first(
     {
       txid: txid
@@ -55,12 +53,12 @@ export async function getOrCreateAddressReturningId<Identity>(addressCollection:
     : (await addressCollection.create({address: externalAddress})).id
 }
 
-export async function saveSingleCurrencyTransaction<AddressIdentity, BlockIdentity>(transactionCollection: Collection<Transaction>,
+export async function saveSingleCurrencyTransaction<AddressIdentity, BlockIdentity>(transactionCollection: Collection<blockchain.SingleTransaction>,
                                                                                     getOrCreateAddress: AddressIdentityDelegate<AddressIdentity>,
-                                                                                    transaction: TransactionToSave): Promise<Transaction> {
+                                                                                    transaction: TransactionToSave): Promise<blockchain.SingleTransaction> {
   const to = transaction.to ? (await getOrCreateAddress(transaction.to)) : undefined
   const from = transaction.from ? (await getOrCreateAddress(transaction.from)) : undefined
-  const data: Partial<SingleTransaction<number, AddressIdentity, BlockIdentity>> = {
+  const data: Partial<blockchain.SingleTransaction> = {
     txid: transaction.txid,
     amount: transaction.amount,
     to: to,
@@ -94,10 +92,10 @@ export function createEthereumExplorerDao(model: Model): MonitorDao {
   }
 }
 
-export function scanEthereumExplorerBlocks(dao: MonitorDao, client: ReadClient<ExternalTransaction>) {
+export function scanEthereumExplorerBlocks(dao: MonitorDao, client: blockchain.ReadClient<blockchain.SingleTransaction>) {
   const ethereumCurrency = {id: 1, name: "ethereum"}
   return scanBlocksStandard(dao, client,
-    (t: ExternalTransaction) => Promise.resolve(true),
-    (t: Transaction) => Promise.resolve(t),
+    (t: blockchain.SingleTransaction) => Promise.resolve(true),
+    (t: blockchain.SingleTransaction) => Promise.resolve(t),
     0, ethereumCurrency.id)
 }
