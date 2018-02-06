@@ -1,6 +1,9 @@
-import { ExternalSingleTransaction as ExternalTransaction, ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
+import { ExternalSingleTransaction as ExternalTransaction, SingleTransaction as Transaction, ReadClient, Currency, BlockInfo } from 'vineyard-blockchain';
 import { SingleTransactionBlockchainModel } from "./deposit-monitor-manager";
-import { TransactionHandler } from "./types";
+export interface TransactionHandler {
+    shouldTrackTransaction(transaction: ExternalTransaction): Promise<boolean>;
+    onConfirm(transaction: Transaction): Promise<Transaction>;
+}
 export declare class DepositMonitor {
     private model;
     private client;

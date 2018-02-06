@@ -1,34 +1,21 @@
 import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain"
 import { BigNumber } from 'bignumber.js'
 
-export interface TransactionHandler {
-  shouldTrackTransaction(transaction: blockchain.SingleTransaction): Promise<boolean>
-
-  onConfirm(transaction: blockchain.SingleTransaction): Promise<blockchain.SingleTransaction>
-}
-
 export interface BaseAddress<Identity> {
   id: Identity
   externalAddress: string
   balance: BigNumber
 }
 
-// export interface SingleTransaction<Identity, AddressIdentity, BlockIdentity> {
-//   id: Identity
-//   txid: string
-//   amount: BigNumber
-//   to: AddressIdentity
-//   from: AddressIdentity
-//   block: BlockIdentity
-//   timeReceived: Date
-//   status: number
-// }
-
 export interface BaseBlock {
   hash: string
   index: number
   timeMined: Date
 }
+
+export type TransactionDelegate = (transaction: blockchain.SingleTransaction) => Promise<blockchain.SingleTransaction>
+export type TransactionCheck = (transaction: blockchain.SingleTransaction) => Promise<boolean>
+export type TransactionSaver = (source: blockchain.SingleTransaction, block: BlockInfo) => Promise<blockchain.SingleTransaction | undefined>
 
 export type TransactionQueryDelegate = (txid: string) => Promise<blockchain.SingleTransaction | undefined>
 
@@ -40,9 +27,9 @@ export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<bloc
 
 export type BlockGetter = () => Promise<BlockInfo | undefined>
 
-export type LastBlockDelegate = (block: string) => Promise<BlockInfo | undefined>
+export type LastBlockDelegate = (blockIndex: number) => Promise<BlockInfo | undefined>
 
-export type BlockCurrencyDelegate = (block: BaseBlock) => Promise<BlockInfo>
+export type BlockCurrencyDelegate = (block: BaseBlock) => Promise<void>
 
 export type AddressIdentityDelegate<Identity> = (externalAddress: string) => Promise<Identity>
 
@@ -59,6 +46,9 @@ export interface TransactionDao {
   getTransactionByTxid: TransactionQueryDelegate
   saveTransaction: TransactionSaveDelegate
   setStatus: TransactionStatusDelegate
+}
+
+export interface PendingTransactionDao {
   listPendingTransactions: PendingTransactionDelegate
 }
 
@@ -66,4 +56,9 @@ export interface MonitorDao {
   blockDao: BlockDao
   lastBlockDao: LastBlockDao
   transactionDao: TransactionDao
+}
+
+export interface LastBlock {
+  index?: number,
+  currency: string
 }

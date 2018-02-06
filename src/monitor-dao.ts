@@ -74,8 +74,7 @@ export function createBlockDao(model: Model): BlockDao {
   }
 }
 
-export function createLastBlockDao(model: Model): LastBlockDao {
-  const ground = model.ground
+export function createLastBlockDao(ground: Modeler): LastBlockDao {
   return {
     getLastBlock: getLastBlock.bind(null, ground, 1),
     setLastBlock: setLastBlock.bind(null, ground, 1)
@@ -88,14 +87,14 @@ export function createTransactionDao(model: Model): TransactionDao {
     getTransactionByTxid: getTransactionByTxidAndCurrency.bind(null, model.Transaction),
     saveTransaction: saveTransaction.bind(null, model.Transaction),
     setStatus: setStatus.bind(null, model.Transaction),
-    listPendingTransactions: listPendingTransactions.bind(null, ground),
+    // listPendingTransactions: listPendingTransactions.bind(null, ground),
   }
 }
 
 export function createMonitorDao(model: Model): MonitorDao {
   return {
     blockDao: createBlockDao(model),
-    lastBlockDao: createLastBlockDao(model),
+    lastBlockDao: createLastBlockDao(model.ground),
     transactionDao: createTransactionDao(model)
   }
 }

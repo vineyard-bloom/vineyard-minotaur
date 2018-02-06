@@ -1,101 +1,110 @@
-import {Model, TransactionToSave} from "./deposit-monitor-manager"
-import {AddressIdentityDelegate, BaseAddress, MonitorDao, TransactionDao} from "./types"
-import {createLastBlockDao, setStatus} from "./monitor-dao"
-import {Modeler} from "vineyard-ground/source/modeler"
-import {Collection} from "vineyard-ground/source/collection"
+import { AddressIdentityDelegate, BaseAddress, BaseBlock, LastBlock, MonitorDao, TransactionDao } from "./types"
+import { createLastBlockDao, setStatus } from "./monitor-dao"
+import { Modeler } from "vineyard-ground/source/modeler"
+import { Collection } from "vineyard-ground/source/collection"
 import { blockchain } from "vineyard-blockchain"
-import {scanBlocksStandard} from "./monitor-logic"
-import { blockchain } from "vineyard-blockchain/src/blockchain";
+import BigNumber from "bignumber.js"
 
-export async function listPendingSingleCurrencyTransactions(ground: Modeler,
-                                                            maxBlockIndex: number): Promise<blockchain.SingleTransaction[]> {
-  const sql = `
-    SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
-    AND blocks.index < :maxBlockIndex
-    WHERE status = 0`
+export interface EthereumTransaction extends blockchain.BlockTransaction {
+  to?: number
+  from?: number
+}
 
-  return await ground.query(sql, {
-    maxBlockIndex: maxBlockIndex
-  })
+export interface Address {
+  id: number
+  address: string
+  balance: BigNumber
+}
+
+export interface EthereumModel {
+  Address: Collection<Address>
+  Block: Collection<blockchain.Block>
+  Transaction: Collection<EthereumTransaction>
+  LastBlock: Collection<LastBlock>
+
+  ground: Modeler
 }
 
 export async function saveSingleCurrencyBlock(blockCollection: Collection<blockchain.Block>,
-                                              block: blockchain.Block): Promise<blockchain.Block> {
-  const filter = block.hash
-    ? {hash: block.hash}
-    : {index: block.index}
+                                              block: blockchain.Block): Promise<void> {
 
-  const existing = await blockCollection.first(filter)
+  const existing = await blockCollection.first({ index: block.index })
   if (existing)
-    return existing
+    return
 
-  return await blockCollection.create({
-    hash: block.hash,
-    index: block.index,
-    timeMined: block.timeMined
-  })
+  await blockCollection.create(block)
 }
 
-export async function getTransactionByTxid(transactionCollection: Collection<blockchain.SingleTransaction>,
-                                           txid: string): Promise<blockchain.SingleTransaction | undefined> {
-  return await transactionCollection.first(
-    {
-      txid: txid
-    }).exec()
+export function getTransactionByTxid(transactionCollection: Collection<blockchain.SingleTransaction>,
+                                     txid: string): Promise<blockchain.SingleTransaction | undefined> {
+  return transactionCollection.first({ txid: txid }).exec()
 }
 
-export async function getOrCreateAddressReturningId<Identity>(addressCollection: Collection<BaseAddress<Identity>>,
-                                                              externalAddress: string): Promise<Identity> {
-  const internalAddress = await addressCollection.first({address: externalAddress})
+export async function getOrCreateAddressReturningId(addressCollection: Collection<Address>,
+                                                              externalAddress: string): Promise<number> {
+  const internalAddress = await addressCollection.first({ address: externalAddress })
   return internalAddress
     ? internalAddress.id
-    : (await addressCollection.create({address: externalAddress})).id
+    : (await addressCollection.create({ address: externalAddress })).id
 }
 
-export async function saveSingleCurrencyTransaction<AddressIdentity, BlockIdentity>(transactionCollection: Collection<blockchain.SingleTransaction>,
-                                                                                    getOrCreateAddress: AddressIdentityDelegate<AddressIdentity>,
-                                                                                    transaction: TransactionToSave): Promise<blockchain.SingleTransaction> {
+export async function saveSingleCurrencyTransaction(transactionCollection: Collection<EthereumTransaction>,
+                                                    getOrCreateAddress: AddressIdentityDelegate<number>,
+                                                    transaction: blockchain.SingleTransaction): Promise<void> {
   const to = transaction.to ? (await getOrCreateAddress(transaction.to)) : undefined
   const from = transaction.from ? (await getOrCreateAddress(transaction.from)) : undefined
-  const data: Partial<blockchain.SingleTransaction> = {
+  const data: EthereumTransaction = {
     txid: transaction.txid,
     amount: transaction.amount,
     to: to,
     from: from,
     timeReceived: transaction.timeReceived,
     status: transaction.status,
-    block: transaction.block,
+    blockIndex: transaction.blockIndex,
   }
 
-  return await transactionCollection.create(data)
+  await transactionCollection.create(data)
 }
 
-export function createSingleCurrencyTransactionDao(model: Model): TransactionDao {
+export function createSingleCurrencyTransactionDao(model: EthereumModel): TransactionDao {
   const ground = model.ground
-  const getOrCreateAddress = getOrCreateAddressReturningId.bind(null, model.Address)
+  const getOrCreateAddress = (externalAddress: string) => getOrCreateAddressReturningId(model.Address, externalAddress)
   return {
     getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
-    saveTransaction: saveSingleCurrencyTransaction.bind(null, model.Transaction, getOrCreateAddress),
-    setStatus: setStatus.bind(null, model.Transaction),
-    listPendingTransactions: listPendingSingleCurrencyTransactions.bind(null, ground),
+    saveTransaction: (transaction: blockchain.SingleTransaction) => saveSingleCurrencyTransaction(model.Transaction, getOrCreateAddress, transaction),
+    setStatus: setStatus.bind(null, model.Transaction)
   }
 }
 
-export function createEthereumExplorerDao(model: Model): MonitorDao {
+export function createEthereumExplorerDao(model: EthereumModel): MonitorDao {
   return {
     blockDao: {
-      saveBlock: saveSingleCurrencyBlock.bind(null, model.Block)
+      saveBlock: (block: BaseBlock) => saveSingleCurrencyBlock(model.Block, block)
     },
-    lastBlockDao: createLastBlockDao(model),
+    lastBlockDao: createLastBlockDao(model.ground),
     transactionDao: createSingleCurrencyTransactionDao(model)
   }
 }
 
-export function scanEthereumExplorerBlocks(dao: MonitorDao, client: blockchain.ReadClient<blockchain.SingleTransaction>) {
-  const ethereumCurrency = {id: 1, name: "ethereum"}
-  return scanBlocksStandard(dao, client,
-    (t: blockchain.SingleTransaction) => Promise.resolve(true),
-    (t: blockchain.SingleTransaction) => Promise.resolve(t),
-    0, ethereumCurrency.id)
+export type EthereumBlockClient = blockchain.BlockClient<blockchain.SingleTransaction>
+
+export async function scanEthereumExplorerBlocks(dao: MonitorDao, client: EthereumBlockClient): Promise<any> {
+  const lastBlock = await dao.lastBlockDao.getLastBlock()
+  let blockIndex = lastBlock ? lastBlock.index + 1 : 0
+
+  do {
+    const block = await client.getBlockInfo(blockIndex)
+    if (!block)
+      return
+
+    const transactions = await client.getBlockTransactions(block)
+    await dao.blockDao.saveBlock(block)
+
+    for (let transaction of transactions) {
+      await dao.transactionDao.saveTransaction(transaction)
+    }
+
+    await dao.lastBlockDao.setLastBlock(block.index)
+    blockIndex = block.index + 1
+  } while (true)
 }

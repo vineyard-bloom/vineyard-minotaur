@@ -4,18 +4,18 @@ export interface TransactionToSave extends NewSingleTransaction {
     status: TransactionStatus;
     currency: number;
 }
-export interface LastBlock {
-    block: string;
-    currency: string;
-}
 export interface Scan {
     block: string;
+}
+export interface OldLastBlock {
+    block?: BlockInfo;
+    currency: string;
 }
 export interface Model {
     Address: Collection<Address>;
     Block: Collection<BlockInfo>;
     Transaction: Collection<Transaction>;
-    LastBlock: Collection<LastBlock>;
+    LastBlock: Collection<OldLastBlock>;
     Scan: Collection<Scan>;
     ground: Modeler;
 }
@@ -28,9 +28,9 @@ export declare class DepositMonitorManager {
     listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]>;
     getLastBlock(currency: number): Promise<BlockInfo | undefined>;
     setLastBlock(block: string, currency: number): Promise<any>;
-    setLastBlockByHash(hash: string, currency: number): Promise<LastBlock>;
+    setLastBlockByHash(hash: string, currency: number): Promise<OldLastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
-    saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock>;
+    saveLastBlock(block: BaseBlock, currency: number): Promise<OldLastBlock>;
 }
 export declare type SingleTransactionBlockchainManager = DepositMonitorManager;
 export declare type SingleTransactionBlockchainModel = DepositMonitorManager;

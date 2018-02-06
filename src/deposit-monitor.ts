@@ -8,7 +8,12 @@ import {
   BlockInfo
 } from 'vineyard-blockchain'
 import {SingleTransactionBlockchainModel} from "./deposit-monitor-manager";
-import {TransactionHandler} from "./types"
+
+export interface TransactionHandler {
+  shouldTrackTransaction(transaction: ExternalTransaction): Promise<boolean>
+
+  onConfirm(transaction: Transaction): Promise<Transaction>
+}
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
@@ -75,8 +80,8 @@ export class DepositMonitor {
 
   private async confirmExistingTransaction(transaction: Transaction): Promise<Transaction> {
     transaction.status = TransactionStatus.accepted
-    const ExternalTransaction = await this.model.setStatus(transaction, TransactionStatus.accepted)
-    return await this.transactionHandler.onConfirm(ExternalTransaction)
+    const externalTransaction = await this.model.setStatus(transaction, TransactionStatus.accepted)
+    return await this.transactionHandler.onConfirm(transaction)
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {

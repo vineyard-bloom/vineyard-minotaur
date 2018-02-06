@@ -15,11 +15,11 @@
   "Block": {
     "primaryKeys": ["index"],
     "properties": {
-      "hash": {
-        "type": "string"
-      },
       "index": {
         "type": "int"
+      },
+      "hash": {
+        "type": "string"
       },
       "timeMined": {
         "type": "datetime"
@@ -32,8 +32,8 @@
       "currency": {
         "type": "int"
       },
-      "block": {
-        "type": "Block",
+      "index": {
+        "type": "long",
         "nullable": true
       }
     }
@@ -62,8 +62,8 @@
       "timeReceived": {
         "type": "datetime"
       },
-      "block": {
-        "type": "Block"
+      "blockIndex": {
+        "type": "long"
       }
     }
   }

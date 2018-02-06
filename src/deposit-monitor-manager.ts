@@ -14,20 +14,20 @@ export interface TransactionToSave extends NewSingleTransaction {
   currency: number
 }
 
-export interface LastBlock {
-  block: string,
-  currency: string
-}
-
 export interface Scan {
   block: string
+}
+
+export interface OldLastBlock {
+  block?: BlockInfo,
+  currency: string
 }
 
 export interface Model {
   Address: Collection<Address>
   Block: Collection<BlockInfo>
   Transaction: Collection<Transaction>
-  LastBlock: Collection<LastBlock>
+  LastBlock: Collection<OldLastBlock>
   Scan: Collection<Scan>
 
   ground: Modeler
@@ -109,7 +109,7 @@ export class DepositMonitorManager {
     return await this.model.Block.create(block)
   }
 
-  async saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock> {
+  async saveLastBlock(block: BaseBlock, currency: number): Promise<OldLastBlock> {
     let lastBlock: any
     lastBlock.block = block
     lastBlock.currency = currency

@@ -9,42 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
-const monitor_logic_1 = require("./monitor-logic");
-function listPendingSingleCurrencyTransactions(ground, maxBlockIndex) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sql = `
-    SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
-    AND blocks.index < :maxBlockIndex
-    WHERE status = 0`;
-        return yield ground.query(sql, {
-            maxBlockIndex: maxBlockIndex
-        });
-    });
-}
-exports.listPendingSingleCurrencyTransactions = listPendingSingleCurrencyTransactions;
 function saveSingleCurrencyBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {
-        const filter = block.hash
-            ? { hash: block.hash }
-            : { index: block.index };
-        const existing = yield blockCollection.first(filter);
+        const existing = yield blockCollection.first({ index: block.index });
         if (existing)
-            return existing;
-        return yield blockCollection.create({
-            hash: block.hash,
-            index: block.index,
-            timeMined: block.timeMined
-        });
+            return;
+        yield blockCollection.create(block);
     });
 }
 exports.saveSingleCurrencyBlock = saveSingleCurrencyBlock;
 function getTransactionByTxid(transactionCollection, txid) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield transactionCollection.first({
-            txid: txid
-        }).exec();
-    });
+    return transactionCollection.first({ txid: txid }).exec();
 }
 exports.getTransactionByTxid = getTransactionByTxid;
 function getOrCreateAddressReturningId(addressCollection, externalAddress) {
@@ -67,36 +42,49 @@ function saveSingleCurrencyTransaction(transactionCollection, getOrCreateAddress
             from: from,
             timeReceived: transaction.timeReceived,
             status: transaction.status,
-            block: transaction.block,
+            blockIndex: transaction.blockIndex,
         };
-        return yield transactionCollection.create(data);
+        yield transactionCollection.create(data);
     });
 }
 exports.saveSingleCurrencyTransaction = saveSingleCurrencyTransaction;
 function createSingleCurrencyTransactionDao(model) {
     const ground = model.ground;
-    const getOrCreateAddress = getOrCreateAddressReturningId.bind(null, model.Address);
+    const getOrCreateAddress = (externalAddress) => getOrCreateAddressReturningId(model.Address, externalAddress);
     return {
         getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
-        saveTransaction: saveSingleCurrencyTransaction.bind(null, model.Transaction, getOrCreateAddress),
-        setStatus: monitor_dao_1.setStatus.bind(null, model.Transaction),
-        listPendingTransactions: listPendingSingleCurrencyTransactions.bind(null, ground),
+        saveTransaction: (transaction) => saveSingleCurrencyTransaction(model.Transaction, getOrCreateAddress, transaction),
+        setStatus: monitor_dao_1.setStatus.bind(null, model.Transaction)
     };
 }
 exports.createSingleCurrencyTransactionDao = createSingleCurrencyTransactionDao;
 function createEthereumExplorerDao(model) {
     return {
         blockDao: {
-            saveBlock: saveSingleCurrencyBlock.bind(null, model.Block)
+            saveBlock: (block) => saveSingleCurrencyBlock(model.Block, block)
         },
-        lastBlockDao: monitor_dao_1.createLastBlockDao(model),
+        lastBlockDao: monitor_dao_1.createLastBlockDao(model.ground),
         transactionDao: createSingleCurrencyTransactionDao(model)
     };
 }
 exports.createEthereumExplorerDao = createEthereumExplorerDao;
 function scanEthereumExplorerBlocks(dao, client) {
-    const ethereumCurrency = { id: 1, name: "ethereum" };
-    return monitor_logic_1.scanBlocksStandard(dao, client, (t) => Promise.resolve(true), (t) => Promise.resolve(t), 0, ethereumCurrency.id);
+    return __awaiter(this, void 0, void 0, function* () {
+        const lastBlock = yield dao.lastBlockDao.getLastBlock();
+        let blockIndex = lastBlock ? lastBlock.index + 1 : 0;
+        do {
+            const block = yield client.getBlockInfo(blockIndex);
+            if (!block)
+                return;
+            const transactions = yield client.getBlockTransactions(block);
+            yield dao.blockDao.saveBlock(block);
+            for (let transaction of transactions) {
+                yield dao.transactionDao.saveTransaction(transaction);
+            }
+            yield dao.lastBlockDao.setLastBlock(block.index);
+            blockIndex = block.index + 1;
+        } while (true);
+    });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;
 //# sourceMappingURL=ethereum-explorer.js.map

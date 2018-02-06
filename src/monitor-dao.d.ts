@@ -12,6 +12,6 @@ export declare function getLastBlock(ground: Modeler, currency: number): Promise
 export declare function setLastBlock(ground: Modeler, currency: number, block: string): Promise<any>;
 export declare function saveBlock(blockCollection: Collection<BlockInfo>, block: BaseBlock): Promise<BlockInfo>;
 export declare function createBlockDao(model: Model): BlockDao;
-export declare function createLastBlockDao(model: Model): LastBlockDao;
+export declare function createLastBlockDao(ground: Modeler): LastBlockDao;
 export declare function createTransactionDao(model: Model): TransactionDao;
 export declare function createMonitorDao(model: Model): MonitorDao;
