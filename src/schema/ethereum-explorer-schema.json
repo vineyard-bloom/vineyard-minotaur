@@ -16,7 +16,8 @@
     "primaryKeys": ["index"],
     "properties": {
       "index": {
-        "type": "int"
+        "type": "int",
+        "autoIncrement": false
       },
       "hash": {
         "type": "string"
@@ -32,7 +33,7 @@
       "currency": {
         "type": "int"
       },
-      "index": {
+      "blockIndex": {
         "type": "long",
         "nullable": true
       }

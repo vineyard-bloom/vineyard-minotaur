@@ -1,7 +1,7 @@
 import {
   blockchain
 } from "vineyard-blockchain"
-import { MonitorDao, TransactionCheck, TransactionDao, TransactionDelegate, TransactionSaver } from "./types"
+import { MonitorDaoOld, TransactionCheck, TransactionDao, TransactionDelegate, TransactionSaver } from "./types"
 
 // function convertStatus(minimumConfirmations: number, source: blockchain.SingleTransaction) {
 //   return source.confirmations >= minimumConfirmations
@@ -60,13 +60,13 @@ import { MonitorDao, TransactionCheck, TransactionDao, TransactionDelegate, Tran
 //   })
 // }
 
-async function confirmExistingTransaction(dao: MonitorDao, transaction: blockchain.SingleTransaction):
+async function confirmExistingTransaction(dao: MonitorDaoOld, transaction: blockchain.SingleTransaction):
 Promise<blockchain.SingleTransaction> {
   transaction.status = blockchain.TransactionStatus.accepted
   return await dao.transactionDao.setStatus(transaction, blockchain.TransactionStatus.accepted)
 }
 
-async function isReadyToConfirm(dao: MonitorDao, transaction: blockchain.SingleTransaction): Promise<boolean> {
+async function isReadyToConfirm(dao: MonitorDaoOld, transaction: blockchain.SingleTransaction): Promise<boolean> {
   const transactionFromDatabase = await dao.transactionDao.getTransactionByTxid(transaction.txid)
   return !!transactionFromDatabase && transactionFromDatabase.status == blockchain.TransactionStatus.pending
 }

@@ -49,7 +49,6 @@ function saveSingleCurrencyTransaction(transactionCollection, getOrCreateAddress
 }
 exports.saveSingleCurrencyTransaction = saveSingleCurrencyTransaction;
 function createSingleCurrencyTransactionDao(model) {
-    const ground = model.ground;
     const getOrCreateAddress = (externalAddress) => getOrCreateAddressReturningId(model.Address, externalAddress);
     return {
         getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
@@ -63,27 +62,96 @@ function createEthereumExplorerDao(model) {
         blockDao: {
             saveBlock: (block) => saveSingleCurrencyBlock(model.Block, block)
         },
-        lastBlockDao: monitor_dao_1.createLastBlockDao(model.ground),
+        lastBlockDao: monitor_dao_1.createIndexedLastBlockDao(model.ground, 2),
         transactionDao: createSingleCurrencyTransactionDao(model)
     };
 }
 exports.createEthereumExplorerDao = createEthereumExplorerDao;
-function scanEthereumExplorerBlocks(dao, client) {
+function getAverage(values) {
+    let sum = 0;
+    for (let value of values) {
+        sum += value / values.length;
+    }
+    return sum;
+}
+class Profiler {
+    constructor() {
+        this.profiles = {};
+        this.previous = '';
+    }
+    start(name) {
+        const profile = this.profiles[name] = (this.profiles[name] || { samples: [] });
+        profile.timer = process.hrtime();
+        this.previous = name;
+    }
+    stop(name = this.previous) {
+        const profile = this.profiles[name];
+        profile.samples.push(process.hrtime(profile.timer));
+        profile.timer = undefined;
+    }
+    next(name) {
+        this.stop(this.previous);
+        this.start(name);
+    }
+    formatAverage(samples, index) {
+        const average = Math.round(getAverage(samples.map(t => t[index]))).toString();
+        return average.padStart(16, ' ');
+    }
+    log() {
+        console.log('Profile results:');
+        for (let i in this.profiles) {
+            const profile = this.profiles[i];
+            const average1 = this.formatAverage(profile.samples, 0);
+            const average2 = this.formatAverage(profile.samples, 1);
+            console.log(' ', i.toString().padStart(30, ' '), average1, average2);
+        }
+    }
+}
+function scanEthereumExplorerBlocksProfiled(dao, client) {
     return __awaiter(this, void 0, void 0, function* () {
-        const lastBlock = yield dao.lastBlockDao.getLastBlock();
-        let blockIndex = lastBlock ? lastBlock.index + 1 : 0;
+        const lastBlockIndex = yield dao.lastBlockDao.getLastBlock();
+        let blockIndex = typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0;
+        const initial = blockIndex;
+        const profiler = new Profiler();
         do {
+            profiler.start('getBlockInfo');
             const block = yield client.getBlockInfo(blockIndex);
             if (!block)
                 return;
+            profiler.next('getBlockTransactions');
             const transactions = yield client.getBlockTransactions(block);
+            profiler.next('saveBlock');
             yield dao.blockDao.saveBlock(block);
+            profiler.next('saveTransactions');
             for (let transaction of transactions) {
                 yield dao.transactionDao.saveTransaction(transaction);
             }
+            profiler.next('setLastBlock');
             yield dao.lastBlockDao.setLastBlock(block.index);
+            profiler.stop();
+            blockIndex = block.index + 1;
+        } while (blockIndex < initial + 10);
+        profiler.log();
+        process.exit();
+    });
+}
+exports.scanEthereumExplorerBlocksProfiled = scanEthereumExplorerBlocksProfiled;
+function scanEthereumExplorerBlocks(dao, client) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const lastBlockIndex = yield dao.lastBlockDao.getLastBlock();
+        let blockIndex = typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0;
+        do {
+            const block = yield client.getBlockInfo(blockIndex);
+            if (!block)
+                break;
+            const transactions = yield client.getBlockTransactions(block);
+            dao.blockDao.saveBlock(block);
+            for (let transaction of transactions) {
+                dao.transactionDao.saveTransaction(transaction);
+            }
             blockIndex = block.index + 1;
         } while (true);
+        yield dao.lastBlockDao.setLastBlock(blockIndex - 1);
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;

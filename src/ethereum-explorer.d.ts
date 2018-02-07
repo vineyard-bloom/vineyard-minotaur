@@ -26,4 +26,5 @@ export declare function saveSingleCurrencyTransaction(transactionCollection: Col
 export declare function createSingleCurrencyTransactionDao(model: EthereumModel): TransactionDao;
 export declare function createEthereumExplorerDao(model: EthereumModel): MonitorDao;
 export declare type EthereumBlockClient = blockchain.BlockClient<blockchain.SingleTransaction>;
+export declare function scanEthereumExplorerBlocksProfiled(dao: MonitorDao, client: EthereumBlockClient): Promise<any>;
 export declare function scanEthereumExplorerBlocks(dao: MonitorDao, client: EthereumBlockClient): Promise<any>;

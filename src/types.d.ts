@@ -17,12 +17,17 @@ export declare type TransactionQueryDelegate = (txid: string) => Promise<blockch
 export declare type TransactionSaveDelegate = (transaction: blockchain.SingleTransaction) => Promise<void>;
 export declare type TransactionStatusDelegate = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>;
 export declare type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>;
-export declare type BlockGetter = () => Promise<BlockInfo | undefined>;
+export declare type BlockGetterOld = () => Promise<BlockInfo | undefined>;
+export declare type BlockGetter = () => Promise<number | undefined>;
 export declare type LastBlockDelegate = (blockIndex: number) => Promise<BlockInfo | undefined>;
 export declare type BlockCurrencyDelegate = (block: BaseBlock) => Promise<void>;
 export declare type AddressIdentityDelegate<Identity> = (externalAddress: string) => Promise<Identity>;
 export interface BlockDao {
     saveBlock: BlockCurrencyDelegate;
+}
+export interface LastBlockDaoOld {
+    getLastBlock: BlockGetterOld;
+    setLastBlock: LastBlockDelegate;
 }
 export interface LastBlockDao {
     getLastBlock: BlockGetter;
@@ -35,6 +40,11 @@ export interface TransactionDao {
 }
 export interface PendingTransactionDao {
     listPendingTransactions: PendingTransactionDelegate;
+}
+export interface MonitorDaoOld {
+    blockDao: BlockDao;
+    lastBlockDao: LastBlockDaoOld;
+    transactionDao: TransactionDao;
 }
 export interface MonitorDao {
     blockDao: BlockDao;

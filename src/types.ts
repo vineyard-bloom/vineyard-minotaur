@@ -25,7 +25,9 @@ export type TransactionStatusDelegate = (transaction: blockchain.SingleTransacti
 
 export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>
 
-export type BlockGetter = () => Promise<BlockInfo | undefined>
+export type BlockGetterOld = () => Promise<BlockInfo | undefined>
+
+export type BlockGetter = () => Promise<number | undefined>
 
 export type LastBlockDelegate = (blockIndex: number) => Promise<BlockInfo | undefined>
 
@@ -35,6 +37,11 @@ export type AddressIdentityDelegate<Identity> = (externalAddress: string) => Pro
 
 export interface BlockDao {
   saveBlock: BlockCurrencyDelegate
+}
+
+export interface LastBlockDaoOld {
+  getLastBlock: BlockGetterOld
+  setLastBlock: LastBlockDelegate
 }
 
 export interface LastBlockDao {
@@ -50,6 +57,12 @@ export interface TransactionDao {
 
 export interface PendingTransactionDao {
   listPendingTransactions: PendingTransactionDelegate
+}
+
+export interface MonitorDaoOld {
+  blockDao: BlockDao
+  lastBlockDao: LastBlockDaoOld
+  transactionDao: TransactionDao
 }
 
 export interface MonitorDao {

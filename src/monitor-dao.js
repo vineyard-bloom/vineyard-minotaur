@@ -55,16 +55,40 @@ function getLastBlock(ground, currency) {
     });
 }
 exports.getLastBlock = getLastBlock;
-function setLastBlock(ground, currency, block) {
+function setLastBlock(ground, currency, blockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
-        const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`;
+        const sql = `
+  UPDATE last_blocks 
+  SET "blockIndex" = :blockIndex 
+  WHERE currency = :currency
+  `;
+        return yield ground.query(sql, {
+            blockIndex: blockIndex,
+            currency: currency,
+        });
+    });
+}
+exports.setLastBlock = setLastBlock;
+function getLastBlockIndex(ground, currency) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const sql = `
+  SELECT "blockIndex" FROM last_blocks WHERE currency = :currency
+  `;
+        return ground.querySingle(sql, { currency: currency })
+            .then((value) => (value && typeof value.blockIndex == 'string') ? parseInt(value.blockIndex) : undefined);
+    });
+}
+exports.getLastBlockIndex = getLastBlockIndex;
+function setLastBlockIndex(ground, currency, block) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const sql = `UPDATE last_blocks SET "blockIndex" = :block WHERE currency = :currency`;
         return yield ground.query(sql, {
             block: block,
             currency: currency,
         });
     });
 }
-exports.setLastBlock = setLastBlock;
+exports.setLastBlockIndex = setLastBlockIndex;
 function saveBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const filter = block.hash
@@ -83,6 +107,13 @@ function createBlockDao(model) {
     };
 }
 exports.createBlockDao = createBlockDao;
+function createIndexedLastBlockDao(ground, currency) {
+    return {
+        getLastBlock: () => getLastBlockIndex(ground, currency),
+        setLastBlock: (blockIndex) => setLastBlockIndex(ground, currency, blockIndex)
+    };
+}
+exports.createIndexedLastBlockDao = createIndexedLastBlockDao;
 function createLastBlockDao(ground) {
     return {
         getLastBlock: getLastBlock.bind(null, ground, 1),
