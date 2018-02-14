@@ -17,11 +17,17 @@ export type TransactionDelegate = (transaction: blockchain.SingleTransaction) =>
 export type TransactionCheck = (transaction: blockchain.SingleTransaction) => Promise<boolean>
 export type TransactionSaver = (source: blockchain.SingleTransaction, block: BlockInfo) => Promise<blockchain.SingleTransaction | undefined>
 
-export type TransactionQueryDelegate = (txid: string) => Promise<blockchain.SingleTransaction | undefined>
+export type TransactionQueryDelegateOld = (txid: string) => Promise<blockchain.SingleTransaction | undefined>
 
-export type TransactionSaveDelegate = (transaction: blockchain.SingleTransaction) => Promise<void>
+export type TransactionSaveDelegateOld = (transaction: blockchain.SingleTransaction) => Promise<void>
 
-export type TransactionStatusDelegate = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>
+export type TransactionStatusDelegateOld = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>
+
+export type TransactionQueryDelegate<Transaction> = (txid: string) => Promise<Transaction | undefined>
+
+export type TransactionSaveDelegate<Transaction> = (transaction: Transaction) => Promise<void>
+
+export type TransactionStatusDelegate<Transaction> = (transaction: Transaction, status: TransactionStatus) => Promise<Transaction>
 
 export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>
 
@@ -49,10 +55,16 @@ export interface LastBlockDao {
   setLastBlock: LastBlockDelegate
 }
 
-export interface TransactionDao {
-  getTransactionByTxid: TransactionQueryDelegate
-  saveTransaction: TransactionSaveDelegate
-  setStatus: TransactionStatusDelegate
+export interface TransactionDaoOld {
+  getTransactionByTxid: TransactionQueryDelegateOld
+  saveTransaction: TransactionSaveDelegateOld
+  setStatus: TransactionStatusDelegateOld
+}
+
+export interface TransactionDao<Transaction> {
+  getTransactionByTxid: TransactionQueryDelegate<Transaction>
+  saveTransaction: TransactionSaveDelegate<Transaction>
+  setStatus: TransactionStatusDelegate<Transaction>
 }
 
 export interface PendingTransactionDao {
@@ -62,13 +74,12 @@ export interface PendingTransactionDao {
 export interface MonitorDaoOld {
   blockDao: BlockDao
   lastBlockDao: LastBlockDaoOld
-  transactionDao: TransactionDao
+  transactionDao: TransactionDaoOld
 }
 
 export interface MonitorDao {
   blockDao: BlockDao
   lastBlockDao: LastBlockDao
-  transactionDao: TransactionDao
 }
 
 export interface LastBlock {

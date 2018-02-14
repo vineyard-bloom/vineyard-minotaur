@@ -1,7 +1,7 @@
 import {
   blockchain
 } from "vineyard-blockchain"
-import { MonitorDaoOld, TransactionCheck, TransactionDao, TransactionDelegate, TransactionSaver } from "./types"
+import { MonitorDaoOld, TransactionCheck, TransactionDaoOld, TransactionDelegate, TransactionSaver } from "./types"
 
 // function convertStatus(minimumConfirmations: number, source: blockchain.SingleTransaction) {
 //   return source.confirmations >= minimumConfirmations

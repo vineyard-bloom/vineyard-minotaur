@@ -70,13 +70,11 @@ function setLastBlock(ground, currency, blockIndex) {
 }
 exports.setLastBlock = setLastBlock;
 function getLastBlockIndex(ground, currency) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sql = `
+    const sql = `
   SELECT "blockIndex" FROM last_blocks WHERE currency = :currency
   `;
-        return ground.querySingle(sql, { currency: currency })
-            .then((value) => (value && typeof value.blockIndex == 'string') ? parseInt(value.blockIndex) : undefined);
-    });
+    return ground.querySingle(sql, { currency: currency })
+        .then((value) => (value && typeof value.blockIndex == 'string') ? parseInt(value.blockIndex) : undefined);
 }
 exports.getLastBlockIndex = getLastBlockIndex;
 function setLastBlockIndex(ground, currency, block) {

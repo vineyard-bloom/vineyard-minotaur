@@ -73,7 +73,7 @@ class DepositMonitor {
     }
     updatePendingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const transactionFromDatabase = yield this.model.getTransactionByTxid(transaction.txid, 2);
+            const transactionFromDatabase = yield this.model.getTransactionByTxid(transaction.txid, this.currency.id);
             if (transactionFromDatabase && transactionFromDatabase.status == vineyard_blockchain_1.TransactionStatus.pending)
                 return yield this.confirmExistingTransaction(transaction);
             return transaction;

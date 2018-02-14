@@ -2,7 +2,7 @@ import { BaseBlock, BlockInfo, SingleTransaction as Transaction, TransactionStat
 import { Collection } from 'vineyard-ground/source/collection'
 import { Model, TransactionToSave } from './deposit-monitor-manager'
 import { Modeler } from 'vineyard-ground/source/modeler'
-import { BlockDao, LastBlockDao, LastBlockDaoOld, MonitorDaoOld, TransactionDao } from './types'
+import { BlockDao, LastBlockDao, LastBlockDaoOld, MonitorDaoOld, TransactionDaoOld } from './types'
 
 export async function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string,
                                                       currency: number): Promise<Transaction | undefined> {
@@ -59,7 +59,7 @@ export async function setLastBlock(ground: Modeler, currency: number, blockIndex
   })
 }
 
-export async function getLastBlockIndex(ground: Modeler, currency: number): Promise<number | undefined> {
+export function getLastBlockIndex(ground: Modeler, currency: number): Promise<number | undefined> {
   const sql = `
   SELECT "blockIndex" FROM last_blocks WHERE currency = :currency
   `
@@ -109,7 +109,7 @@ export function createLastBlockDao(ground: Modeler): LastBlockDaoOld {
   }
 }
 
-export function createTransactionDao(model: Model): TransactionDao {
+export function createTransactionDao(model: Model): TransactionDaoOld {
   const ground = model.ground
   return {
     getTransactionByTxid: getTransactionByTxidAndCurrency.bind(null, model.Transaction),

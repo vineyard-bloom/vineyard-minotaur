@@ -5,7 +5,9 @@
         "type": "long"
       },
       "address": {
-        "type": "string"
+        "type": "char",
+        "length": 42,
+        "unique": true
       },
       "balance": {
         "type": "bignumber"
@@ -20,10 +22,27 @@
         "autoIncrement": false
       },
       "hash": {
-        "type": "string"
+        "type": "char",
+        "length": 66,
+        "unique": true
       },
       "timeMined": {
         "type": "datetime"
+      }
+    }
+  },
+  "Currency": {
+    "properties": {
+      "id": {
+        "type": "int"
+      },
+      "address": {
+        "type": "Address",
+        "nullable": true,
+        "unique": true
+      },
+      "name": {
+        "type": "string"
       }
     }
   },
@@ -45,10 +64,12 @@
         "type": "long"
       },
       "status": {
-        "type": "int"
+        "type": "short"
       },
       "txid": {
-        "type": "string"
+        "type": "char",
+        "length": 66,
+        "unique": true
       },
       "to": {
         "type": "Address",

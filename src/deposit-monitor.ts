@@ -85,7 +85,7 @@ export class DepositMonitor {
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
-    const transactionFromDatabase = await this.model.getTransactionByTxid(transaction.txid, 2)
+    const transactionFromDatabase = await this.model.getTransactionByTxid(transaction.txid, this.currency.id)
     if (transactionFromDatabase && transactionFromDatabase.status == TransactionStatus.pending)
       return await this.confirmExistingTransaction(transaction)
 

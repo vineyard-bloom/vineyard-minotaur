@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
+const profiler_1 = require("./profiler");
+const block_queue_1 = require("./block-queue");
 function saveSingleCurrencyBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const existing = yield blockCollection.first({ index: block.index });
@@ -31,28 +33,12 @@ function getOrCreateAddressReturningId(addressCollection, externalAddress) {
     });
 }
 exports.getOrCreateAddressReturningId = getOrCreateAddressReturningId;
-function saveSingleCurrencyTransaction(transactionCollection, getOrCreateAddress, transaction) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const to = transaction.to ? (yield getOrCreateAddress(transaction.to)) : undefined;
-        const from = transaction.from ? (yield getOrCreateAddress(transaction.from)) : undefined;
-        const data = {
-            txid: transaction.txid,
-            amount: transaction.amount,
-            to: to,
-            from: from,
-            timeReceived: transaction.timeReceived,
-            status: transaction.status,
-            blockIndex: transaction.blockIndex,
-        };
-        yield transactionCollection.create(data);
-    });
-}
-exports.saveSingleCurrencyTransaction = saveSingleCurrencyTransaction;
 function createSingleCurrencyTransactionDao(model) {
-    const getOrCreateAddress = (externalAddress) => getOrCreateAddressReturningId(model.Address, externalAddress);
     return {
         getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
-        saveTransaction: (transaction) => saveSingleCurrencyTransaction(model.Transaction, getOrCreateAddress, transaction),
+        saveTransaction: (transaction) => __awaiter(this, void 0, void 0, function* () {
+            yield model.Transaction.create(transaction);
+        }),
         setStatus: monitor_dao_1.setStatus.bind(null, model.Transaction)
     };
 }
@@ -63,95 +49,165 @@ function createEthereumExplorerDao(model) {
             saveBlock: (block) => saveSingleCurrencyBlock(model.Block, block)
         },
         lastBlockDao: monitor_dao_1.createIndexedLastBlockDao(model.ground, 2),
-        transactionDao: createSingleCurrencyTransactionDao(model)
+        // transactionDao: createSingleCurrencyTransactionDao(model),
+        getOrCreateAddress: (externalAddress) => getOrCreateAddressReturningId(model.Address, externalAddress),
+        ground: model.ground
     };
 }
 exports.createEthereumExplorerDao = createEthereumExplorerDao;
-function getAverage(values) {
-    let sum = 0;
-    for (let value of values) {
-        sum += value / values.length;
-    }
-    return sum;
-}
-class Profiler {
-    constructor() {
-        this.profiles = {};
-        this.previous = '';
-    }
-    start(name) {
-        const profile = this.profiles[name] = (this.profiles[name] || { samples: [] });
-        profile.timer = process.hrtime();
-        this.previous = name;
-    }
-    stop(name = this.previous) {
-        const profile = this.profiles[name];
-        profile.samples.push(process.hrtime(profile.timer));
-        profile.timer = undefined;
-    }
-    next(name) {
-        this.stop(this.previous);
-        this.start(name);
-    }
-    formatAverage(samples, index) {
-        const average = Math.round(getAverage(samples.map(t => t[index]))).toString();
-        return average.padStart(16, ' ');
-    }
-    log() {
-        console.log('Profile results:');
-        for (let i in this.profiles) {
-            const profile = this.profiles[i];
-            const average1 = this.formatAverage(profile.samples, 0);
-            const average2 = this.formatAverage(profile.samples, 1);
-            console.log(' ', i.toString().padStart(30, ' '), average1, average2);
-        }
-    }
-}
-function scanEthereumExplorerBlocksProfiled(dao, client) {
+function getNextBlock(lastBlockDao) {
     return __awaiter(this, void 0, void 0, function* () {
-        const lastBlockIndex = yield dao.lastBlockDao.getLastBlock();
-        let blockIndex = typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0;
-        const initial = blockIndex;
-        const profiler = new Profiler();
-        do {
-            profiler.start('getBlockInfo');
-            const block = yield client.getBlockInfo(blockIndex);
-            if (!block)
-                return;
-            profiler.next('getBlockTransactions');
-            const transactions = yield client.getBlockTransactions(block);
-            profiler.next('saveBlock');
-            yield dao.blockDao.saveBlock(block);
-            profiler.next('saveTransactions');
-            for (let transaction of transactions) {
-                yield dao.transactionDao.saveTransaction(transaction);
-            }
-            profiler.next('setLastBlock');
-            yield dao.lastBlockDao.setLastBlock(block.index);
-            profiler.stop();
-            blockIndex = block.index + 1;
-        } while (blockIndex < initial + 10);
-        profiler.log();
-        process.exit();
+        const lastBlockIndex = yield lastBlockDao.getLastBlock();
+        return typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0;
     });
 }
-exports.scanEthereumExplorerBlocksProfiled = scanEthereumExplorerBlocksProfiled;
-function scanEthereumExplorerBlocks(dao, client) {
+exports.getNextBlock = getNextBlock;
+function gatherAddresses(blocks, contracts) {
+    const addresses = {};
+    for (let block of blocks) {
+        for (let transaction of block.transactions) {
+            if (transaction.to)
+                addresses[transaction.to] = -1;
+            if (transaction.from)
+                addresses[transaction.from] = -1;
+        }
+    }
+    for (let contract of contracts) {
+        addresses[contract.address] = -1;
+    }
+    return addresses;
+}
+function setAddress(getOrCreateAddress, addresses, key) {
     return __awaiter(this, void 0, void 0, function* () {
-        const lastBlockIndex = yield dao.lastBlockDao.getLastBlock();
-        let blockIndex = typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0;
-        do {
-            const block = yield client.getBlockInfo(blockIndex);
-            if (!block)
-                break;
-            const transactions = yield client.getBlockTransactions(block);
-            dao.blockDao.saveBlock(block);
-            for (let transaction of transactions) {
-                dao.transactionDao.saveTransaction(transaction);
+        const id = yield getOrCreateAddress(key);
+        addresses[key] = id;
+    });
+}
+function saveTransactions(ground, blocks, addresses) {
+    let transactionClauses = [];
+    for (let block of blocks) {
+        transactionClauses = transactionClauses.concat(block.transactions.map(t => {
+            const to = t.to ? addresses[t.to] : 'NULL';
+            const from = t.from ? addresses[t.from] : 'NULL';
+            return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+        }));
+    }
+    if (transactionClauses.length == 0)
+        return Promise.resolve();
+    const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
+    const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+    return ground.querySingle(sql);
+}
+function getOrCreateAddresses(ground, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        {
+            const addressClauses = [];
+            for (let i in addresses) {
+                addressClauses.push(`'${i}'`);
             }
-            blockIndex = block.index + 1;
+            if (addressClauses.length == 0)
+                return Promise.resolve();
+            const header = `SELECT "id", "address" FROM addresses
+  WHERE "address" IN (
+  `;
+            const sql = header + addressClauses.join(',\n') + ');';
+            const rows = yield ground.query(sql);
+            for (let row of rows) {
+                addresses[row.address] = parseInt(row.id);
+            }
+        }
+        {
+            const inserts = [];
+            for (let i in addresses) {
+                const value = addresses[i];
+                if (value === -1) {
+                    inserts.push(`('${i}', NOW(), NOW())`);
+                }
+            }
+            if (inserts.length == 0)
+                return Promise.resolve();
+            const insertHeader = 'INSERT INTO "addresses" ("address", "created", "modified") VALUES\n';
+            const sql = insertHeader + inserts.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";';
+            const rows = yield ground.query(sql);
+            for (let row of rows) {
+                addresses[row.address] = parseInt(row.id);
+            }
+        }
+    });
+}
+function saveBlocks(ground, blocks) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
+        let inserts = [];
+        for (let block of blocks) {
+            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`);
+        }
+        const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
+        return ground.querySingle(sql);
+    });
+}
+function saveContracts(ground, contracts, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (contracts.length == 0)
+            return Promise.resolve([]);
+        let contractClauses = contracts.map(contract => {
+            return `(${addresses[contract.address]}, '${contract.name}', NOW(), NOW())`;
+        });
+        const header = 'INSERT INTO "currencies" ("address", "name", "created", "modified") VALUES\n';
+        const sql = header + contractClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+        return ground.querySingle(sql);
+    });
+}
+function gatherNewContracts(blocks) {
+    let result = [];
+    for (let block of blocks) {
+        result = result.concat(block.transactions
+            .filter(t => t.newContract)
+            .map(t => t.newContract));
+    }
+    return result;
+}
+function saveFullBlocks(dao, blocks) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const contracts = gatherNewContracts(blocks);
+        const addresses = gatherAddresses(blocks, contracts);
+        const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
+        yield Promise.all([
+            saveBlocks(dao.ground, blocks),
+            dao.lastBlockDao.setLastBlock(lastBlockIndex),
+            getOrCreateAddresses(dao.ground, addresses)
+                .then(() => saveContracts(dao.ground, contracts, addresses))
+                .then(() => saveTransactions(dao.ground, blocks, addresses))
+        ]);
+        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
+    });
+}
+function scanEthereumExplorerBlocks(dao, client, config, profiler = new profiler_1.EmptyProfiler()) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let blockIndex = yield getNextBlock(dao.lastBlockDao);
+        const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.maxConsecutiveBlocks);
+        const startTime = Date.now();
+        do {
+            const elapsed = Date.now() - startTime;
+            // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
+            if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
+                console.log('Reached timeout of ', elapsed, 'milliseconds');
+                console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '));
+                break;
+            }
+            profiler.start('getBlocks');
+            const blocks = yield blockQueue.getBlocks();
+            profiler.stop('getBlocks');
+            if (blocks.length == 0)
+                break;
+            console.log('Saving blocks', blocks.map(b => b.index).join(', '));
+            profiler.start('saveBlocks');
+            yield saveFullBlocks(dao, blocks);
+            profiler.stop('saveBlocks');
+            // console.log('Saved blocks', blocks.map(b => b.index))
         } while (true);
-        yield dao.lastBlockDao.setLastBlock(blockIndex - 1);
+        // blockQueue.p.logFlat()
+        profiler.logFlat();
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;
