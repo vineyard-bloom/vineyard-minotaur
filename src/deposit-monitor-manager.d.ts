@@ -16,7 +16,6 @@ export interface Model {
     Block: Collection<BlockInfo>;
     Transaction: Collection<Transaction>;
     LastBlock: Collection<OldLastBlock>;
-    Scan: Collection<Scan>;
     ground: Modeler;
 }
 export declare class DepositMonitorManager {

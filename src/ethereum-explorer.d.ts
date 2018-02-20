@@ -24,6 +24,7 @@ export interface EthereumModel {
     Address: Collection<Address>;
     Currency: Collection<Currency>;
     Block: Collection<blockchain.Block>;
+    Token: Collection<blockchain.TokenContract>;
     Transaction: Collection<EthereumTransaction>;
     LastBlock: Collection<LastBlock>;
     ground: Modeler;

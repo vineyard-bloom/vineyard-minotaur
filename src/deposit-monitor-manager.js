@@ -34,11 +34,12 @@ class DepositMonitorManager {
     }
     listPending(currency, maxBlockIndex) {
         return __awaiter(this, void 0, void 0, function* () {
+            const transactionsTable = this.model.Transaction.trellis.table.name;
             const sql = `
-    SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
+    SELECT ${transactionsTable}.* FROM ${transactionsTable}
+    JOIN blocks ON blocks.id = ${transactionsTable}.block
     AND blocks.index < :maxBlockIndex
-    WHERE status = 0 AND transactions.currency = :currency`;
+    WHERE status = 0 AND ${transactionsTable}.currency = :currency`;
             return yield this.model.ground.query(sql, {
                 maxBlockIndex: maxBlockIndex,
                 currency: currency

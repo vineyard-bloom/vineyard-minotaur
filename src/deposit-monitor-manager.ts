@@ -28,7 +28,6 @@ export interface Model {
   Block: Collection<BlockInfo>
   Transaction: Collection<Transaction>
   LastBlock: Collection<OldLastBlock>
-  Scan: Collection<Scan>
 
   ground: Modeler
 }
@@ -59,11 +58,12 @@ export class DepositMonitorManager {
   }
 
   async listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]> {
+    const transactionsTable = (this.model.Transaction as any).trellis.table.name
     const sql = `
-    SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
+    SELECT ${transactionsTable}.* FROM ${transactionsTable}
+    JOIN blocks ON blocks.id = ${transactionsTable}.block
     AND blocks.index < :maxBlockIndex
-    WHERE status = 0 AND transactions.currency = :currency`
+    WHERE status = 0 AND ${transactionsTable}.currency = :currency`
 
     return await this.model.ground.query(sql, {
       maxBlockIndex: maxBlockIndex,

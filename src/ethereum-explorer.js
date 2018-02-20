@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
+const vineyard_blockchain_1 = require("vineyard-blockchain");
 const profiler_1 = require("./profiler");
 const block_queue_1 = require("./block-queue");
 function saveSingleCurrencyBlock(blockCollection, block) {
@@ -149,15 +150,47 @@ function saveBlocks(ground, blocks) {
 function saveContracts(ground, contracts, addresses) {
     return __awaiter(this, void 0, void 0, function* () {
         if (contracts.length == 0)
-            return Promise.resolve([]);
-        let contractClauses = contracts.map(contract => {
-            return `(${addresses[contract.address]}, '${contract.name}', NOW(), NOW())`;
+            return Promise.resolve();
+        const contractClauses = contracts.map(contract => `(${addresses[contract.address]}, NOW(), NOW())`);
+        const header = 'INSERT INTO "contracts" ("address", "created", "modified") VALUES\n';
+        const sql = header + contractClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";';
+        const contractRecords = (yield ground.query(sql))
+            .map((c) => ({
+            id: parseInt(c.id),
+            address: parseInt(c.address)
+        }));
+        const tokenContracts = contracts.filter(c => c.contractType == vineyard_blockchain_1.blockchain.ContractType.token);
+        if (tokenContracts.length == 0)
+            return;
+        const tokenClauses = tokenContracts.map(contract => {
+            const token = contract;
+            const address = addresses[contract.address];
+            const record = contractRecords.filter((c) => c.address === address)[0];
+            return `(${record.id}, '${token.name}', '${token.totalSupply}', '${token.decimals}', 
+      '${token.version}', '${token.symbol}',  NOW(), NOW())`;
         });
-        const header = 'INSERT INTO "currencies" ("address", "name", "created", "modified") VALUES\n';
-        const sql = header + contractClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
-        return ground.querySingle(sql);
+        const sql2 = `
+INSERT INTO "tokens" ("id", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified") 
+VALUES ${tokenClauses.join(',\n')} 
+ON CONFLICT DO NOTHING;`;
+        yield ground.querySingle(sql2);
     });
 }
+/*   "totalSupply": {
+        "type": "numeric"
+      },
+      "decimals": {
+        "type": "short"
+      },
+      "version": {
+        "type": "string"
+      },
+      "symbol": {
+        "type": "string"
+      },
+      "allowance": {
+        "type": "numeric"
+      }*/
 function gatherNewContracts(blocks) {
     let result = [];
     for (let block of blocks) {
@@ -206,8 +239,6 @@ function scanEthereumExplorerBlocks(dao, client, config, profiler = new profiler
             profiler.stop('saveBlocks');
             // console.log('Saved blocks', blocks.map(b => b.index))
         } while (true);
-        // blockQueue.p.logFlat()
-        profiler.logFlat();
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;

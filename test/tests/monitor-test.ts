@@ -1,3 +1,5 @@
+import { SimpleProfiler } from "../../src/profiler";
+
 require('source-map-support').install()
 import { EthereumModel } from "../../src";
 import { createVillage, Village } from "../src/village";
@@ -58,12 +60,12 @@ describe('eth-scan', function () {
   it('scans tokens', async function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 1,
-      maxMilliseconds: 0.1 * minute
+      maxConsecutiveBlocks: 40,
+      maxMilliseconds: 1 * minute
     })
 
-    const currencies = await model.Currency.all()
-    assert.isAtLeast(currencies.length, 3)
+    const currencies = await model.Token.all()
+    assert.isAtLeast(currencies.length, 1)
   })
 
 })

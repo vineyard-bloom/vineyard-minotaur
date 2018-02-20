@@ -31,15 +31,25 @@
       }
     }
   },
+  "Contract": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "address": {
+        "type": "Address",
+        "unique": true
+      },
+      "transaction": {
+        "type": "Transaction",
+        "nullable": true
+      }
+    }
+  },
   "Currency": {
     "properties": {
       "id": {
         "type": "int"
-      },
-      "address": {
-        "type": "Address",
-        "nullable": true,
-        "unique": true
       },
       "name": {
         "type": "string"
@@ -86,6 +96,29 @@
       },
       "blockIndex": {
         "type": "long"
+      }
+    }
+  },
+  "Token": {
+    "properties": {
+      "id": {
+        "type": "long",
+        "autoIncrement": false
+      },
+      "name": {
+        "type": "string"
+      },
+      "totalSupply": {
+        "type": "bignumber"
+      },
+      "decimals": {
+        "type": "short"
+      },
+      "version": {
+        "type": "string"
+      },
+      "symbol": {
+        "type": "string"
       }
     }
   }
