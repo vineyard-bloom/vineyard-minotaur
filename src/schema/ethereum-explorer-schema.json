@@ -78,8 +78,10 @@
       },
       "txid": {
         "type": "char",
-        "length": 66,
-        "unique": true
+        "length": 66
+      },
+      "currency": {
+        "type": "int"
       },
       "to": {
         "type": "Address",
@@ -104,6 +106,9 @@
       "id": {
         "type": "long",
         "autoIncrement": false
+      },
+      "contract": {
+        "type": "Contract"
       },
       "name": {
         "type": "string"

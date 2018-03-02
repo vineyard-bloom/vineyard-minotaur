@@ -26,11 +26,17 @@ export interface Currency {
 
 export type AddressDelegate = (externalAddress: string) => Promise<number>
 
+export interface TokenTransferRecord {
+
+}
+
 export interface EthereumModel {
   Address: Collection<Address>
-  Currency: Collection<Currency>
+  Currency: Collection<any>
+  Contract: Collection<blockchain.Contract & { id: number }>
   Block: Collection<blockchain.Block>
   Token: Collection<blockchain.TokenContract>
+  TokenTransfer: Collection<TokenTransferRecord>
   Transaction: Collection<EthereumTransaction>
   LastBlock: Collection<LastBlock>
 
@@ -118,6 +124,26 @@ function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[]) 
   return addresses
 }
 
+interface ContractAddress {
+  id: number,
+  address: string
+}
+
+async function gatherContractToAddresses(ground: Modeler, addresses: string[]): Promise<ContractAddress[]> {
+  const addressClause = addresses.map(a => "'" + a + "'").join(',\n')
+  const sql = `
+  SELECT addresses.id, addresses.address FROM contracts
+  JOIN addresses ON addresses.id = contracts.address
+  WHERE addresses.address IN (
+  ${addressClause}
+  )`
+  const records: any[] = await ground.query(sql)
+  return records.map(r => ({
+    id: parseInt(r.id),
+    address: r.address
+  }))
+}
+
 async function setAddress(getOrCreateAddress: AddressDelegate, addresses: AddressMap, key: string) {
   const id = await getOrCreateAddress(key)
   addresses[key] = id
@@ -130,7 +156,7 @@ function saveTransactions(ground: any, blocks: FullBlock[], addresses: AddressMa
       block.transactions.map(t => {
         const to = t.to ? addresses[t.to] : 'NULL'
         const from = t.from ? addresses[t.from] : 'NULL'
-        return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
+        return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
       })
     )
   }
@@ -138,7 +164,7 @@ function saveTransactions(ground: any, blocks: FullBlock[], addresses: AddressMa
   if (transactionClauses.length == 0)
     return Promise.resolve()
 
-  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
   return ground.querySingle(sql)
 }
@@ -192,15 +218,37 @@ async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   return ground.querySingle(sql)
 }
 
+async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[], contractRecords: any[],
+                              addresses: AddressMap): Promise<any[]> {
+  const tokenClauses: string[] = tokenContracts.map(contract => {
+      const token = contract as blockchain.TokenContract
+      const address = addresses[contract.address]
+      const record = contractRecords.filter((c: any) => c.address === address)[0]
+      return `('${token.name}', NOW(), NOW())`
+    }
+  )
+
+  const sql2 = `
+INSERT INTO "currencies" ("name", "created", "modified") 
+VALUES ${tokenClauses.join(',\n')} 
+RETURNING "id", "name";`
+
+  return ground.query(sql2)
+  // return result.map((c: any) => ({
+  //   id: parseInt(c.id),
+  //   name: c.name
+  // }))
+}
+
 async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], addresses: AddressMap): Promise<void> {
   if (contracts.length == 0)
     return Promise.resolve()
 
   const contractClauses: string[] = contracts.map(contract =>
-    `(${addresses[contract.address]}, NOW(), NOW())`
+    `(${addresses[contract.address]}, (SELECT transactions.id FROM transactions WHERE txid = '${contract.txid}'), NOW(), NOW())`
   )
 
-  const header = 'INSERT INTO "contracts" ("address", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "contracts" ("address", "transaction", "created", "modified") VALUES\n'
   const sql = header + contractClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";'
   const contractRecords = (await ground.query(sql))
     .map((c: any) => ({
@@ -212,38 +260,27 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   if (tokenContracts.length == 0)
     return
 
-  const tokenClauses: string[] = tokenContracts.map(contract => {
-      const token = contract as blockchain.TokenContract
-      const address = addresses[contract.address]
-      const record = contractRecords.filter((c: any) => c.address === address)[0]
-      return `(${record.id}, '${token.name}', '${token.totalSupply}', '${token.decimals}', 
-      '${token.version}', '${token.symbol}',  NOW(), NOW())`
-    }
-  )
+  const currencies = await saveCurrencies(ground, tokenContracts, contractRecords, addresses)
 
-  const sql2 = `
-INSERT INTO "tokens" ("id", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified") 
+  {
+    const tokenClauses: string[] = tokenContracts.map(contract => {
+        const token = contract as blockchain.TokenContract
+        const address = addresses[contract.address]
+        const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
+        const currency = currencies.filter((c: any) => c.name === token.name)[0]
+        return `(${currency.id}, ${contractRecord.id}, '${token.name}', '${token.totalSupply}', '${token.decimals}', 
+      '${token.version}', '${token.symbol}', NOW(), NOW())`
+      }
+    )
+
+    const sql2 = `
+INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified") 
 VALUES ${tokenClauses.join(',\n')} 
 ON CONFLICT DO NOTHING;`
 
-  await ground.querySingle(sql2)
+    await ground.querySingle(sql2)
+  }
 }
-
-/*   "totalSupply": {
-        "type": "numeric"
-      },
-      "decimals": {
-        "type": "short"
-      },
-      "version": {
-        "type": "string"
-      },
-      "symbol": {
-        "type": "string"
-      },
-      "allowance": {
-        "type": "numeric"
-      }*/
 
 function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
   let result: blockchain.Contract[] = []
@@ -257,17 +294,57 @@ function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
   return result
 }
 
+// function getTokenTransferContractAddresses(transactions: blockchain.ContractTransaction[]) {
+//   const tempMap: any = {}
+//   for (let transaction of transactions) {
+//     tempMap[transaction.]
+//   }
+//   return tempMap.keys()
+// }
+
+async function saveTokenTransfers(ground: Modeler, events: blockchain.StateEvent[], addresses: AddressMap) {
+  let contractAddresses = [...new Set(events.map(e => e.transactionHash))]
+  const watchAddresses = await gatherContractToAddresses(ground, contractAddresses)
+  if (watchAddresses.length == 0)
+    return Promise.resolve()
+
+  return Promise.resolve()
+  // transactionClauses: string[] = events.map(t => {
+  //   const to = t.to ? addresses[t.to] : 'NULL'
+  //   const from = t.from ? addresses[t.from] : 'NULL'
+  //   return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
+  // })
+//)
+
+  // if (transactionClauses.length == 0)
+  //   return Promise.resolve()
+  //
+  // const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
+  // const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  // return ground.querySingle(sql)
+}
+
+function flatMap<A, B>(array: A[], mapper: (a: A) => B[],) {
+  return array.reduce((accumulator: B[], a) =>
+    accumulator.concat(mapper(a)), [])
+}
+
 async function saveFullBlocks(dao: EthereumMonitorDao, blocks: FullBlock[]): Promise<void> {
+  const transactions = flatMap(blocks, b => b.transactions)
+  const events = flatMap(transactions, t => t.events || [])
+
   const contracts = gatherNewContracts(blocks)
   const addresses = gatherAddresses(blocks, contracts)
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
+  const ground = dao.ground
 
   await Promise.all([
-      saveBlocks(dao.ground, blocks),
+      saveBlocks(ground, blocks),
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
       getOrCreateAddresses(dao.ground, addresses)
-        .then(() => saveContracts(dao.ground, contracts, addresses))
-        .then(() => saveTransactions(dao.ground, blocks, addresses))
+        .then(() => saveTransactions(ground, blocks, addresses))
+        .then(() => saveContracts(ground, contracts, addresses))
+        .then(() => saveTokenTransfers(ground, events, addresses))
     ]
   )
 

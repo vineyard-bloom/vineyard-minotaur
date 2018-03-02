@@ -20,11 +20,17 @@ export interface Currency {
     name: string;
 }
 export declare type AddressDelegate = (externalAddress: string) => Promise<number>;
+export interface TokenTransferRecord {
+}
 export interface EthereumModel {
     Address: Collection<Address>;
-    Currency: Collection<Currency>;
+    Currency: Collection<any>;
+    Contract: Collection<blockchain.Contract & {
+        id: number;
+    }>;
     Block: Collection<blockchain.Block>;
     Token: Collection<blockchain.TokenContract>;
+    TokenTransfer: Collection<TokenTransferRecord>;
     Transaction: Collection<EthereumTransaction>;
     LastBlock: Collection<LastBlock>;
     ground: Modeler;
