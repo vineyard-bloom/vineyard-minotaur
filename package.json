@@ -1,6 +1,6 @@
 {
   "name": "vineyard-minotaur",
-  "version": "1.0.1-0",
+  "version": "1.0.0-beta.37",
   "description": "Blockchain monitor",
   "main": "src/index.js",
   "types": "src/index.d.ts",
