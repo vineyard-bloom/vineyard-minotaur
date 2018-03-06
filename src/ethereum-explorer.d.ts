@@ -3,7 +3,7 @@ import { Modeler } from "vineyard-ground/source/modeler";
 import { Collection } from "vineyard-ground/source/collection";
 import { blockchain } from "vineyard-blockchain";
 import BigNumber from "bignumber.js";
-import { Profiler } from "./profiler";
+import { Profiler } from "./utility/profiler";
 import { SingleTransactionBlockClient } from "./block-queue";
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;

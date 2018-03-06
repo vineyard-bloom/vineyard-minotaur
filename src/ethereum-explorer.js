@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
 const vineyard_blockchain_1 = require("vineyard-blockchain");
-const profiler_1 = require("./profiler");
+const profiler_1 = require("./utility/profiler");
 const block_queue_1 = require("./block-queue");
 function saveSingleCurrencyBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {

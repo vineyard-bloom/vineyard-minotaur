@@ -73,7 +73,6 @@ export class SimpleProfiler implements Profiler {
   }
 }
 
-
 export class EmptyProfiler implements Profiler {
 
   start(name: string) {

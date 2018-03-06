@@ -4,7 +4,7 @@ import {
   scanEthereumExplorerBlocks
 } from "../../src";
 import { decodeTokenTransfer, EthereumBlockReader } from 'vineyard-ethereum'
-import { SimpleProfiler } from "../../src/profiler";
+import { SimpleProfiler } from "../../src/utility/profiler";
 
 export async function startEthereumMonitor(village: Village, config: MonitorConfig) {
   const model = village.model
