@@ -81,7 +81,7 @@
         "length": 66
       },
       "currency": {
-        "type": "int"
+        "type": "Currency"
       },
       "to": {
         "type": "Address",
@@ -92,6 +92,12 @@
       },
       "amount": {
         "type": "bignumber"
+      },
+      "fee": {
+        "type": "bignumber"
+      },
+      "nonce": {
+        "type": "long"
       },
       "timeReceived": {
         "type": "datetime"

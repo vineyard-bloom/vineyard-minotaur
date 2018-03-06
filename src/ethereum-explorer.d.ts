@@ -31,7 +31,9 @@ export interface EthereumModel {
     Block: Collection<blockchain.Block>;
     Token: Collection<blockchain.TokenContract>;
     TokenTransfer: Collection<TokenTransferRecord>;
-    Transaction: Collection<EthereumTransaction>;
+    Transaction: Collection<EthereumTransaction & {
+        id: number;
+    }>;
     LastBlock: Collection<LastBlock>;
     ground: Modeler;
 }
@@ -50,4 +52,4 @@ export interface MonitorConfig {
     maxBlocksPerScan?: number;
 }
 export declare function getNextBlock(lastBlockDao: LastBlockDao): Promise<number>;
-export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;

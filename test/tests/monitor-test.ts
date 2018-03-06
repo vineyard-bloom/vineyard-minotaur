@@ -7,11 +7,28 @@ import { blockchain } from "vineyard-blockchain"
 
 require('source-map-support').install()
 
-const minute = 60 * 1000
+const second = 1000
+const minute = 60 * second
 
-async function createTokenContract(village: Village, token: blockchain.TokenContract) {
-  const contract = await village.model.Contract.create({
+async function createTokenContract(village: Village, token: blockchain.TokenContract & { from: string }) {
+  const from = await village.model.Address.create({
+    address: token.from
+  })
+
+  const address = await village.model.Address.create({
     address: token.address
+  })
+
+  const transaction = await village.model.Transaction.create({
+    txid: token.txid,
+    currency: 2,
+    from: from.id,
+    timeReceived: new Date()
+  })
+
+  const contract = await village.model.Contract.create({
+    address: address.id,
+    transaction: transaction.id
   })
 
   const currency = await village.model.Currency.create({
@@ -19,13 +36,13 @@ async function createTokenContract(village: Village, token: blockchain.TokenCont
   })
 
   await village.model.Token.create({
-    id: contract.id,
+    id: currency.id,
     name: token.name,
+    contract: contract.id,
     totalSupply: token.totalSupply,
     decimals: token.decimals,
     version: token.version,
-    symbol: token.symbol,
-    address: token.address
+    symbol: token.symbol
   })
 }
 
@@ -37,7 +54,17 @@ async function createSaltContract(village: Village) {
     decimals: 8,
     version: '1.0',
     symbol: 'SALT',
-    address: ''
+    address: '0x4156D3342D5c385a87D264F90653733592000581',
+    from: '0x5d239fB4d8767745bE329d38703CdF4094858766',
+    txid: '0xa7ead12fc3b20bc4555b26bcc8de55d651e90ba0da445bddad61eeaed2d28e17',
+  })
+}
+
+async function createSaltContractReal(village: Village) {
+  await village.model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
+  await startEthereumMonitor(village, {
+    maxConsecutiveBlocks: 1,
+    maxMilliseconds: 1 * minute
   })
 }
 
@@ -104,13 +131,13 @@ describe('eth-scan', function () {
   it('detects successful token transfers', async function () {
     await createSaltContract(village)
 
-    await model.LastBlock.create({ currency: 2, blockIndex: 5126521 })
+    await model.LastBlock.create({ currency: 2, blockIndex: 5146973 })
     await startEthereumMonitor(village, {
       maxConsecutiveBlocks: 1,
-      maxMilliseconds: 0.1 * minute
+      maxMilliseconds: 2 * second
     })
 
-    const transfers = await model.TokenTransfer.all()
+    const transfers = await model.Transaction.filter({ currency: 3 })
     assert.isAtLeast(transfers.length, 1)
   })
 

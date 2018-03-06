@@ -63,7 +63,7 @@ function getNextBlock(lastBlockDao) {
     });
 }
 exports.getNextBlock = getNextBlock;
-function gatherAddresses(blocks, contracts) {
+function gatherAddresses(blocks, contracts, tokenTransfers) {
     const addresses = {};
     for (let block of blocks) {
         for (let transaction of block.transactions) {
@@ -76,23 +76,11 @@ function gatherAddresses(blocks, contracts) {
     for (let contract of contracts) {
         addresses[contract.address] = -1;
     }
+    for (let transfer of tokenTransfers) {
+        addresses[transfer.decoded.args.to] = -1;
+        addresses[transfer.decoded.args.from] = -1;
+    }
     return addresses;
-}
-function gatherContractToAddresses(ground, addresses) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const addressClause = addresses.map(a => "'" + a + "'").join(',\n');
-        const sql = `
-  SELECT addresses.id, addresses.address FROM contracts
-  JOIN addresses ON addresses.id = contracts.address
-  WHERE addresses.address IN (
-  ${addressClause}
-  )`;
-        const records = yield ground.query(sql);
-        return records.map(r => ({
-            id: parseInt(r.id),
-            address: r.address
-        }));
-    });
 }
 function setAddress(getOrCreateAddress, addresses, key) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -102,16 +90,16 @@ function setAddress(getOrCreateAddress, addresses, key) {
 }
 function saveTransactions(ground, blocks, addresses) {
     let transactionClauses = [];
+    const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
     for (let block of blocks) {
         transactionClauses = transactionClauses.concat(block.transactions.map(t => {
             const to = t.to ? addresses[t.to] : 'NULL';
             const from = t.from ? addresses[t.from] : 'NULL';
-            return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+            return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
         }));
     }
     if (transactionClauses.length == 0)
         return Promise.resolve();
-    const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
     const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
     return ground.querySingle(sql);
 }
@@ -224,57 +212,111 @@ function gatherNewContracts(blocks) {
     }
     return result;
 }
-// function getTokenTransferContractAddresses(transactions: blockchain.ContractTransaction[]) {
-//   const tempMap: any = {}
-//   for (let transaction of transactions) {
-//     tempMap[transaction.]
-//   }
-//   return tempMap.keys()
-// }
-function saveTokenTransfers(ground, events, addresses) {
+function gatherTokenTranferInfo(ground, pairs) {
     return __awaiter(this, void 0, void 0, function* () {
-        let contractAddresses = [...new Set(events.map(e => e.transactionHash))];
-        const watchAddresses = yield gatherContractToAddresses(ground, contractAddresses);
-        if (watchAddresses.length == 0)
+        const addressClause = pairs.map(c => `('${c.address}', '${c.txid}')`).join(',\n');
+        const sql = `
+  SELECT 
+    contracts.id AS "contractId",
+    addresses.id AS "addressId", 
+    addresses.address,
+    tokens.id AS "tokenId",
+    infos.column2 AS txid
+  FROM addresses
+  JOIN contracts ON contracts.address = addresses.id
+  JOIN tokens ON tokens.contract = contracts.id
+  JOIN (VALUES
+  ${addressClause}
+  ) infos
+ON infos.column1 = addresses.address`;
+        const records = yield ground.query(sql);
+        return records.map(r => ({
+            address: r.address,
+            contractId: parseInt(r.contractId),
+            tokenId: parseInt(r.tokenId),
+            txid: r.txid
+        }));
+    });
+}
+function gatherTokenTransfers(ground, decodeEvent, events) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let contractTransactions = events.map(e => ({ address: e.address, txid: e.transactionHash }));
+        const infos = yield gatherTokenTranferInfo(ground, contractTransactions);
+        return infos.map(info => {
+            const event = events.filter(event => event.transactionHash == info.txid)[0];
+            const decoded = decodeEvent(event);
+            return {
+                original: event,
+                decoded: decoded,
+                info: info
+            };
+        });
+    });
+}
+function gatherContractTransactions(ground, tokenTransfers) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const transactionClause = tokenTransfers.map(b => "'" + b.info.txid + "'").join(',\n');
+        const sql = `
+  SELECT 
+    transactions.status AS "transactionStatus",
+    transactions."timeReceived",
+    transactions.id AS "transactionId",
+    transactions."blockIndex",
+    transactions.txid
+  FROM transactions
+  WHERE transactions.txid IN (
+  ${transactionClause}
+  )`;
+        const records = yield ground.query(sql);
+        return records.map(r => ({
+            blockIndex: r.blockIndex,
+            timeReceived: r.timeReceived,
+            transactionId: parseInt(r.transactionId),
+            transactionStatus: r.transactionStatus,
+            txid: r.txid
+        }));
+    });
+}
+function saveTokenTransfers(ground, tokenTransfers, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (tokenTransfers.length == 0)
             return Promise.resolve();
-        return Promise.resolve();
-        // transactionClauses: string[] = events.map(t => {
-        //   const to = t.to ? addresses[t.to] : 'NULL'
-        //   const from = t.from ? addresses[t.from] : 'NULL'
-        //   return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
-        // })
-        //)
-        // if (transactionClauses.length == 0)
-        //   return Promise.resolve()
-        //
-        // const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
-        // const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
-        // return ground.querySingle(sql)
+        const txs = yield gatherContractTransactions(ground, tokenTransfers);
+        const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
+        const transactionClauses = tokenTransfers.map(bundle => {
+            const transaction = txs.filter(tx => tx.txid == bundle.info.txid)[0];
+            const to = addresses[bundle.decoded.args.to];
+            const from = addresses[bundle.decoded.args.from];
+            return `(${transaction.transactionStatus}, '${bundle.info.txid}', ${to}, ${from}, ${bundle.decoded.args.value.toString()}, 0, 0, ${bundle.info.tokenId}, '${transaction.timeReceived.toISOString()}', ${transaction.blockIndex}, NOW(), NOW())`;
+        });
+        const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+        return ground.querySingle(sql);
     });
 }
 function flatMap(array, mapper) {
     return array.reduce((accumulator, a) => accumulator.concat(mapper(a)), []);
 }
-function saveFullBlocks(dao, blocks) {
+function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
+        const ground = dao.ground;
         const transactions = flatMap(blocks, b => b.transactions);
         const events = flatMap(transactions, t => t.events || []);
+        const tokenTranfers = yield gatherTokenTransfers(ground, decodeTokenTransfer, events);
         const contracts = gatherNewContracts(blocks);
-        const addresses = gatherAddresses(blocks, contracts);
+        const addresses = gatherAddresses(blocks, contracts, tokenTranfers);
         const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
-        const ground = dao.ground;
         yield Promise.all([
             saveBlocks(ground, blocks),
             dao.lastBlockDao.setLastBlock(lastBlockIndex),
             getOrCreateAddresses(dao.ground, addresses)
                 .then(() => saveTransactions(ground, blocks, addresses))
                 .then(() => saveContracts(ground, contracts, addresses))
-                .then(() => saveTokenTransfers(ground, events, addresses))
+                .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
         ]);
         console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
-function scanEthereumExplorerBlocks(dao, client, config, profiler = new profiler_1.EmptyProfiler()) {
+function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new profiler_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield getNextBlock(dao.lastBlockDao);
         const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.maxConsecutiveBlocks);
@@ -294,7 +336,7 @@ function scanEthereumExplorerBlocks(dao, client, config, profiler = new profiler
                 break;
             console.log('Saving blocks', blocks.map(b => b.index).join(', '));
             profiler.start('saveBlocks');
-            yield saveFullBlocks(dao, blocks);
+            yield saveFullBlocks(dao, decodeTokenTransfer, blocks);
             profiler.stop('saveBlocks');
             // console.log('Saved blocks', blocks.map(b => b.index))
         } while (true);
