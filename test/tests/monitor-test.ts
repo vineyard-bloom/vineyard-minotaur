@@ -137,7 +137,7 @@ describe('eth-scan', function () {
       maxMilliseconds: 2 * second
     })
 
-    const transfers = await model.Transaction.filter({ currency: 3 })
+    const transfers = await model.TokenTransfer.all()
     assert.isAtLeast(transfers.length, 1)
   })
 

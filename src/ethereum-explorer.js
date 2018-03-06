@@ -253,41 +253,38 @@ function gatherTokenTransfers(ground, decodeEvent, events) {
         });
     });
 }
-function gatherContractTransactions(ground, tokenTransfers) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const transactionClause = tokenTransfers.map(b => "'" + b.info.txid + "'").join(',\n');
-        const sql = `
-  SELECT 
-    transactions.status AS "transactionStatus",
-    transactions."timeReceived",
-    transactions.id AS "transactionId",
-    transactions."blockIndex",
-    transactions.txid
-  FROM transactions
-  WHERE transactions.txid IN (
-  ${transactionClause}
-  )`;
-        const records = yield ground.query(sql);
-        return records.map(r => ({
-            blockIndex: r.blockIndex,
-            timeReceived: r.timeReceived,
-            transactionId: parseInt(r.transactionId),
-            transactionStatus: r.transactionStatus,
-            txid: r.txid
-        }));
-    });
-}
+// async function gatherContractTransactions(ground: Modeler, tokenTransfers: TokenTransferBundle[]): Promise<ContractInfo[]> {
+//   const transactionClause = tokenTransfers.map(b => "'" + b.info.txid + "'").join(',\n')
+//   const sql = `
+//   SELECT
+//     transactions.status AS "transactionStatus",
+//     transactions."timeReceived",
+//     transactions.id AS "transactionId",
+//     transactions."blockIndex",
+//     transactions.txid
+//   FROM transactions
+//   WHERE transactions.txid IN (
+//   ${transactionClause}
+//   )`
+//   const records: any[] = await ground.query(sql)
+//   return records.map(r => ({
+//     blockIndex: r.blockIndex,
+//     timeReceived: r.timeReceived,
+//     transactionId: parseInt(r.transactionId),
+//     transactionStatus: r.transactionStatus,
+//     txid: r.txid
+//   }))
+// }
 function saveTokenTransfers(ground, tokenTransfers, addresses) {
     return __awaiter(this, void 0, void 0, function* () {
         if (tokenTransfers.length == 0)
             return Promise.resolve();
-        const txs = yield gatherContractTransactions(ground, tokenTransfers);
-        const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
+        // const txs = await gatherContractTransactions(ground, tokenTransfers)
+        const header = 'INSERT INTO "token_transfers" ("status", "transaction", "to", "from", "amount", "currency", "created", "modified") VALUES\n';
         const transactionClauses = tokenTransfers.map(bundle => {
-            const transaction = txs.filter(tx => tx.txid == bundle.info.txid)[0];
             const to = addresses[bundle.decoded.args.to];
             const from = addresses[bundle.decoded.args.from];
-            return `(${transaction.transactionStatus}, '${bundle.info.txid}', ${to}, ${from}, ${bundle.decoded.args.value.toString()}, 0, 0, ${bundle.info.tokenId}, '${transaction.timeReceived.toISOString()}', ${transaction.blockIndex}, NOW(), NOW())`;
+            return `(0, (SELECT tx.id FROM transactions tx WHERE tx.txid = '${bundle.info.txid}'), ${to}, ${from}, ${bundle.decoded.args.value.toString()}, ${bundle.info.tokenId}, NOW(), NOW())`;
         });
         const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);
