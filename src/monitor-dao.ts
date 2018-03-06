@@ -1,7 +1,6 @@
 import { BaseBlock, BlockInfo, SingleTransaction as Transaction, TransactionStatus } from 'vineyard-blockchain'
-import { Collection } from 'vineyard-ground/source/collection'
+import { Collection, Modeler } from 'vineyard-data/legacy'
 import { Model, TransactionToSave } from './deposit-monitor-manager'
-import { Modeler } from 'vineyard-ground/source/modeler'
 import { BlockDao, LastBlockDao, LastBlockDaoOld, MonitorDaoOld, TransactionDaoOld } from './types'
 
 export async function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string,

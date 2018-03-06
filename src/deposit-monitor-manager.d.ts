@@ -1,5 +1,5 @@
 import { Address, BaseBlock, BlockInfo, NewSingleTransaction, SingleTransaction as Transaction, TransactionStatus } from "vineyard-blockchain";
-import { Collection, Modeler } from "vineyard-ground";
+import { Collection, Modeler } from 'vineyard-data/legacy';
 export interface TransactionToSave extends NewSingleTransaction {
     status: TransactionStatus;
     currency: number;
@@ -26,7 +26,7 @@ export declare class DepositMonitorManager {
     setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
     listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]>;
     getLastBlock(currency: number): Promise<BlockInfo | undefined>;
-    setLastBlock(block: string, currency: number): Promise<any>;
+    setLastBlock(block: string, currency: number): Promise<any[] | undefined>;
     setLastBlockByHash(hash: string, currency: number): Promise<OldLastBlock>;
     saveBlock(block: BaseBlock): Promise<BlockInfo>;
     saveLastBlock(block: BaseBlock, currency: number): Promise<OldLastBlock>;

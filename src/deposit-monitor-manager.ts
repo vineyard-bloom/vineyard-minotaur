@@ -7,7 +7,7 @@ import {
   SingleTransaction as Transaction,
   TransactionStatus
 } from "vineyard-blockchain"
-import {Collection, Modeler} from "vineyard-ground"
+import { Collection, Modeler } from 'vineyard-data/legacy'
 
 export interface TransactionToSave extends NewSingleTransaction {
   status: TransactionStatus,

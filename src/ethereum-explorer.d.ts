@@ -1,10 +1,9 @@
 import { LastBlock, LastBlockDao, MonitorDao, TransactionDao } from "./types";
-import { Modeler } from "vineyard-ground/source/modeler";
-import { Collection } from "vineyard-ground/source/collection";
 import { blockchain } from "vineyard-blockchain";
 import BigNumber from "bignumber.js";
 import { Profiler } from "./utility/profiler";
 import { SingleTransactionBlockClient } from "./block-queue";
+import { Collection, Modeler } from 'vineyard-data/legacy';
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;
