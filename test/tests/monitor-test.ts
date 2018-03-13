@@ -1,11 +1,10 @@
+require('source-map-support').install()
 import BigNumber from "bignumber.js";
 import { EthereumModel } from "../../src";
 import { createVillage, Village } from "../src/village";
 import { startEthereumMonitor } from "../src/ethereum-explorer-service"
 import { assert } from 'chai'
 import { blockchain } from "vineyard-blockchain"
-
-require('source-map-support').install()
 
 const second = 1000
 const minute = 60 * second
@@ -87,6 +86,17 @@ describe('eth-scan', function () {
     await startEthereumMonitor(village, {
       maxConsecutiveBlocks: 10,
       maxMilliseconds: 1 * minute
+    })
+    assert(true)
+  })
+
+  // This block has a contract with a malformed ERC20 token name
+  it('from 142937', async function () {
+    await model.LastBlock.create({ currency: 2, blockIndex: 142936 })
+    console.log('Initialized village')
+    await startEthereumMonitor(village, {
+      maxConsecutiveBlocks: 1,
+      maxMilliseconds: 10 * second
     })
     assert(true)
   })

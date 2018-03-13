@@ -151,19 +151,29 @@ function saveBlocks(ground, blocks) {
         return ground.querySingle(sql);
     });
 }
-function saveCurrencies(ground, tokenContracts, contractRecords, addresses) {
+function saveCurrencies(ground, tokenContracts) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tokenClauses = tokenContracts.map(contract => {
+        const result = [];
+        for (let contract of tokenContracts) {
             const token = contract;
-            const address = addresses[contract.address];
-            const record = contractRecords.filter((c) => c.address === address)[0];
-            return `('${token.name}', NOW(), NOW())`;
-        });
-        const sql2 = `
-INSERT INTO "currencies" ("name", "created", "modified") 
-VALUES ${tokenClauses.join(',\n')} 
-RETURNING "id", "name";`;
-        return ground.query(sql2);
+            const record = yield ground.collections.Currency.create({
+                name: token.name
+            });
+            result.push({
+                currency: record,
+                tokenContract: token
+            });
+        }
+        return result;
+        // let i = 1
+        // const values: any = {}
+        // const tokenClauses: string[] = tokenContracts.map(contract => {
+        //     const token = contract as blockchain.TokenContract
+        //     const key = 'name' + i++
+        //     values[key] = token.name
+        //     return `(:${key}, NOW(), NOW())`
+        //   }
+        // )
         // return result.map((c: any) => ({
         //   id: parseInt(c.id),
         //   name: c.name
@@ -185,22 +195,44 @@ function saveContracts(ground, contracts, addresses) {
         const tokenContracts = contracts.filter(c => c.contractType == vineyard_blockchain_1.blockchain.ContractType.token);
         if (tokenContracts.length == 0)
             return;
-        const currencies = yield saveCurrencies(ground, tokenContracts, contractRecords, addresses);
-        {
-            const tokenClauses = tokenContracts.map(contract => {
-                const token = contract;
-                const address = addresses[contract.address];
-                const contractRecord = contractRecords.filter((c) => c.address === address)[0];
-                const currency = currencies.filter((c) => c.name === token.name)[0];
-                return `(${currency.id}, ${contractRecord.id}, '${token.name}', '${token.totalSupply}', '${token.decimals}', 
-      '${token.version}', '${token.symbol}', NOW(), NOW())`;
+        const currencyContracts = yield saveCurrencies(ground, tokenContracts);
+        for (const bundle of currencyContracts) {
+            const token = bundle.tokenContract;
+            const address = addresses[token.address];
+            const contractRecord = contractRecords.filter((c) => c.address === address)[0];
+            const currency = bundle.currency;
+            ground.collections.Token.create({
+                id: currency.id,
+                contract: contractRecord.id,
+                name: token.name,
+                totalSupply: token.totalSupply,
+                decimals: token.decimals.toNumber(),
+                version: token.version,
+                symbol: token.symbol
             });
-            const sql2 = `
-INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified") 
-VALUES ${tokenClauses.join(',\n')} 
-ON CONFLICT DO NOTHING;`;
-            yield ground.querySingle(sql2);
         }
+        //   {
+        //     let i = 1
+        //     const values: any = {}
+        //     const tokenClauses: string[] = currencyContracts.map(bundle => {
+        //         const token = bundle.tokenContract
+        //         const address = addresses[token.address]
+        //         const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
+        //         const currency = bundle.currency
+        //         const nameKey = 'name' + i++
+        //         values[nameKey] = token.name
+        //         return `(${currency.id}, ${contractRecord.id}, :${nameKey}, '${token.totalSupply}', '${token.decimals}',
+        //       '${token.version}', '${token.symbol}', NOW(), NOW())`
+        //       }
+        //     )
+        //
+        //     const sql2 = `
+        // INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified")
+        // VALUES ${tokenClauses.join(',\n')}
+        // ON CONFLICT DO NOTHING;`
+        //
+        //     await ground.querySingle(sql2, values)
+        //   }
     });
 }
 function gatherNewContracts(blocks) {
@@ -214,6 +246,8 @@ function gatherNewContracts(blocks) {
 }
 function gatherTokenTranferInfo(ground, pairs) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (pairs.length == 0)
+            return Promise.resolve([]);
         const addressClause = pairs.map(c => `('${c.address}', '${c.txid}')`).join(',\n');
         const sql = `
   SELECT 

@@ -203,22 +203,32 @@ async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   return ground.querySingle(sql)
 }
 
-async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[], contractRecords: any[],
-                              addresses: AddressMap): Promise<any[]> {
-  const tokenClauses: string[] = tokenContracts.map(contract => {
-      const token = contract as blockchain.TokenContract
-      const address = addresses[contract.address]
-      const record = contractRecords.filter((c: any) => c.address === address)[0]
-      return `('${token.name}', NOW(), NOW())`
-    }
-  )
+interface CurrencyResult { currency: any, tokenContract: blockchain.TokenContract }
 
-  const sql2 = `
-INSERT INTO "currencies" ("name", "created", "modified") 
-VALUES ${tokenClauses.join(',\n')} 
-RETURNING "id", "name";`
+async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]> {
+  const result = []
+  for (let contract of tokenContracts) {
+    const token = contract as blockchain.TokenContract
+    const record = await ground.collections.Currency.create({
+      name: token.name
+    })
+    result.push({
+      currency: record,
+      tokenContract: token
+    })
+  }
+  return result
+  // let i = 1
+  // const values: any = {}
+  // const tokenClauses: string[] = tokenContracts.map(contract => {
+  //     const token = contract as blockchain.TokenContract
+  //     const key = 'name' + i++
+  //     values[key] = token.name
+  //     return `(:${key}, NOW(), NOW())`
+  //   }
+  // )
 
-  return ground.query(sql2)
+
   // return result.map((c: any) => ({
   //   id: parseInt(c.id),
   //   name: c.name
@@ -245,26 +255,45 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   if (tokenContracts.length == 0)
     return
 
-  const currencies = await saveCurrencies(ground, tokenContracts, contractRecords, addresses)
+  const currencyContracts = await saveCurrencies(ground, tokenContracts)
 
-  {
-    const tokenClauses: string[] = tokenContracts.map(contract => {
-        const token = contract as blockchain.TokenContract
-        const address = addresses[contract.address]
-        const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
-        const currency = currencies.filter((c: any) => c.name === token.name)[0]
-        return `(${currency.id}, ${contractRecord.id}, '${token.name}', '${token.totalSupply}', '${token.decimals}', 
-      '${token.version}', '${token.symbol}', NOW(), NOW())`
-      }
-    )
-
-    const sql2 = `
-INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified") 
-VALUES ${tokenClauses.join(',\n')} 
-ON CONFLICT DO NOTHING;`
-
-    await ground.querySingle(sql2)
+  for (const bundle of currencyContracts) {
+    const token = bundle.tokenContract
+    const address = addresses[token.address]
+    const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
+    const currency = bundle.currency
+    ground.collections.Token.create({
+      id: currency.id,
+      contract: contractRecord.id,
+      name: token.name,
+      totalSupply: token.totalSupply,
+      decimals: token.decimals.toNumber(),
+      version: token.version,
+      symbol: token.symbol
+    })
   }
+//   {
+//     let i = 1
+//     const values: any = {}
+//     const tokenClauses: string[] = currencyContracts.map(bundle => {
+//         const token = bundle.tokenContract
+//         const address = addresses[token.address]
+//         const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
+//         const currency = bundle.currency
+//         const nameKey = 'name' + i++
+//         values[nameKey] = token.name
+//         return `(${currency.id}, ${contractRecord.id}, :${nameKey}, '${token.totalSupply}', '${token.decimals}',
+//       '${token.version}', '${token.symbol}', NOW(), NOW())`
+//       }
+//     )
+//
+//     const sql2 = `
+// INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified")
+// VALUES ${tokenClauses.join(',\n')}
+// ON CONFLICT DO NOTHING;`
+//
+//     await ground.querySingle(sql2, values)
+//   }
 }
 
 function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
@@ -295,6 +324,9 @@ interface ContractInfoNew {
 }
 
 async function gatherTokenTranferInfo(ground: Modeler, pairs: { address: string, txid: string }[]): Promise<ContractInfoNew[]> {
+  if (pairs.length == 0)
+    return Promise.resolve([])
+
   const addressClause = pairs.map(c => `('${c.address}', '${c.txid}')`).join(',\n')
   const sql = `
   SELECT 
