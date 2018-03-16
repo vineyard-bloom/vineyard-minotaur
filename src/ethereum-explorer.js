@@ -200,6 +200,8 @@ function saveContracts(ground, contracts, addresses) {
             const token = bundle.tokenContract;
             const address = addresses[token.address];
             const contractRecord = contractRecords.filter((c) => c.address === address)[0];
+            if (!contractRecord)
+                continue;
             const currency = bundle.currency;
             ground.collections.Token.create({
                 id: currency.id,

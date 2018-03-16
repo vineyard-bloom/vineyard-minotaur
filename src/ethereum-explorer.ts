@@ -261,6 +261,9 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
     const token = bundle.tokenContract
     const address = addresses[token.address]
     const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
+    if (!contractRecord) // Must be rescanning a block and already have a contract record
+      continue
+
     const currency = bundle.currency
     ground.collections.Token.create({
       id: currency.id,

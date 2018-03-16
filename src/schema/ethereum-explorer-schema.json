@@ -78,7 +78,8 @@
       },
       "txid": {
         "type": "char",
-        "length": 66
+        "length": 66,
+        "unique": true
       },
       "currency": {
         "type": "Currency"

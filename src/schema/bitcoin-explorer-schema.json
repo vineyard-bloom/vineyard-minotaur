@@ -1,0 +1,85 @@
+{
+  "Address": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "address": {
+        "type": "char",
+        "length": 42,
+        "unique": true
+      },
+      "balance": {
+        "type": "bignumber"
+      }
+    }
+  },
+  "Block": {
+    "primaryKeys": ["index"],
+    "properties": {
+      "index": {
+        "type": "int",
+        "autoIncrement": false
+      },
+      "hash": {
+        "type": "char",
+        "length": 66,
+        "unique": true
+      },
+      "timeMined": {
+        "type": "datetime"
+      }
+    }
+  },
+  "Currency": {
+    "properties": {
+      "id": {
+        "type": "int"
+      },
+      "name": {
+        "type": "string"
+      }
+    }
+  },
+  "LastBlock": {
+    "primaryKeys": ["currency"],
+    "properties": {
+      "currency": {
+        "type": "int"
+      },
+      "blockIndex": {
+        "type": "long",
+        "nullable": true
+      }
+    }
+  },
+  "Transaction": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "status": {
+        "type": "short"
+      },
+      "txid": {
+        "type": "char",
+        "length": 66
+      },
+      "currency": {
+        "type": "Currency"
+      },
+      "fee": {
+        "type": "bignumber"
+      },
+      "nonce": {
+        "type": "long"
+      },
+      "timeReceived": {
+        "type": "datetime"
+      },
+      "blockIndex": {
+        "type": "long"
+      }
+    }
+  }
+}

@@ -13,7 +13,7 @@ async function initialize(model: any) {
 async function main() {
   const village = await createVillage()
   const model = village.model
-  await initialize(model)
+  // await initialize(model)
   console.log('Initialized village')
   await startEthereumMonitor(village, {
     maxConsecutiveBlocks: 20
