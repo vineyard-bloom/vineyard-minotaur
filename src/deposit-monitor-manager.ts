@@ -1,121 +1,85 @@
-import {
-  Address,
-  BaseBlock,
-  BaseTransaction,
-  BlockInfo,
-  NewSingleTransaction,
-  SingleTransaction as Transaction,
-  TransactionStatus
-} from "vineyard-blockchain"
-import {Collection, Modeler} from "vineyard-ground"
+import { Currency, Block, NewTransaction, Transaction, TransactionStatus } from 'vineyard-blockchain/src/types'
+import { Collection } from 'vineyard-ground/source/collection'
+import { Address } from './types'
 
-export interface TransactionToSave extends NewSingleTransaction {
-  status: TransactionStatus,
-  currency: number
-}
-
-export interface LastBlock {
-  block: string,
-  currency: string
-}
 
 export interface Scan {
   block: string
 }
 
-export interface Model {
+export interface DepositMonitorManagerModel {
   Address: Collection<Address>
-  Block: Collection<BlockInfo>
+  LastBlock: Collection<Block>
   Transaction: Collection<Transaction>
-  LastBlock: Collection<LastBlock>
-  Scan: Collection<Scan>
-
-  ground: Modeler
+  ground: any
 }
 
 export class DepositMonitorManager {
-  model: Model
+  public model: DepositMonitorManagerModel
+  public currency: Currency
 
-  constructor(model: Model) {
-    this.model = model;
+  constructor(model: DepositMonitorManagerModel, currency: Currency) {
+    this.model = model
+    this.currency = currency
   }
 
-  async getTransactionByTxid(txid: string, currency: number): Promise<Transaction | undefined> {
-    return await this.model.Transaction.first(
-      {
-        txid: txid,
-        currency: currency
-      }).exec()
+  public async getTransactionByTxid(txid: string): Promise<Transaction | undefined> {
+    return this.model.Transaction.first({ txid: txid, currency: this.currency.id }).exec()
   }
 
-  async saveTransaction(transaction: TransactionToSave): Promise<Transaction> {
-    return await this.model.Transaction.create(transaction)
+  public async saveTransaction(transaction: NewTransaction): Promise<Transaction> {
+    return this.model.Transaction.create(transaction)
   }
 
-  async setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction> {
-    return await this.model.Transaction.update(transaction, {
-      status: status
+  public async setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction> {
+    return this.model.Transaction.update(transaction, {
+      status
     })
   }
 
-  async listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]> {
+  public async listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
     AND blocks.index < :maxBlockIndex
     WHERE status = 0 AND transactions.currency = :currency`
 
-    return await this.model.ground.query(sql, {
+    return this.model.ground.query(sql, {
       maxBlockIndex: maxBlockIndex,
-      currency: currency
+      currency: this.currency.id
     })
   }
 
-  async getLastBlock(currency: number): Promise<BlockInfo | undefined> {
-    const last = await this.model.LastBlock.first({currency: currency}).exec()
-    if (!last)
+  public async getLastBlock(): Promise<Block | undefined> {
+    const last = await this.model.LastBlock.first({ currency: this.currency.id }).exec()
+    if (!last) {
       return last
-
-    return await this.model.Block.first({id: last.block}).exec()
+    }
+    return
   }
 
-  async setLastBlock(block: string, currency: number) {
-    const exists = await this.getLastBlock(currency)
+  public async setLastBlock(block: Block) {
+    const exists = await this.getLastBlock()
     if (exists) {
-      const sql = `UPDATE last_blocks SET block = :block WHERE currency = :currency`
-      return await this.model.ground.query(sql, {
-        block: block,
-        currency: currency,
-      })
+      await this.model.LastBlock.update({ currency: this.currency.id }, block)
     } else {
-      await this.model.LastBlock.create({block: block, currency: currency})
+      await this.model.LastBlock.create(block)
     }
   }
 
-  async setLastBlockByHash(hash: string, currency: number) {
-    const block = await this.model.Block.first({hash: hash}).exec()
-    return await this.model.LastBlock.update({block: block}, {currency: currency})
+  /*
+  public async setLastBlockByHash(hash: string) {
+    const block = await this.model.LastBlock.first({ hash: hash }).exec()
+    return this.model.LastBlock.update({ block }, { currency: this.currency.id })
   }
+  */
 
-  async saveBlock(block: BaseBlock): Promise<BlockInfo> {
-    const filter = block.hash
-      ? {currency: block.currency, hash: block.hash}
-      : {currency: block.currency, index: block.index}
-
-    const existing = await this.model.Block.first(filter)
-    if (existing)
-      return existing;
-
-    return await this.model.Block.create(block)
-  }
-
-  async saveLastBlock(block: BaseBlock, currency: number): Promise<LastBlock> {
+  public async saveLastBlock(block: Block): Promise<Block> {
     let lastBlock: any
     lastBlock.block = block
-    lastBlock.currency = currency
-    return await this.model.LastBlock.create(lastBlock)
+    lastBlock.currency = this.currency.id
+    return this.model.LastBlock.create(lastBlock)
   }
 }
 
-export type SingleTransactionBlockchainManager = DepositMonitorManager
 export type SingleTransactionBlockchainModel = DepositMonitorManager
