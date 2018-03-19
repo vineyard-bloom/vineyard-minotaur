@@ -1,4 +1,11 @@
-import { Currency, Block, NewTransaction, Transaction, TransactionStatus } from 'vineyard-blockchain/src/types'
+import {
+  Currency,
+  NewBlock,
+  Block,
+  NewTransaction,
+  Transaction,
+  TransactionStatus
+} from 'vineyard-blockchain/src/types'
 import { Collection } from 'vineyard-ground/source/collection'
 import { Address } from './types'
 
@@ -31,13 +38,11 @@ export class DepositMonitorManager {
     return this.model.Transaction.create(transaction)
   }
 
-  public async setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction> {
-    return this.model.Transaction.update(transaction, {
-      status
-    })
+  public async setTransactionStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction> {
+    return this.model.Transaction.update(transaction, { status: status })
   }
 
-  public async listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]> {
+  public async listPending(maxBlockIndex: number): Promise<Transaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
     JOIN blocks ON blocks.id = transactions.block
@@ -58,7 +63,7 @@ export class DepositMonitorManager {
     return
   }
 
-  public async setLastBlock(block: Block) {
+  public async setLastBlock(block: NewBlock) {
     const exists = await this.getLastBlock()
     if (exists) {
       await this.model.LastBlock.update({ currency: this.currency.id }, block)
@@ -72,14 +77,11 @@ export class DepositMonitorManager {
     const block = await this.model.LastBlock.first({ hash: hash }).exec()
     return this.model.LastBlock.update({ block }, { currency: this.currency.id })
   }
-  */
 
   public async saveLastBlock(block: Block): Promise<Block> {
-    let lastBlock: any
-    lastBlock.block = block
-    lastBlock.currency = this.currency.id
-    return this.model.LastBlock.create(lastBlock)
+    return this.model.LastBlock.create(block)
   }
+  */
 }
 
 export type SingleTransactionBlockchainModel = DepositMonitorManager
