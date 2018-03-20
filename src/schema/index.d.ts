@@ -6,3 +6,4 @@ export interface FullSchema {
     Transaction: Trellis;
 }
 export declare function getFullMinotaurSchema(): FullSchema;
+export declare function getEthereumExplorerSchema(): FullSchema;

@@ -67,14 +67,14 @@ class DepositMonitor {
     confirmExistingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             transaction.status = vineyard_blockchain_1.TransactionStatus.accepted;
-            const ExternalTransaction = yield this.model.setStatus(transaction, vineyard_blockchain_1.TransactionStatus.accepted);
-            return yield this.transactionHandler.onConfirm(ExternalTransaction);
+            const externalTransaction = yield this.model.setStatus(transaction, vineyard_blockchain_1.TransactionStatus.accepted);
+            return yield this.transactionHandler.onConfirm(transaction);
         });
     }
     updatePendingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const transactionFromDatabase = yield this.model.getTransactionByTxid(transaction.txid, 2);
-            if (transactionFromDatabase.status == vineyard_blockchain_1.TransactionStatus.pending)
+            const transactionFromDatabase = yield this.model.getTransactionByTxid(transaction.txid, this.currency.id);
+            if (transactionFromDatabase && transactionFromDatabase.status == vineyard_blockchain_1.TransactionStatus.pending)
                 return yield this.confirmExistingTransaction(transaction);
             return transaction;
         });

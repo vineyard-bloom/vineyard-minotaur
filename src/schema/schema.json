@@ -1,0 +1,13 @@
+{
+  "LastBlock": {
+    "properties": {
+      "currency": {
+        "type": "int",
+        "unique": true
+      },
+      "block": {
+        "type": "string"
+      }
+    }
+  }
+}
