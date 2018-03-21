@@ -8,7 +8,7 @@ import {
   Block
 } from 'vineyard-blockchain'
 import { SingleTransactionBlockchainModel } from './deposit-monitor-manager2'
-import { TransactionHandler } from './types'
+import { TransactionHandler } from "./types2";
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel

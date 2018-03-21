@@ -1,13 +1,13 @@
+import { Collection } from 'vineyard-ground/source/collection'
 import {
+  Address,
   Currency,
   NewBlock,
   Block,
   NewTransaction,
   Transaction,
   TransactionStatus
-} from 'vineyard-blockchain/src/types'
-import { Collection } from 'vineyard-ground/source/collection'
-import { Address } from './types'
+} from './types2'
 
 
 export interface Scan {
