@@ -96,4 +96,4 @@ class DepositMonitorManager {
     }
 }
 exports.DepositMonitorManager = DepositMonitorManager;
-//# sourceMappingURL=deposit-monitor-manager.js.map
+//# sourceMappingURL=deposit-monitor-manager2.js.map
