@@ -29,7 +29,7 @@ class ExternalBlockQueue {
     }
     onResponse(blockIndex, block) {
         // this.p.stop(blockIndex + '-blockQueue')
-        console.log('onResponse block', blockIndex, block != undefined);
+        // console.log('onResponse block', blockIndex, block != undefined)
         this.removeRequest(blockIndex);
         if (!block) {
             if (this.listeners.length > 0) {
@@ -94,7 +94,7 @@ class ExternalBlockQueue {
         const oldestRequest = this.requests.map(r => r.blockIndex).sort()[0];
         const oldestResult = results[0].index;
         if (oldestRequest && oldestResult > oldestRequest) {
-            console.log('oldestRequest', oldestRequest, 'oldestResult', oldestResult);
+            // console.log('oldestRequest', oldestRequest, 'oldestResult', oldestResult)
             return [];
         }
         const blocks = [];
