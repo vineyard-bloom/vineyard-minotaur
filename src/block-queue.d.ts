@@ -1,6 +1,4 @@
 import { blockchain } from "vineyard-blockchain";
-export declare type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>;
-export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>;
 export interface BlockRequest {
     blockIndex: number;
     promise: any;
@@ -9,7 +7,7 @@ export interface BlockQueueConfig {
     maxSize: number;
     minSize: number;
 }
-export declare class ExternalBlockQueue {
+export declare class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction> {
     private blocks;
     private blockIndex;
     private highestBlockIndex;
@@ -17,7 +15,7 @@ export declare class ExternalBlockQueue {
     private config;
     requests: BlockRequest[];
     private listeners;
-    constructor(client: SingleTransactionBlockClient, blockIndex: number, config: BlockQueueConfig);
+    constructor(client: blockchain.BlockReader<Transaction>, blockIndex: number, config: BlockQueueConfig);
     getBlockIndex(): number;
     private removeRequest(blockIndex);
     private removeBlocks(blocks);
@@ -25,5 +23,5 @@ export declare class ExternalBlockQueue {
     private addRequest(index);
     private update();
     private getConsecutiveBlocks();
-    getBlocks(): Promise<FullBlock[]>;
+    getBlocks(): Promise<blockchain.FullBlock<Transaction>[]>;
 }

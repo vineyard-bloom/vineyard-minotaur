@@ -16,7 +16,7 @@ async function main() {
   // await initialize(model)
   console.log('Initialized village')
   await startEthereumMonitor(village, {
-    queue: { maxConsecutiveBlocks: 10, minBlocks: 5 },
+    queue: { maxSize: 10, minSize: 5 },
     // maxMilliseconds: 30000,
   })
 }

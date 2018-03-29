@@ -1,9 +1,5 @@
 import { blockchain } from "vineyard-blockchain"
 
-export type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
-
-export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>
-
 export interface BlockRequest {
   blockIndex: number
   promise: any
@@ -14,21 +10,21 @@ export interface BlockQueueConfig {
   minSize: number
 }
 
-export class ExternalBlockQueue {
-  private blocks: FullBlock[] = []
+export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction> {
+  private blocks: blockchain.FullBlock<Transaction>[] = []
   private blockIndex: number
   private highestBlockIndex: number
-  private client: SingleTransactionBlockClient
+  private client: blockchain.BlockReader<Transaction>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
   private listeners: {
-    resolve: (block: FullBlock[]) => void
+    resolve: (block: blockchain.FullBlock<Transaction>[]) => void
     reject: (error: Error) => void
   }[] = []
 
   // p = new Profiler()
 
-  constructor(client: SingleTransactionBlockClient, blockIndex: number,
+  constructor(client: blockchain.BlockReader<Transaction>, blockIndex: number,
               config: BlockQueueConfig) {
     this.client = client
     this.blockIndex = blockIndex
@@ -46,11 +42,11 @@ export class ExternalBlockQueue {
     this.requests = this.requests.filter(r => r.blockIndex != blockIndex)
   }
 
-  private removeBlocks(blocks: FullBlock[]) {
+  private removeBlocks(blocks: blockchain.FullBlock<Transaction>[]) {
     this.blocks = this.blocks.filter(b => blocks.every(b2 => b2.index != b.index))
   }
 
-  private onResponse(blockIndex: number, block: FullBlock | undefined) {
+  private onResponse(blockIndex: number, block: blockchain.FullBlock<Transaction> | undefined) {
     // this.p.stop(blockIndex + '-blockQueue')
     // console.log('onResponse block', blockIndex, block != undefined)
     this.removeRequest(blockIndex)
@@ -103,7 +99,7 @@ export class ExternalBlockQueue {
 
   private async update(): Promise<void> {
     if (this.highestBlockIndex === undefined) {
-      this.highestBlockIndex = await this.client.getBlockIndex()
+      this.highestBlockIndex = await this.client.getHeighestBlockIndex()
     }
 
     const remaining = this.highestBlockIndex - this.blockIndex
@@ -115,7 +111,7 @@ export class ExternalBlockQueue {
   }
 
   // Ensures that batches of blocks are returned in consecutive order
-  private getConsecutiveBlocks(): FullBlock[] {
+  private getConsecutiveBlocks(): blockchain.FullBlock<Transaction>[] {
     if (this.blocks.length == 0)
       return []
 
@@ -142,7 +138,7 @@ export class ExternalBlockQueue {
     return blocks
   }
 
-  async getBlocks(): Promise<FullBlock[]> {
+  async getBlocks(): Promise<blockchain.FullBlock<Transaction>[]> {
     await this.update()
 
     const readyBlocks = this.getConsecutiveBlocks()
@@ -154,7 +150,7 @@ export class ExternalBlockQueue {
         return Promise.resolve([])
     }
     else {
-      return new Promise<FullBlock[]>((resolve, reject) => {
+      return new Promise<blockchain.FullBlock<Transaction>[]>((resolve, reject) => {
         this.listeners.push({
           resolve: resolve,
           reject: reject

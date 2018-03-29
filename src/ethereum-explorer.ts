@@ -3,8 +3,14 @@ import { createIndexedLastBlockDao, setStatus } from "./monitor-dao"
 import { blockchain } from "vineyard-blockchain"
 import BigNumber from "bignumber.js"
 import { EmptyProfiler, Profiler } from "./utility/profiler"
-import { ExternalBlockQueue, FullBlock, SingleTransactionBlockClient } from "./block-queue"
+import { ExternalBlockQueue } from "./block-queue"
 import { Collection, Modeler } from 'vineyard-data/legacy'
+import { flatMap } from "./utility/index";
+import { AddressMap, getNextBlock, getOrCreateAddresses, saveBlocks, saveCurrencies } from "./database-functions"
+
+type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
+
+export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>
 
 export interface EthereumTransaction extends blockchain.BlockTransaction {
   to?: number
@@ -94,19 +100,12 @@ export function createEthereumExplorerDao(model: EthereumModel): EthereumMonitor
 
 export interface MonitorConfig {
   queue: {
-    maxConsecutiveBlocks?: number,
-    minBlocks?: number
+    maxSize: number,
+    minSize: number
   }
   maxMilliseconds?: number,
   maxBlocksPerScan?: number
 }
-
-export async function getNextBlock(lastBlockDao: LastBlockDao) {
-  const lastBlockIndex = await lastBlockDao.getLastBlock()
-  return typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0
-}
-
-type AddressMap = { [key: string]: number }
 
 function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[], tokenTransfers: TokenTransferBundle[]) {
   const addresses: AddressMap = {}
@@ -157,87 +156,6 @@ function saveTransactions(ground: any, blocks: FullBlock[], addresses: AddressMa
   return ground.querySingle(sql)
 }
 
-async function getOrCreateAddresses(ground: Modeler, addresses: AddressMap) {
-  {
-    const addressClauses: string [] = []
-    for (let i in addresses) {
-      addressClauses.push(`'${i}'`)
-    }
-    if (addressClauses.length == 0)
-      return Promise.resolve()
-
-    const header = `SELECT "id", "address" FROM addresses
-  WHERE "address" IN (
-  `
-    const sql = header + addressClauses.join(',\n') + ');'
-    const rows = await ground.query(sql)
-    for (let row of rows) {
-      addresses[row.address] = parseInt(row.id)
-    }
-  }
-  {
-    const inserts: string[] = []
-    for (let i in addresses) {
-      const value = addresses[i]
-      if (value === -1) {
-        inserts.push(`('${i}', NOW(), NOW())`)
-      }
-    }
-    if (inserts.length == 0)
-      return Promise.resolve()
-
-    const insertHeader = 'INSERT INTO "addresses" ("address", "created", "modified") VALUES\n'
-    const sql = insertHeader + inserts.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";'
-    const rows = await ground.query(sql)
-    for (let row of rows) {
-      addresses[row.address] = parseInt(row.id)
-    }
-  }
-}
-
-async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
-  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
-  let inserts: string[] = []
-  for (let block of blocks) {
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
-  }
-
-  const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
-  return ground.querySingle(sql)
-}
-
-interface CurrencyResult { currency: any, tokenContract: blockchain.TokenContract }
-
-async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]> {
-  const result = []
-  for (let contract of tokenContracts) {
-    const token = contract as blockchain.TokenContract
-    const record = await ground.collections.Currency.create({
-      name: token.name
-    })
-    result.push({
-      currency: record,
-      tokenContract: token
-    })
-  }
-  return result
-  // let i = 1
-  // const values: any = {}
-  // const tokenClauses: string[] = tokenContracts.map(contract => {
-  //     const token = contract as blockchain.TokenContract
-  //     const key = 'name' + i++
-  //     values[key] = token.name
-  //     return `(:${key}, NOW(), NOW())`
-  //   }
-  // )
-
-
-  // return result.map((c: any) => ({
-  //   id: parseInt(c.id),
-  //   name: c.name
-  // }))
-}
-
 async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], addresses: AddressMap): Promise<void> {
   if (contracts.length == 0)
     return Promise.resolve()
@@ -278,28 +196,6 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
       symbol: token.symbol
     })
   }
-//   {
-//     let i = 1
-//     const values: any = {}
-//     const tokenClauses: string[] = currencyContracts.map(bundle => {
-//         const token = bundle.tokenContract
-//         const address = addresses[token.address]
-//         const contractRecord = contractRecords.filter((c: any) => c.address === address)[0]
-//         const currency = bundle.currency
-//         const nameKey = 'name' + i++
-//         values[nameKey] = token.name
-//         return `(${currency.id}, ${contractRecord.id}, :${nameKey}, '${token.totalSupply}', '${token.decimals}',
-//       '${token.version}', '${token.symbol}', NOW(), NOW())`
-//       }
-//     )
-//
-//     const sql2 = `
-// INSERT INTO "tokens" ("id", "contract", "name", "totalSupply", "decimals", "version", "symbol", "created", "modified")
-// VALUES ${tokenClauses.join(',\n')}
-// ON CONFLICT DO NOTHING;`
-//
-//     await ground.querySingle(sql2, values)
-//   }
 }
 
 function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
@@ -313,14 +209,6 @@ function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
   }
   return result
 }
-
-// function getTokenTransferContractAddresses(transactions: blockchain.ContractTransaction[]) {
-//   const tempMap: any = {}
-//   for (let transaction of transactions) {
-//     tempMap[transaction.]
-//   }
-//   return tempMap.keys()
-// }
 
 interface ContractInfoNew {
   address: string
@@ -385,37 +273,6 @@ async function gatherTokenTransfers(ground: Modeler, decodeEvent: blockchain.Eve
   })
 }
 
-interface ContractInfo {
-  blockIndex: number
-  timeReceived: Date
-  transactionId: number
-  transactionStatus: blockchain.TransactionStatus
-  txid: string
-}
-
-// async function gatherContractTransactions(ground: Modeler, tokenTransfers: TokenTransferBundle[]): Promise<ContractInfo[]> {
-//   const transactionClause = tokenTransfers.map(b => "'" + b.info.txid + "'").join(',\n')
-//   const sql = `
-//   SELECT
-//     transactions.status AS "transactionStatus",
-//     transactions."timeReceived",
-//     transactions.id AS "transactionId",
-//     transactions."blockIndex",
-//     transactions.txid
-//   FROM transactions
-//   WHERE transactions.txid IN (
-//   ${transactionClause}
-//   )`
-//   const records: any[] = await ground.query(sql)
-//   return records.map(r => ({
-//     blockIndex: r.blockIndex,
-//     timeReceived: r.timeReceived,
-//     transactionId: parseInt(r.transactionId),
-//     transactionStatus: r.transactionStatus,
-//     txid: r.txid
-//   }))
-// }
-
 async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransferBundle[], addresses: AddressMap) {
   if (tokenTransfers.length == 0)
     return Promise.resolve()
@@ -431,11 +288,6 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
 
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
   return ground.querySingle(sql)
-}
-
-function flatMap<A, B>(array: A[], mapper: (a: A) => B[],) {
-  return array.reduce((accumulator: B[], a) =>
-    accumulator.concat(mapper(a)), [])
 }
 
 async function saveFullBlocks(dao: EthereumMonitorDao, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
@@ -474,7 +326,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
     // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
     if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
       console.log('Reached timeout of ', elapsed, 'milliseconds')
-      console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '))
+      console.log('Canceled blocks', blockQueue.requests.map((b: any) => b.blockIndex).join(', '))
       break
     }
 
@@ -486,7 +338,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
       break
     }
 
-    console.log('Saving blocks', blocks.map(b => b.index).join(', '))
+    console.log('Saving blocks', blocks.map((b: any) => b.index).join(', '))
 
     profiler.start('saveBlocks')
     await saveFullBlocks(dao, decodeTokenTransfer, blocks)

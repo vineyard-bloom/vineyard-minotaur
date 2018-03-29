@@ -1,9 +1,9 @@
-import { LastBlock, LastBlockDao, MonitorDao, TransactionDao } from "./types";
+import { LastBlock, MonitorDao, TransactionDao } from "./types";
 import { blockchain } from "vineyard-blockchain";
 import BigNumber from "bignumber.js";
 import { Profiler } from "./utility/profiler";
-import { SingleTransactionBlockClient } from "./block-queue";
 import { Collection, Modeler } from 'vineyard-data/legacy';
+export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>;
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;
@@ -47,11 +47,10 @@ export declare function createSingleCurrencyTransactionDao(model: EthereumModel)
 export declare function createEthereumExplorerDao(model: EthereumModel): EthereumMonitorDao;
 export interface MonitorConfig {
     queue: {
-        maxConsecutiveBlocks?: number;
-        minBlocks?: number;
+        maxSize: number;
+        minSize: number;
     };
     maxMilliseconds?: number;
     maxBlocksPerScan?: number;
 }
-export declare function getNextBlock(lastBlockDao: LastBlockDao): Promise<number>;
 export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;

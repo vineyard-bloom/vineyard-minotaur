@@ -79,7 +79,7 @@ class ExternalBlockQueue {
     update() {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.highestBlockIndex === undefined) {
-                this.highestBlockIndex = yield this.client.getBlockIndex();
+                this.highestBlockIndex = yield this.client.getHeighestBlockIndex();
             }
             const remaining = this.highestBlockIndex - this.blockIndex;
             const count = Math.min(remaining, this.config.maxSize) - this.requests.length;
