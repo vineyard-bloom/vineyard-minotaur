@@ -62,7 +62,7 @@ async function createSaltContract(village: Village) {
 async function createSaltContractReal(village: Village) {
   await village.model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
   await startEthereumMonitor(village, {
-    maxConsecutiveBlocks: 1,
+    queue: { maxConsecutiveBlocks: 1 },
     maxMilliseconds: 1 * minute
   })
 }
@@ -84,7 +84,7 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2 })
     console.log('Initialized village')
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 10,
+      queue: { maxConsecutiveBlocks: 10 },
       maxMilliseconds: 1 * minute
     })
     assert(true)
@@ -95,7 +95,7 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 142936 })
     console.log('Initialized village')
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 1,
+      queue: { maxConsecutiveBlocks: 1 },
       maxMilliseconds: 10 * second
     })
     assert(true)
@@ -105,7 +105,7 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4000000 })
     console.log('Initialized village')
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 10,
+      queue: { maxConsecutiveBlocks: 10 },
       maxMilliseconds: 1 * minute
     })
     assert(true)
@@ -115,13 +115,13 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4000000 })
     console.log('Initialized village')
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 10,
+      queue: { maxConsecutiveBlocks: 10 },
       maxMilliseconds: 0.1 * minute
     })
 
     await model.LastBlock.update({ currency: 2, blockIndex: 4000000 })
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 10,
+      queue: { maxConsecutiveBlocks: 10 },
       maxMilliseconds: 0.2 * minute
     })
     assert(true)
@@ -130,7 +130,7 @@ describe('eth-scan', function () {
   it('scans tokens', async function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 1,
+      queue: { maxConsecutiveBlocks: 1 },
       maxMilliseconds: 1 * minute
     })
 
@@ -143,7 +143,7 @@ describe('eth-scan', function () {
 
     await model.LastBlock.create({ currency: 2, blockIndex: 5146973 })
     await startEthereumMonitor(village, {
-      maxConsecutiveBlocks: 1,
+      queue: { maxConsecutiveBlocks: 1 },
       maxMilliseconds: 2 * second
     })
 

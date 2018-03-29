@@ -46,7 +46,10 @@ export declare function getOrCreateAddressReturningId(addressCollection: Collect
 export declare function createSingleCurrencyTransactionDao(model: EthereumModel): TransactionDao<EthereumTransaction>;
 export declare function createEthereumExplorerDao(model: EthereumModel): EthereumMonitorDao;
 export interface MonitorConfig {
-    maxConsecutiveBlocks?: number;
+    queue: {
+        maxConsecutiveBlocks?: number;
+        minBlocks?: number;
+    };
     maxMilliseconds?: number;
     maxBlocksPerScan?: number;
 }

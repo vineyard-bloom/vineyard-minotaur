@@ -1,0 +1,13 @@
+digraph G {
+  rankdir="LR";
+  "Bitcoin\nTypes" [shape=box];
+  "Blockchain\nTypes" [shape=box];
+  "Minotaur\nTypes" [shape=box];
+  Database [shape=cylinder]
+  bitcoind -> "Bitcoin\nTypes" [dir=both]
+  "Bitcoin\nTypes" -> "Vineyard\nBitcoin" [dir=both]
+  "Vineyard\nBitcoin" -> "Blockchain\nTypes" [dir=both]
+  "Blockchain\nTypes" -> "Vineyard\nMinotaur" [dir=both]
+  "Vineyard\nMinotaur" -> "Minotaur\nTypes" [dir=both]
+  "Minotaur\nTypes" -> Database [dir=both]
+}

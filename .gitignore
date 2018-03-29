@@ -4,6 +4,5 @@ npm-*
 test/**/*.js
 test/**/*.d.ts
 config.*
-
 yarn*
 .node*

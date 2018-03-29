@@ -9,12 +9,17 @@ export interface BlockRequest {
   promise: any
 }
 
+export interface BlockQueueConfig {
+  maxSize: number
+  minSize: number
+}
+
 export class ExternalBlockQueue {
   private blocks: FullBlock[] = []
   private blockIndex: number
   private highestBlockIndex: number
   private client: SingleTransactionBlockClient
-  private maxSize: number
+  private config: BlockQueueConfig
   requests: BlockRequest[] = []
   private listeners: {
     resolve: (block: FullBlock[]) => void
@@ -24,10 +29,13 @@ export class ExternalBlockQueue {
   // p = new Profiler()
 
   constructor(client: SingleTransactionBlockClient, blockIndex: number,
-              maxSize: number = 40) {
+              config: BlockQueueConfig) {
     this.client = client
     this.blockIndex = blockIndex
-    this.maxSize = maxSize
+    this.config = {
+      maxSize: config.maxSize || 10,
+      minSize: config.minSize || 1,
+    }
   }
 
   getBlockIndex(): number {
@@ -99,7 +107,7 @@ export class ExternalBlockQueue {
     }
 
     const remaining = this.highestBlockIndex - this.blockIndex
-    const count = Math.min(remaining, this.maxSize) - this.requests.length
+    const count = Math.min(remaining, this.config.maxSize) - this.requests.length
     console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '))
     for (let i = 0; i < count; ++i) {
       this.addRequest(this.blockIndex++)
@@ -128,6 +136,9 @@ export class ExternalBlockQueue {
       blocks.push(r)
     }
 
+    if (blocks.length >= this.config.minSize && this.requests.length > 0) {
+      return []
+    }
     return blocks
   }
 
@@ -140,7 +151,7 @@ export class ExternalBlockQueue {
       return Promise.resolve(readyBlocks)
     }
     else if (this.requests.length == 0) {
-      return Promise.resolve([])
+        return Promise.resolve([])
     }
     else {
       return new Promise<FullBlock[]>((resolve, reject) => {

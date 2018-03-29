@@ -93,7 +93,10 @@ export function createEthereumExplorerDao(model: EthereumModel): EthereumMonitor
 }
 
 export interface MonitorConfig {
-  maxConsecutiveBlocks?: number,
+  queue: {
+    maxConsecutiveBlocks?: number,
+    minBlocks?: number
+  }
   maxMilliseconds?: number,
   maxBlocksPerScan?: number
 }
@@ -464,7 +467,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
   let blockIndex = await getNextBlock(dao.lastBlockDao)
-  const blockQueue = new ExternalBlockQueue(client, blockIndex, config.maxConsecutiveBlocks)
+  const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
   const startTime: number = Date.now()
   do {
     const elapsed = Date.now() - startTime

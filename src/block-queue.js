@@ -10,13 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 class ExternalBlockQueue {
     // p = new Profiler()
-    constructor(client, blockIndex, maxSize = 40) {
+    constructor(client, blockIndex, config) {
         this.blocks = [];
         this.requests = [];
         this.listeners = [];
         this.client = client;
         this.blockIndex = blockIndex;
-        this.maxSize = maxSize;
+        this.config = {
+            maxSize: config.maxSize || 10,
+            minSize: config.minSize || 1,
+        };
     }
     getBlockIndex() {
         return this.blockIndex;
@@ -79,7 +82,7 @@ class ExternalBlockQueue {
                 this.highestBlockIndex = yield this.client.getBlockIndex();
             }
             const remaining = this.highestBlockIndex - this.blockIndex;
-            const count = Math.min(remaining, this.maxSize) - this.requests.length;
+            const count = Math.min(remaining, this.config.maxSize) - this.requests.length;
             console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '));
             for (let i = 0; i < count; ++i) {
                 this.addRequest(this.blockIndex++);
@@ -103,6 +106,9 @@ class ExternalBlockQueue {
             if (r.index != i++)
                 break;
             blocks.push(r);
+        }
+        if (blocks.length >= this.config.minSize && this.requests.length > 0) {
+            return [];
         }
         return blocks;
     }

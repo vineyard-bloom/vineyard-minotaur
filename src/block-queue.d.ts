@@ -5,15 +5,19 @@ export interface BlockRequest {
     blockIndex: number;
     promise: any;
 }
+export interface BlockQueueConfig {
+    maxSize: number;
+    minSize: number;
+}
 export declare class ExternalBlockQueue {
     private blocks;
     private blockIndex;
     private highestBlockIndex;
     private client;
-    private maxSize;
+    private config;
     requests: BlockRequest[];
     private listeners;
-    constructor(client: SingleTransactionBlockClient, blockIndex: number, maxSize?: number);
+    constructor(client: SingleTransactionBlockClient, blockIndex: number, config: BlockQueueConfig);
     getBlockIndex(): number;
     private removeRequest(blockIndex);
     private removeBlocks(blocks);

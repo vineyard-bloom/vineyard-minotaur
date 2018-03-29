@@ -352,7 +352,7 @@ function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
 function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new profiler_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield getNextBlock(dao.lastBlockDao);
-        const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.maxConsecutiveBlocks);
+        const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.queue);
         const startTime = Date.now();
         do {
             const elapsed = Date.now() - startTime;

@@ -23,6 +23,7 @@
     "mocha": "^3.2.0",
     "vineyard-ground": "vineyard-bloom/vineyard-ground#1.x",
     "source-map-support": "^0.4.14",
+    "vineyard-docs": "vineyard-bloom/vineyard-docs#1.0.0-beta",
     "vineyard-ethereum": "vineyard-bloom/vineyard-ethereum#1.0.0-beta"
   }
 }
