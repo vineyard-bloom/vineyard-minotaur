@@ -43,7 +43,7 @@ function saveTransactions(ground: any, transactions: blockchain.MultiTransaction
   return ground.querySingle(sql)
 }
 
-async function saveFullBlocks(dao: BitcoinMonitorDao, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
+async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const ground = dao.ground
   const transactions = flatMap(blocks, b => b.transactions)
 
@@ -63,7 +63,6 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, decodeTokenTransfer: block
 
 export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                  client: MultiTransactionBlockClient,
-                                                 decodeTokenTransfer: blockchain.EventDecoder,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
   let blockIndex = await getNextBlock(dao.lastBlockDao)
@@ -89,7 +88,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
     console.log('Saving blocks', blocks.map(b => b.index).join(', '))
 
     profiler.start('saveBlocks')
-    await saveFullBlocks(dao, decodeTokenTransfer, blocks)
+    await saveFullBlocks(dao, blocks)
     profiler.stop('saveBlocks')
 
     // console.log('Saved blocks', blocks.map(b => b.index))

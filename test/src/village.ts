@@ -1,23 +1,20 @@
 import { FullConfig } from "./config-types";
-import { EthereumModel } from "../..";
-import { getEthereumExplorerSchema } from "../.."
 import {localConfig} from "../config/config"
 import { SequelizeClient, DevModeler, Modeler } from "vineyard-ground"
 
-export interface Village {
+export interface Village<Model> {
   config: FullConfig
-  model: EthereumModel
+  model: Model
 }
 
-function loadSchema() {
-  return Object.assign(
-    {},
-    getEthereumExplorerSchema()
-  )
-}
+// function loadSchema() {
+//   return Object.assign(
+//     {},
+//     getEthereumExplorerSchema()
+//   )
+// }
 
-function createModel(): EthereumModel {
-  const schema = loadSchema()
+function createModel<Model>(schema: any): Model {
   const databaseConfig = localConfig.database
   const client = new SequelizeClient(databaseConfig)
 
@@ -32,10 +29,10 @@ function createModel(): EthereumModel {
   return model
 }
 
-export async function createVillage(): Promise<Village> {
+export async function createVillage<Model>(schema: any): Promise<Village<Model>> {
 
   return {
     config: localConfig,
-    model: createModel()
+    model: createModel<Model>(schema)
   }
 }

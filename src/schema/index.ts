@@ -14,3 +14,7 @@ export function getFullMinotaurSchema(): FullSchema {
 export function getEthereumExplorerSchema(): FullSchema {
   return require('./ethereum-explorer-schema.json')
 }
+
+export function getBitcoinExplorerSchema(): FullSchema {
+  return require('./bitcoin-explorer-schema.json')
+}

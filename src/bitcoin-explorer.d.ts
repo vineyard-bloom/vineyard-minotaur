@@ -7,4 +7,4 @@ export declare type MultiTransactionBlockClient = blockchain.BlockReader<blockch
 export interface BitcoinMonitorDao extends MonitorDao {
     ground: Modeler;
 }
-export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;

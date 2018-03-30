@@ -35,7 +35,7 @@ function saveTransactions(ground, transactions, addresses) {
     const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
     return ground.querySingle(sql);
 }
-function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
+function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const ground = dao.ground;
         const transactions = index_1.flatMap(blocks, b => b.transactions);
@@ -50,7 +50,7 @@ function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
         console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
-function scanBitcoinExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler()) {
+function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield database_functions_1.getNextBlock(dao.lastBlockDao);
         const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.queue);
@@ -72,7 +72,7 @@ function scanBitcoinExplorerBlocks(dao, client, decodeTokenTransfer, config, pro
             }
             console.log('Saving blocks', blocks.map(b => b.index).join(', '));
             profiler.start('saveBlocks');
-            yield saveFullBlocks(dao, decodeTokenTransfer, blocks);
+            yield saveFullBlocks(dao, blocks);
             profiler.stop('saveBlocks');
             // console.log('Saved blocks', blocks.map(b => b.index))
         } while (true);

@@ -1,4 +1,4 @@
-import {GeneralDatabaseConfig} from "vineyard-ground"
+import { GeneralDatabaseConfig } from "vineyard-ground"
 
 export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
   devMode?: boolean
@@ -10,5 +10,11 @@ export interface FullConfig {
     client: {
       http: string
     }
+  }
+  bitcoin: {
+    host: string
+    user: string
+    pass: string
+    port: number
   }
 }

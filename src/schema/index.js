@@ -8,4 +8,8 @@ function getEthereumExplorerSchema() {
     return require('./ethereum-explorer-schema.json');
 }
 exports.getEthereumExplorerSchema = getEthereumExplorerSchema;
+function getBitcoinExplorerSchema() {
+    return require('./bitcoin-explorer-schema.json');
+}
+exports.getBitcoinExplorerSchema = getBitcoinExplorerSchema;
 //# sourceMappingURL=index.js.map

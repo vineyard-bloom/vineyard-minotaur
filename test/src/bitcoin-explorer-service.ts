@@ -1,17 +1,17 @@
 import { Village } from "./village";
-import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks } from "../../src";
-import { decodeTokenTransfer, EthereumBlockReader } from 'vineyard-ethereum'
-import { SimpleProfiler } from "../../src/utility/profiler";
+import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks, BitcoinModel } from "../../src"
+import { SimpleProfiler } from "../../src/utility"
+import { BitcoinBlockReader } from 'vineyard-bitcoin'
 
-export async function startBitcoinMonitor(village: Village, config: MonitorConfig) {
+export async function startBitcoinMonitor(village: Village<BitcoinModel>, config: MonitorConfig) {
   try {
     const model = village.model
-    const bitcoinConfig = village.config.ethereum
-    const client = EthereumBlockReader.createFromConfig(bitcoinConfig.client)
+    const bitcoinConfig = village.config.bitcoin
+    const client = BitcoinBlockReader.createFromConfig(bitcoinConfig)
     const dao = createEthereumExplorerDao(model)
     console.log('Starting cron')
     const profiler = new SimpleProfiler()
-    await scanBitcoinExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler)
+    await scanBitcoinExplorerBlocks(dao, client, config, profiler)
     profiler.logFlat()
   }
   catch (error) {

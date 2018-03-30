@@ -6,10 +6,13 @@ import { startEthereumMonitor } from "../src/ethereum-explorer-service"
 import { assert } from 'chai'
 import { blockchain } from "vineyard-blockchain"
 
+import { getEthereumExplorerSchema } from "../.."
+type EthereumVillage = Village<EthereumModel>
+
 const second = 1000
 const minute = 60 * second
 
-async function createTokenContract(village: Village, token: blockchain.TokenContract & { from: string }) {
+async function createTokenContract(village: EthereumVillage, token: blockchain.TokenContract & { from: string }) {
   const from = await village.model.Address.create({
     address: token.from
   })
@@ -45,7 +48,7 @@ async function createTokenContract(village: Village, token: blockchain.TokenCont
   })
 }
 
-async function createSaltContract(village: Village) {
+async function createSaltContract(village: EthereumVillage) {
   await createTokenContract(village, {
     contractType: blockchain.ContractType.token,
     name: 'Salt',
@@ -59,7 +62,7 @@ async function createSaltContract(village: Village) {
   })
 }
 
-async function createSaltContractReal(village: Village) {
+async function createSaltContractReal(village: EthereumVillage) {
   await village.model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
   await startEthereumMonitor(village, {
     queue: { maxSize: 1, minSize: 1 },
@@ -69,11 +72,11 @@ async function createSaltContractReal(village: Village) {
 
 describe('eth-scan', function () {
   this.timeout(10 * minute)
-  let village: Village
+  let village: EthereumVillage
   let model: EthereumModel
 
   beforeEach(async function () {
-    village = await createVillage()
+    village = await createVillage<EthereumModel>(getEthereumExplorerSchema())
     model = village.model
     await (model.ground as any).regenerate()
     await model.Currency.create({ name: 'Bitcoin' })
