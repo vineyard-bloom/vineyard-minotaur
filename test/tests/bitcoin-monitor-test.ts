@@ -1,15 +1,14 @@
-import { getBitcoinExplorerSchema } from "../../src/schema/index";
-
 require('source-map-support').install()
+import { getBitcoinExplorerSchema } from "../../src/schema";
 import { BitcoinModel} from "../../src";
-import { createVillage, Village } from "../src/village";
 import { assert } from 'chai'
-import { startBitcoinMonitor } from "../src/bitcoin-explorer-service";
+import { startBitcoinMonitor, createVillage, MinotaurVillage } from "../../lab"
+import { localConfig } from "../config/config"
 
 const second = 1000
 const minute = 60 * second
 
-type BitcoinVillage = Village<BitcoinModel>
+type BitcoinVillage = MinotaurVillage<BitcoinModel>
 
 describe('btc-scan', function () {
   this.timeout(10 * minute)
@@ -17,9 +16,10 @@ describe('btc-scan', function () {
   let model: BitcoinModel
 
   beforeEach(async function () {
-    village = await createVillage(getBitcoinExplorerSchema())
+    village = await createVillage(getBitcoinExplorerSchema(), localConfig)
     model = village.model
     await (model.ground as any).regenerate()
+    await model.Currency.create({ name: 'Bitcoin' })
   })
 
   it('from start', async function () {

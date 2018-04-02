@@ -1,21 +1,13 @@
 import { FullConfig } from "./config-types";
-import {localConfig} from "../config/config"
 import { SequelizeClient, DevModeler, Modeler } from "vineyard-ground"
 
-export interface Village<Model> {
+export interface MinotaurVillage<Model> {
   config: FullConfig
   model: Model
 }
 
-// function loadSchema() {
-//   return Object.assign(
-//     {},
-//     getEthereumExplorerSchema()
-//   )
-// }
-
-function createModel<Model>(schema: any): Model {
-  const databaseConfig = localConfig.database
+function createModel<Model>(schema: any, config: FullConfig): Model {
+  const databaseConfig = config.database
   const client = new SequelizeClient(databaseConfig)
 
   const modeler = !databaseConfig.devMode
@@ -29,10 +21,10 @@ function createModel<Model>(schema: any): Model {
   return model
 }
 
-export async function createVillage<Model>(schema: any): Promise<Village<Model>> {
+export async function createVillage<Model>(schema: any, config: FullConfig): Promise<MinotaurVillage<Model>> {
 
   return {
-    config: localConfig,
-    model: createModel<Model>(schema)
+    config: config,
+    model: createModel<Model>(schema, config)
   }
 }

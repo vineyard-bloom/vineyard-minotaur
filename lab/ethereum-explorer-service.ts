@@ -1,12 +1,12 @@
-import { Village } from "./village";
+import { MinotaurVillage } from "./village";
 import {
   createEthereumExplorerDao, createSingleCurrencyTransactionDao, EthereumModel, MonitorConfig,
   scanEthereumExplorerBlocks
-} from "../../src";
-import { decodeTokenTransfer, EthereumBlockReader } from 'vineyard-ethereum'
-import { SimpleProfiler } from "../../src/utility";
+} from "../src/index";
+import { decodeTokenTransfer, EthereumBlockReader } from '../../vineyard-ethereum/src/index'
+import { SimpleProfiler } from "../src/utility/index";
 
-export async function startEthereumMonitor(village: Village<EthereumModel>, config: MonitorConfig) {
+export async function startEthereumMonitor(village: MinotaurVillage<EthereumModel>, config: MonitorConfig) {
   try {
     const model = village.model
     const ethereumConfig = village.config.ethereum

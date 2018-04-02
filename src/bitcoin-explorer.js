@@ -30,7 +30,7 @@ function saveTransactions(ground, transactions, addresses) {
     const transactionClauses = transactions.map(t => {
         // const to = t.to ? addresses[t.to] : 'NULL'
         // const from = t.from ? addresses[t.from] : 'NULL'
-        return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+        return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 1, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
     });
     const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
     return ground.querySingle(sql);

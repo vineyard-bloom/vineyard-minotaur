@@ -1,4 +1,4 @@
-import { GeneralDatabaseConfig } from "vineyard-ground"
+import { GeneralDatabaseConfig } from "../../vineyard-ground/source/index"
 
 export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
   devMode?: boolean
