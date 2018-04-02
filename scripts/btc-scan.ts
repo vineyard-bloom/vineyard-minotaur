@@ -1,6 +1,6 @@
 require('source-map-support').install()
-import { createVillage } from "../src/village";
-import { startEthereumMonitor } from "../src/ethereum-explorer-service";
+import { createEthereumVillage, startEthereumMonitor } from "../lab";
+import {localConfig} from '../config/config'
 
 async function initialize(model: any) {
   await (model.ground as any).regenerate()
@@ -11,7 +11,7 @@ async function initialize(model: any) {
 }
 
 async function main() {
-  const village = await createVillage()
+  const village = await createEthereumVillage(localConfig)
   const model = village.model
   // await initialize(model)
   console.log('Initialized village')

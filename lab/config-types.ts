@@ -13,8 +13,8 @@ export interface FullConfig {
   }
   bitcoin: {
     host: string
-    user: string
-    pass: string
+    username: string
+    password: string
     port: number
   }
 }
