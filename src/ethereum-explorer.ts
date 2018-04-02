@@ -186,7 +186,7 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
       continue
 
     const currency = bundle.currency
-    ground.collections.Token.create({
+    await ground.collections.Token.create({
       id: currency.id,
       contract: contractRecord.id,
       name: token.name,

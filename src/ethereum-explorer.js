@@ -121,7 +121,7 @@ function saveContracts(ground, contracts, addresses) {
             if (!contractRecord)
                 continue;
             const currency = bundle.currency;
-            ground.collections.Token.create({
+            yield ground.collections.Token.create({
                 id: currency.id,
                 contract: contractRecord.id,
                 name: token.name,

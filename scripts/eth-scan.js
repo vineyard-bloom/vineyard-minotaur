@@ -22,9 +22,8 @@ function initialize(model) {
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const village = yield lab_1.createBitcoinVillage(config_1.localConfig);
-        const model = village.model;
-        // await initialize(model)
+        const village = yield lab_1.createEthereumVillage(config_1.localConfig);
+        // await initialize(village.model)
         console.log('Initialized village');
         yield lab_1.startEthereumMonitor(village, {
             queue: { maxSize: 10, minSize: 5 },
