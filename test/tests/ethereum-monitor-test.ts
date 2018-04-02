@@ -1,13 +1,10 @@
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
 import { EthereumModel } from "../../src";
-import { startEthereumMonitor, createVillage, MinotaurVillage } from "../../lab"
+import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
 import { assert } from 'chai'
 import { blockchain } from "vineyard-blockchain"
 import { localConfig } from "../config/config"
-
-import { getEthereumExplorerSchema } from "../.."
-type EthereumVillage = MinotaurVillage<EthereumModel>
 
 const second = 1000
 const minute = 60 * second
@@ -76,7 +73,7 @@ describe('eth-scan', function () {
   let model: EthereumModel
 
   beforeEach(async function () {
-    village = await createVillage<EthereumModel>(getEthereumExplorerSchema(), localConfig)
+    village = await createEthereumVillage(localConfig)
     model = village.model
     await (model.ground as any).regenerate()
     await model.Currency.create({ name: 'Bitcoin' })

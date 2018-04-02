@@ -8,20 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../src/index");
-const index_2 = require("../../vineyard-ethereum/src/index");
-const index_3 = require("../src/utility/index");
+const village_1 = require("./village");
+const src_1 = require("../src");
+const vineyard_ethereum_1 = require("../../vineyard-ethereum");
+const utility_1 = require("../src/utility");
 function startEthereumMonitor(village, config) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const model = village.model;
             const ethereumConfig = village.config.ethereum;
-            const client = index_2.EthereumBlockReader.createFromConfig(ethereumConfig.client);
-            const dao = index_1.createEthereumExplorerDao(model);
-            const transactionDao = index_1.createSingleCurrencyTransactionDao(model);
+            const client = vineyard_ethereum_1.EthereumBlockReader.createFromConfig(ethereumConfig.client);
+            const dao = src_1.createEthereumExplorerDao(model);
+            const transactionDao = src_1.createSingleCurrencyTransactionDao(model);
             console.log('Starting cron');
-            const profiler = new index_3.SimpleProfiler();
-            yield index_1.scanEthereumExplorerBlocks(dao, client, index_2.decodeTokenTransfer, config, profiler);
+            const profiler = new utility_1.SimpleProfiler();
+            yield src_1.scanEthereumExplorerBlocks(dao, client, vineyard_ethereum_1.decodeTokenTransfer, config, profiler);
             profiler.logFlat();
         }
         catch (error) {
@@ -30,4 +31,8 @@ function startEthereumMonitor(village, config) {
     });
 }
 exports.startEthereumMonitor = startEthereumMonitor;
+function createEthereumVillage(config) {
+    return village_1.createVillage(src_1.getEthereumExplorerSchema(), config);
+}
+exports.createEthereumVillage = createEthereumVillage;
 //# sourceMappingURL=ethereum-explorer-service.js.map

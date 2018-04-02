@@ -1,12 +1,15 @@
-import { MinotaurVillage } from "./village";
+import { createVillage, MinotaurVillage } from "./village";
 import {
   createEthereumExplorerDao, createSingleCurrencyTransactionDao, EthereumModel, MonitorConfig,
-  scanEthereumExplorerBlocks
-} from "../src/index";
-import { decodeTokenTransfer, EthereumBlockReader } from '../../vineyard-ethereum/src/index'
-import { SimpleProfiler } from "../src/utility/index";
+  scanEthereumExplorerBlocks, getEthereumExplorerSchema
+} from "../src";
+import { decodeTokenTransfer, EthereumBlockReader } from '../../vineyard-ethereum'
+import { SimpleProfiler } from "../src/utility";
+import { FullConfig } from "./config-types";
 
-export async function startEthereumMonitor(village: MinotaurVillage<EthereumModel>, config: MonitorConfig) {
+export type EthereumVillage = MinotaurVillage<EthereumModel>
+
+export async function startEthereumMonitor(village: EthereumVillage, config: MonitorConfig) {
   try {
     const model = village.model
     const ethereumConfig = village.config.ethereum
@@ -21,4 +24,8 @@ export async function startEthereumMonitor(village: MinotaurVillage<EthereumMode
   catch (error) {
     console.error(error)
   }
+}
+
+export function createEthereumVillage(config: FullConfig): Promise<EthereumVillage> {
+  return createVillage(getEthereumExplorerSchema(), config)
 }

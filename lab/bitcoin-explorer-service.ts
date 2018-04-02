@@ -1,9 +1,13 @@
-import { MinotaurVillage } from "./village";
-import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks, BitcoinModel } from "../src/index"
-import { SimpleProfiler } from "../src/utility/index"
-import { BitcoinBlockReader } from '../../vineyard-bitcoin/src/index'
+import { createVillage, MinotaurVillage } from "./village";
+import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks, BitcoinModel } from "../src"
+import { SimpleProfiler } from "../src/utility"
+import { FullConfig } from "./config-types";
+import { getBitcoinExplorerSchema } from "../src/schema";
+import { BitcoinBlockReader } from "vineyard-bitcoin";
 
-export async function startBitcoinMonitor(village: MinotaurVillage<BitcoinModel>, config: MonitorConfig) {
+export type BitcoinVillage = MinotaurVillage<BitcoinModel>
+
+export async function startBitcoinMonitor(village: BitcoinVillage, config: MonitorConfig) {
   try {
     const model = village.model
     const bitcoinConfig = village.config.bitcoin
@@ -17,4 +21,8 @@ export async function startBitcoinMonitor(village: MinotaurVillage<BitcoinModel>
   catch (error) {
     console.error(error)
   }
+}
+
+export function createBitcoinVillage(config: FullConfig): Promise<BitcoinVillage> {
+  return createVillage(getBitcoinExplorerSchema(), config)
 }
