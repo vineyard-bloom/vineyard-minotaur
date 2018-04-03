@@ -40,7 +40,7 @@ function getOrCreateAddresses(ground, addresses) {
             const sql = insertHeader + inserts.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";';
             const rows = yield ground.query(sql);
             for (let row of rows) {
-                addresses[row.address] = parseInt(row.id);
+                addresses[row.address.trim()] = parseInt(row.id);
             }
         }
     });

@@ -20,7 +20,7 @@ function gatherAddresses(blocks: FullBlock[]) {
   for (let block of blocks) {
     for (let transaction of block.transactions) {
       for (let output of transaction.outputs) {
-        addresses[output.address] = -1
+        addresses[output.scriptPubKey.addresses[0]] = -1
       }
     }
   }
@@ -28,15 +28,87 @@ function gatherAddresses(blocks: FullBlock[]) {
   return addresses
 }
 
-function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[], addresses: AddressMap) {
+async function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[], addresses: AddressMap) {
   if (transactions.length == 0)
     return Promise.resolve()
 
   const header = 'INSERT INTO "transactions" ("status", "txid", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
   const transactionClauses: string[] = transactions.map(t => {
-    // const to = t.to ? addresses[t.to] : 'NULL'
-    // const from = t.from ? addresses[t.from] : 'NULL'
     return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 1, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
+  })
+
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  await ground.querySingle(sql)
+
+  const inputs = flatMap(transactions, mapTransactionInputs)
+  const outputs = flatMap(transactions, mapTransactionOutputs)
+
+  await saveTransactionInputs(ground, inputs, addresses)
+  await saveTransactionOutputs(ground, outputs, addresses)
+}
+
+interface AssociatedInput {
+  txid: string
+  index: number
+  input: blockchain.TransactionInput
+}
+
+interface AssociatedOutput {
+  txid: string
+  index: number
+  output: blockchain.TransactionOutput
+}
+
+function mapTransactionInputs(transaction: blockchain.MultiTransaction): AssociatedInput[] {
+  return transaction.inputs.map((input, index) => ({
+    txid: transaction.txid,
+    index: index,
+    input: input
+  }))
+}
+
+function mapTransactionOutputs(transaction: blockchain.MultiTransaction): AssociatedOutput[] {
+  return transaction.outputs.map((output, index) => ({
+    txid: transaction.txid,
+    index: index,
+    output: output
+  }))
+}
+
+function selectTxidClause(txid: string) {
+  return `(SELECT tx.id FROM transactions tx WHERE tx.txid = '${txid}')`
+}
+
+function nullify(value: any) {
+  return (value === undefined || value === null) ? 'NULL' : value
+}
+
+function nullifyString(value: string | undefined | null) {
+  return (value === undefined || value === null) ? 'NULL' : "'" + value + "'"
+}
+
+function saveTransactionInputs(ground: any, inputs: AssociatedInput[], addresses: AddressMap) {
+  if (inputs.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n'
+  const transactionClauses: string[] = inputs.map(association => {
+    const input = association.input
+    return `(${selectTxidClause(association.txid)}, '${association.index}', ${input.txid ? selectTxidClause(input.txid) : 'NULL'}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'": 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${input.address ? addresses[input.address] : 'NULL'}, ${nullify(input.amount)}, ${nullify(input.valueSat)}, ${nullifyString(input.coinbase)},  NOW(), NOW())`
+  })
+
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  return ground.querySingle(sql)
+}
+
+function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], addresses: AddressMap) {
+  if (outputs.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n'
+  const transactionClauses: string[] = outputs.map(association => {
+    const output = association.output
+    return `(${selectTxidClause(association.txid)}, ${association.index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addresses[output.scriptPubKey.addresses[0]]}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`
   })
 
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
@@ -62,9 +134,9 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
 }
 
 export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
-                                                 client: MultiTransactionBlockClient,
-                                                 config: MonitorConfig,
-                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
+                                                client: MultiTransactionBlockClient,
+                                                config: MonitorConfig,
+                                                profiler: Profiler = new EmptyProfiler()): Promise<any> {
   let blockIndex = await getNextBlock(dao.lastBlockDao)
   const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
   const startTime: number = Date.now()

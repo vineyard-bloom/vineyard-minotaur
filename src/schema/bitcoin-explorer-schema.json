@@ -81,5 +81,92 @@
         "type": "long"
       }
     }
+  },
+  "TxIn": {
+    "table": {
+      "name": "txins"
+    },
+    "primaryKeys": ["transaction", "index"],
+    "properties": {
+      "transaction": {
+        "type": "Transaction"
+      },
+      "index": {
+        "type": "int"
+      },
+      "sourceTransaction": {
+        "type": "Transaction",
+        "nullable": true
+      },
+      "sourceIndex": {
+        "type": "long",
+        "nullable": true
+      },
+      "scriptSigHex": {
+        "type": "string",
+        "nullable": true
+      },
+      "scriptSigAsm": {
+        "type": "string",
+        "nullable": true
+      },
+      "sequence": {
+        "type": "long"
+      },
+      "address": {
+        "type": "Address",
+        "nullable": true
+      },
+      "amount": {
+        "type": "bignumber",
+        "nullable": true
+      },
+      "valueSat": {
+        "type": "bignumber",
+        "nullable": true
+      },
+      "coinbase": {
+        "type": "string",
+        "nullable": true
+      }
+    }
+  },
+  "TxOut": {
+    "table": {
+      "name": "txouts"
+    },
+    "primaryKeys": ["transaction", "index"],
+    "properties": {
+      "transaction": {
+        "type": "Transaction"
+      },
+      "index": {
+        "type": "int"
+      },
+      "scriptPubKeyHex": {
+        "type": "string"
+      },
+      "scriptPubKeyAsm": {
+        "type": "string"
+      },
+      "address": {
+        "type": "Address"
+      },
+      "amount": {
+        "type": "bignumber"
+      },
+      "spentTxId": {
+        "type": "string",
+        "nullable": true
+      },
+      "spentHeight": {
+        "type": "long",
+        "nullable": true
+      },
+      "spentIndex": {
+        "type": "long",
+        "nullable": true
+      }
+    }
   }
 }

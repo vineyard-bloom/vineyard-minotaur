@@ -17,20 +17,69 @@ function gatherAddresses(blocks) {
     for (let block of blocks) {
         for (let transaction of block.transactions) {
             for (let output of transaction.outputs) {
-                addresses[output.address] = -1;
+                addresses[output.scriptPubKey.addresses[0]] = -1;
             }
         }
     }
     return addresses;
 }
 function saveTransactions(ground, transactions, addresses) {
-    if (transactions.length == 0)
+    return __awaiter(this, void 0, void 0, function* () {
+        if (transactions.length == 0)
+            return Promise.resolve();
+        const header = 'INSERT INTO "transactions" ("status", "txid", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
+        const transactionClauses = transactions.map(t => {
+            return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 1, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+        });
+        const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+        yield ground.querySingle(sql);
+        const inputs = index_1.flatMap(transactions, mapTransactionInputs);
+        const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
+        yield saveTransactionInputs(ground, inputs, addresses);
+        yield saveTransactionOutputs(ground, outputs, addresses);
+    });
+}
+function mapTransactionInputs(transaction) {
+    return transaction.inputs.map((input, index) => ({
+        txid: transaction.txid,
+        index: index,
+        input: input
+    }));
+}
+function mapTransactionOutputs(transaction) {
+    return transaction.outputs.map((output, index) => ({
+        txid: transaction.txid,
+        index: index,
+        output: output
+    }));
+}
+function selectTxidClause(txid) {
+    return `(SELECT tx.id FROM transactions tx WHERE tx.txid = '${txid}')`;
+}
+function nullify(value) {
+    return (value === undefined || value === null) ? 'NULL' : value;
+}
+function nullifyString(value) {
+    return (value === undefined || value === null) ? 'NULL' : "'" + value + "'";
+}
+function saveTransactionInputs(ground, inputs, addresses) {
+    if (inputs.length == 0)
         return Promise.resolve();
-    const header = 'INSERT INTO "transactions" ("status", "txid", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
-    const transactionClauses = transactions.map(t => {
-        // const to = t.to ? addresses[t.to] : 'NULL'
-        // const from = t.from ? addresses[t.from] : 'NULL'
-        return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 1, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+    const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n';
+    const transactionClauses = inputs.map(association => {
+        const input = association.input;
+        return `(${selectTxidClause(association.txid)}, '${association.index}', ${input.txid ? selectTxidClause(input.txid) : 'NULL'}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'" : 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${input.address ? addresses[input.address] : 'NULL'}, ${nullify(input.amount)}, ${nullify(input.valueSat)}, ${nullifyString(input.coinbase)},  NOW(), NOW())`;
+    });
+    const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+    return ground.querySingle(sql);
+}
+function saveTransactionOutputs(ground, outputs, addresses) {
+    if (outputs.length == 0)
+        return Promise.resolve();
+    const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n';
+    const transactionClauses = outputs.map(association => {
+        const output = association.output;
+        return `(${selectTxidClause(association.txid)}, ${association.index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addresses[output.scriptPubKey.addresses[0]]}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`;
     });
     const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
     return ground.querySingle(sql);

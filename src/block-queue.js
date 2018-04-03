@@ -107,7 +107,7 @@ class ExternalBlockQueue {
                 break;
             blocks.push(r);
         }
-        if (blocks.length >= this.config.minSize && this.requests.length > 0) {
+        if (blocks.length < this.config.minSize && this.requests.length > 0) {
             return [];
         }
         return blocks;
