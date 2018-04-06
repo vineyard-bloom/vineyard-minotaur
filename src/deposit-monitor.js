@@ -45,6 +45,7 @@ class DepositMonitor {
                     block: block.index,
                     currency: this.currency.id
                 });
+                this.transactionHandler.onSave(transaction);
                 if (source.confirmations >= this.minimumConfirmations) {
                     return yield this.transactionHandler.onConfirm(transaction);
                 }
@@ -132,4 +133,4 @@ class DepositMonitor {
     }
 }
 exports.DepositMonitor = DepositMonitor;
-//# sourceMappingURL=deposit-monitor2.js.map
+//# sourceMappingURL=deposit-monitor.js.map

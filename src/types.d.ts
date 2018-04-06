@@ -59,6 +59,19 @@ export interface MonitorDao {
     lastBlockDao: LastBlockDao;
 }
 export interface LastBlock {
-    index?: number;
+    blockIndex?: number;
     currency: string;
+}
+export interface Address {
+    id: number;
+    address: string;
+}
+export interface Currency {
+    id: number;
+    address?: number;
+    name: string;
+}
+export interface BaseTransaction extends blockchain.BaseTransaction {
+}
+export interface Block extends blockchain.Block {
 }

@@ -42,6 +42,15 @@ export async function getOrCreateAddresses(ground: Modeler, addresses: AddressMa
   }
 }
 
+export function addressesAreAssociated(addresses: AddressMap): boolean {
+  for (let i in addresses) {
+    if (addresses[i] === -1)
+      return false
+  }
+
+  return true
+}
+
 export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
   let inserts: string[] = []

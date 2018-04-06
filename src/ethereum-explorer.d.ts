@@ -1,22 +1,11 @@
-import { LastBlock, MonitorDao, TransactionDao } from "./types";
+import { Address, LastBlock, MonitorDao, TransactionDao } from "./types";
 import { blockchain } from "vineyard-blockchain";
-import BigNumber from "bignumber.js";
-import { Profiler } from "./utility/profiler";
+import { Profiler } from "./utility";
 import { Collection, Modeler } from 'vineyard-data/legacy';
-export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>;
+export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.ContractTransaction>>;
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;
-}
-export interface Address {
-    id: number;
-    address: string;
-    balance: BigNumber;
-}
-export interface Currency {
-    id: number;
-    address?: number;
-    name: string;
 }
 export declare type AddressDelegate = (externalAddress: string) => Promise<number>;
 export interface TokenTransferRecord {

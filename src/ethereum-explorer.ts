@@ -1,32 +1,20 @@
-import { BaseBlock, LastBlock, LastBlockDao, MonitorDao, TransactionDao } from "./types"
+import { Address, BaseBlock, LastBlock, MonitorDao, TransactionDao } from "./types"
 import { createIndexedLastBlockDao, setStatus } from "./monitor-dao"
 import { blockchain } from "vineyard-blockchain"
 import BigNumber from "bignumber.js"
-import { EmptyProfiler, Profiler } from "./utility/profiler"
-import { ExternalBlockQueue } from "./block-queue"
+import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
-import { AddressMap, getNextBlock, getOrCreateAddresses, saveBlocks, saveCurrencies } from "./database-functions"
+import { AddressMap, getOrCreateAddresses, saveBlocks, saveCurrencies } from "./database-functions"
+import { createBlockQueue, scanBlocks } from "./monitor-logic";
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
 
-export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.ContractTransaction>
+export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.ContractTransaction>>
 
 export interface EthereumTransaction extends blockchain.BlockTransaction {
   to?: number
   from?: number
-}
-
-export interface Address {
-  id: number
-  address: string
-  balance: BigNumber
-}
-
-export interface Currency {
-  id: number
-  address?: number
-  name: string
 }
 
 export type AddressDelegate = (externalAddress: string) => Promise<number>
@@ -318,34 +306,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  decodeTokenTransfer: blockchain.EventDecoder,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
-  let blockIndex = await getNextBlock(dao.lastBlockDao)
-  const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
-  const startTime: number = Date.now()
-  do {
-    const elapsed = Date.now() - startTime
-    // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
-    if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
-      console.log('Reached timeout of ', elapsed, 'milliseconds')
-      console.log('Canceled blocks', blockQueue.requests.map((b: any) => b.blockIndex).join(', '))
-      break
-    }
-
-    profiler.start('getBlocks')
-    const blocks = await blockQueue.getBlocks()
-    profiler.stop('getBlocks')
-    if (blocks.length == 0) {
-      console.log('No more blocks found.')
-      break
-    }
-
-    console.log('Saving blocks', blocks.map((b: any) => b.index).join(', '))
-
-    profiler.start('saveBlocks')
-    await saveFullBlocks(dao, decodeTokenTransfer, blocks)
-    profiler.stop('saveBlocks')
-
-    // console.log('Saved blocks', blocks.map(b => b.index))
-  }
-  while (true)
-
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, decodeTokenTransfer, blocks)
+  return scanBlocks(blockQueue, saver, config, profiler)
 }

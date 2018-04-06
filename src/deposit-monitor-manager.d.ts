@@ -1,35 +1,21 @@
-import { Address, BaseBlock, BlockInfo, NewSingleTransaction, SingleTransaction as Transaction, TransactionStatus } from "vineyard-blockchain";
-import { Collection, Modeler } from 'vineyard-data/legacy';
-export interface TransactionToSave extends NewSingleTransaction {
-    status: TransactionStatus;
-    currency: number;
-}
-export interface Scan {
-    block: string;
-}
-export interface OldLastBlock {
-    block?: BlockInfo;
-    currency: string;
-}
-export interface Model {
+import { Collection } from 'vineyard-ground';
+import { blockchain } from "vineyard-blockchain";
+import { Address, BaseTransaction, Currency, LastBlock } from "./types";
+export interface DepositMonitorManagerModel {
     Address: Collection<Address>;
-    Block: Collection<BlockInfo>;
-    Transaction: Collection<Transaction>;
-    LastBlock: Collection<OldLastBlock>;
-    ground: Modeler;
+    LastBlock: Collection<LastBlock>;
+    Transaction: Collection<BaseTransaction>;
+    ground: any;
 }
 export declare class DepositMonitorManager {
-    model: Model;
-    constructor(model: Model);
-    getTransactionByTxid(txid: string, currency: number): Promise<Transaction | undefined>;
-    saveTransaction(transaction: TransactionToSave): Promise<Transaction>;
-    setStatus(transaction: Transaction, status: TransactionStatus): Promise<Transaction>;
-    listPending(currency: number, maxBlockIndex: number): Promise<Transaction[]>;
-    getLastBlock(currency: number): Promise<BlockInfo | undefined>;
-    setLastBlock(block: string, currency: number): Promise<any[] | undefined>;
-    setLastBlockByHash(hash: string, currency: number): Promise<OldLastBlock>;
-    saveBlock(block: BaseBlock): Promise<BlockInfo>;
-    saveLastBlock(block: BaseBlock, currency: number): Promise<OldLastBlock>;
+    model: DepositMonitorManagerModel;
+    currency: Currency;
+    constructor(model: DepositMonitorManagerModel, currency: Currency);
+    getTransactionByTxid(txid: string): Promise<BaseTransaction | undefined>;
+    saveTransaction(transaction: BaseTransaction): Promise<BaseTransaction>;
+    setTransactionStatus(transaction: BaseTransaction, status: blockchain.TransactionStatus): Promise<BaseTransaction>;
+    listPending(maxBlockIndex: number): Promise<BaseTransaction[]>;
+    getLastBlock(): Promise<LastBlock | undefined>;
+    setLastBlock(block: LastBlock): Promise<LastBlock>;
 }
-export declare type SingleTransactionBlockchainManager = DepositMonitorManager;
 export declare type SingleTransactionBlockchainModel = DepositMonitorManager;

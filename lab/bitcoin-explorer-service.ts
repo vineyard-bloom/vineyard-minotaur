@@ -1,11 +1,11 @@
 import { createVillage, MinotaurVillage } from "./village";
-import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks, BitcoinModel } from "../src"
+import { createEthereumExplorerDao, MonitorConfig, scanBitcoinExplorerBlocks, EthereumModel } from "../src"
 import { SimpleProfiler } from "../src/utility"
 import { FullConfig } from "./config-types";
 import { getBitcoinExplorerSchema } from "../src/schema";
 import { BitcoinBlockReader } from "vineyard-bitcoin";
 
-export type BitcoinVillage = MinotaurVillage<BitcoinModel>
+export type BitcoinVillage = MinotaurVillage<EthereumModel>
 
 export async function startBitcoinMonitor(village: BitcoinVillage, config: MonitorConfig) {
   try {

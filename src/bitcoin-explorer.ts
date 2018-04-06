@@ -1,7 +1,10 @@
 import { ExternalBlockQueue } from "./block-queue";
 import { EmptyProfiler, Profiler } from "./utility";
 import { flatMap } from "./utility/index";
-import { AddressMap, getNextBlock, getOrCreateAddresses, saveBlocks } from "./database-functions";
+import {
+  addressesAreAssociated, AddressMap, getNextBlock, getOrCreateAddresses,
+  saveBlocks
+} from "./database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorDao } from "./types";
 import { Modeler } from "vineyard-data/legacy"
@@ -9,7 +12,7 @@ import { MonitorConfig } from "./ethereum-explorer";
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 
-export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.MultiTransaction>
+export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
 
 export interface BitcoinMonitorDao extends MonitorDao {
   ground: Modeler
@@ -29,6 +32,9 @@ function gatherAddresses(blocks: FullBlock[]) {
 }
 
 async function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[], addresses: AddressMap) {
+  if (!addressesAreAssociated(addresses))
+    throw new Error("Not all addresses were properly saved or loaded")
+
   if (transactions.length == 0)
     return Promise.resolve()
 
@@ -137,33 +143,34 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 client: MultiTransactionBlockClient,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
-  let blockIndex = await getNextBlock(dao.lastBlockDao)
-  const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
-  const startTime: number = Date.now()
-  do {
-    const elapsed = Date.now() - startTime
-    // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
-    if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
-      console.log('Reached timeout of ', elapsed, 'milliseconds')
-      console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '))
-      break
-    }
 
-    profiler.start('getBlocks')
-    const blocks = await blockQueue.getBlocks()
-    profiler.stop('getBlocks')
-    if (blocks.length == 0) {
-      console.log('No more blocks found.')
-      break
-    }
-
-    console.log('Saving blocks', blocks.map(b => b.index).join(', '))
-
-    profiler.start('saveBlocks')
-    await saveFullBlocks(dao, blocks)
-    profiler.stop('saveBlocks')
-
-    // console.log('Saved blocks', blocks.map(b => b.index))
+  // let blockIndex = await getNextBlock(dao.lastBlockDao)
+  // const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
+  // const startTime: number = Date.now()
+  // do {
+  //   const elapsed = Date.now() - startTime
+  //   // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
+  //   if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
+  //     console.log('Reached timeout of ', elapsed, 'milliseconds')
+  //     console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '))
+  //     break
+  //   }
+  //
+  //   profiler.start('getBlocks')
+  //   const blocks = await blockQueue.getBlocks()
+  //   profiler.stop('getBlocks')
+  //   if (blocks.length == 0) {
+  //     console.log('No more blocks found.')
+  //     break
+  //   }
+  //
+  //   console.log('Saving blocks', blocks.map(b => b.index).join(', '))
+  //
+  //   profiler.start('saveBlocks')
+  //   await saveFullBlocks(dao, blocks)
+  //   profiler.stop('saveBlocks')
+  //
+  //   // console.log('Saved blocks', blocks.map(b => b.index))
   }
   while (true)
 

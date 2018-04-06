@@ -1,6 +1,6 @@
 import { BaseBlock, BlockInfo, SingleTransaction as Transaction, TransactionStatus } from 'vineyard-blockchain';
 import { Collection, Modeler } from 'vineyard-data/legacy';
-import { Model, TransactionToSave } from './deposit-monitor-manager';
+import { Model, TransactionToSave } from './deposit-monitor-manager-old';
 import { BlockDao, LastBlockDao, LastBlockDaoOld, MonitorDaoOld, TransactionDaoOld } from './types';
 export declare function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string, currency: number): Promise<Transaction | undefined>;
 export declare function saveTransaction(transactionCollection: Collection<Transaction>, transaction: TransactionToSave): Promise<Transaction>;

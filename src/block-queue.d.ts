@@ -7,7 +7,10 @@ export interface BlockQueueConfig {
     maxSize: number;
     minSize: number;
 }
-export declare class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction> {
+export interface IndexedBlock {
+    index: number;
+}
+export declare class ExternalBlockQueue<Block extends IndexedBlock> {
     private blocks;
     private blockIndex;
     private highestBlockIndex;
@@ -15,7 +18,7 @@ export declare class ExternalBlockQueue<Transaction extends blockchain.BlockTran
     private config;
     requests: BlockRequest[];
     private listeners;
-    constructor(client: blockchain.BlockReader<Transaction>, blockIndex: number, config: BlockQueueConfig);
+    constructor(client: blockchain.BlockReader<Block>, blockIndex: number, config: BlockQueueConfig);
     getBlockIndex(): number;
     private removeRequest(blockIndex);
     private removeBlocks(blocks);
@@ -23,5 +26,5 @@ export declare class ExternalBlockQueue<Transaction extends blockchain.BlockTran
     private addRequest(index);
     private update();
     private getConsecutiveBlocks();
-    getBlocks(): Promise<blockchain.FullBlock<Transaction>[]>;
+    getBlocks(): Promise<Block[]>;
 }

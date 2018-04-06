@@ -10,10 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_dao_1 = require("./monitor-dao");
 const vineyard_blockchain_1 = require("vineyard-blockchain");
-const profiler_1 = require("./utility/profiler");
-const block_queue_1 = require("./block-queue");
+const utility_1 = require("./utility");
 const index_1 = require("./utility/index");
 const database_functions_1 = require("./database-functions");
+const monitor_logic_1 = require("./monitor-logic");
 function saveSingleCurrencyBlock(blockCollection, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const existing = yield blockCollection.first({ index: block.index });
@@ -220,32 +220,11 @@ function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
         console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
-function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new profiler_1.EmptyProfiler()) {
+function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
-        let blockIndex = yield database_functions_1.getNextBlock(dao.lastBlockDao);
-        const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.queue);
-        const startTime = Date.now();
-        do {
-            const elapsed = Date.now() - startTime;
-            // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
-            if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
-                console.log('Reached timeout of ', elapsed, 'milliseconds');
-                console.log('Canceled blocks', blockQueue.requests.map((b) => b.blockIndex).join(', '));
-                break;
-            }
-            profiler.start('getBlocks');
-            const blocks = yield blockQueue.getBlocks();
-            profiler.stop('getBlocks');
-            if (blocks.length == 0) {
-                console.log('No more blocks found.');
-                break;
-            }
-            console.log('Saving blocks', blocks.map((b) => b.index).join(', '));
-            profiler.start('saveBlocks');
-            yield saveFullBlocks(dao, decodeTokenTransfer, blocks);
-            profiler.stop('saveBlocks');
-            // console.log('Saved blocks', blocks.map(b => b.index))
-        } while (true);
+        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
+        const saver = (blocks) => saveFullBlocks(dao, decodeTokenTransfer, blocks);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, config, profiler);
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;

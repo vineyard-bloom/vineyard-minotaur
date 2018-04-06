@@ -1,14 +1,13 @@
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
 import { EthereumModel } from "../../src";
-import { createVillage, Village } from "../src/village";
-import { startEthereumMonitor } from "../src/ethereum-explorer-service"
+import { startEthereumMonitor, createVillage, MinotaurVillage } from "../../lab";
 import { assert } from 'chai'
 import { blockchain } from "vineyard-blockchain"
 
 describe('error-test', function () {
   // this.timeout(10 * minute)
-  let village: Village
+  // let village: Village
   let model: EthereumModel
 
   // beforeEach(async function () {

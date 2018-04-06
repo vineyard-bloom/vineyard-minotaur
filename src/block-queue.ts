@@ -10,21 +10,25 @@ export interface BlockQueueConfig {
   minSize: number
 }
 
-export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction> {
-  private blocks: blockchain.FullBlock<Transaction>[] = []
+export interface IndexedBlock {
+  index: number
+}
+
+export class ExternalBlockQueue<Block extends IndexedBlock> {
+  private blocks: Block[] = []
   private blockIndex: number
   private highestBlockIndex: number
-  private client: blockchain.BlockReader<Transaction>
+  private client: blockchain.BlockReader<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
   private listeners: {
-    resolve: (block: blockchain.FullBlock<Transaction>[]) => void
+    resolve: (block: Block[]) => void
     reject: (error: Error) => void
   }[] = []
 
   // p = new Profiler()
 
-  constructor(client: blockchain.BlockReader<Transaction>, blockIndex: number,
+  constructor(client: blockchain.BlockReader<Block>, blockIndex: number,
               config: BlockQueueConfig) {
     this.client = client
     this.blockIndex = blockIndex
@@ -42,11 +46,11 @@ export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction>
     this.requests = this.requests.filter(r => r.blockIndex != blockIndex)
   }
 
-  private removeBlocks(blocks: blockchain.FullBlock<Transaction>[]) {
+  private removeBlocks(blocks: Block[]) {
     this.blocks = this.blocks.filter(b => blocks.every(b2 => b2.index != b.index))
   }
 
-  private onResponse(blockIndex: number, block: blockchain.FullBlock<Transaction> | undefined) {
+  private onResponse(blockIndex: number, block: Block | undefined) {
     // this.p.stop(blockIndex + '-blockQueue')
     // console.log('onResponse block', blockIndex, block != undefined)
     this.removeRequest(blockIndex)
@@ -111,7 +115,7 @@ export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction>
   }
 
   // Ensures that batches of blocks are returned in consecutive order
-  private getConsecutiveBlocks(): blockchain.FullBlock<Transaction>[] {
+  private getConsecutiveBlocks(): Block[] {
     if (this.blocks.length == 0)
       return []
 
@@ -138,7 +142,7 @@ export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction>
     return blocks
   }
 
-  async getBlocks(): Promise<blockchain.FullBlock<Transaction>[]> {
+  async getBlocks(): Promise<Block[]> {
     await this.update()
 
     const readyBlocks = this.getConsecutiveBlocks()
@@ -150,7 +154,7 @@ export class ExternalBlockQueue<Transaction extends blockchain.BlockTransaction>
         return Promise.resolve([])
     }
     else {
-      return new Promise<blockchain.FullBlock<Transaction>[]>((resolve, reject) => {
+      return new Promise<Block[]>((resolve, reject) => {
         this.listeners.push({
           resolve: resolve,
           reject: reject

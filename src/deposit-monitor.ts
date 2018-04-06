@@ -1,14 +1,16 @@
 import {
-  ExternalTransaction,
-  Transaction,
   TransactionStatus,
   ReadClient,
   Currency,
   NewBlock,
-  Block
+  FullBlock
 } from 'vineyard-blockchain'
-import { SingleTransactionBlockchainModel } from './deposit-monitor-manager2'
+import { SingleTransactionBlockchainModel } from './deposit-monitor-manager'
 import { TransactionHandler } from "./types2";
+import { LastBlock } from "./types";
+
+export type ExternalTransaction = any
+export type Transaction = any
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
@@ -52,11 +54,13 @@ export class DepositMonitor {
         amount: source.amount,
         timeReceived: source.timeReceived,
         block: block.index,
-        currency: this.currency.id 
-      })
+        currency: this.currency.id
+      } as any)
+
+      this.transactionHandler.onSave(transaction as any)
 
       if (source.confirmations >= this.minimumConfirmations) {
-        return await this.transactionHandler.onConfirm(transaction)
+        return await this.transactionHandler.onConfirm(transaction as any)
       }
     }
     catch (error) {
@@ -75,7 +79,7 @@ export class DepositMonitor {
 
   private async confirmExistingTransaction(transaction: Transaction): Promise<Transaction> {
     const ExternalTransaction = await this.model.setTransactionStatus(transaction, TransactionStatus.accepted)
-    return await this.transactionHandler.onConfirm(ExternalTransaction)
+    return await this.transactionHandler.onConfirm(ExternalTransaction as any)
   }
 
   private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
@@ -87,14 +91,14 @@ export class DepositMonitor {
   }
 
   async scanBlocks(): Promise<void> {
-    let lastBlock: Block | undefined = await this.model.getLastBlock()
+    let lastBlock: LastBlock | undefined = await this.model.getLastBlock()
     do {
       lastBlock = await this.gatherTransactions(lastBlock)
     } while (lastBlock)
   }
 
-  async gatherTransactions(lastBlock: Block | undefined): Promise<Block | undefined> {
-    const blockInfo = await this.client.getNextBlockInfo(lastBlock)
+  async gatherTransactions(lastBlock: LastBlock | undefined): Promise<LastBlock | undefined> {
+    const blockInfo = await this.client.getNextBlockInfo(lastBlock as any)
     if (!blockInfo)
       return undefined
 
@@ -111,11 +115,11 @@ export class DepositMonitor {
     }
 
     if (!fullBlock.transactions) {
-      return block
+      return block as any
     }
     await this.saveExternalTransactions(fullBlock.transactions, block)
 
-    const newLastBlock = await this.model.setLastBlock(block)
+    const newLastBlock = await this.model.setLastBlock(block as any)
 
     return newLastBlock
   }

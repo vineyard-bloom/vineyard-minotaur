@@ -3,7 +3,7 @@ import { blockchain } from "vineyard-blockchain";
 import { MonitorDao } from "./types";
 import { Modeler } from "vineyard-data/legacy";
 import { MonitorConfig } from "./ethereum-explorer";
-export declare type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.MultiTransaction>;
+export declare type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>;
 export interface BitcoinMonitorDao extends MonitorDao {
     ground: Modeler;
 }

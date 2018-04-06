@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const block_queue_1 = require("./block-queue");
 const utility_1 = require("./utility");
 const index_1 = require("./utility/index");
 const database_functions_1 = require("./database-functions");
@@ -25,6 +24,8 @@ function gatherAddresses(blocks) {
 }
 function saveTransactions(ground, transactions, addresses) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (!database_functions_1.addressesAreAssociated(addresses))
+            throw new Error("Not all addresses were properly saved or loaded");
         if (transactions.length == 0)
             return Promise.resolve();
         const header = 'INSERT INTO "transactions" ("status", "txid", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
@@ -101,31 +102,36 @@ function saveFullBlocks(dao, blocks) {
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
-        let blockIndex = yield database_functions_1.getNextBlock(dao.lastBlockDao);
-        const blockQueue = new block_queue_1.ExternalBlockQueue(client, blockIndex, config.queue);
-        const startTime = Date.now();
-        do {
-            const elapsed = Date.now() - startTime;
-            // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
-            if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
-                console.log('Reached timeout of ', elapsed, 'milliseconds');
-                console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '));
-                break;
-            }
-            profiler.start('getBlocks');
-            const blocks = yield blockQueue.getBlocks();
-            profiler.stop('getBlocks');
-            if (blocks.length == 0) {
-                console.log('No more blocks found.');
-                break;
-            }
-            console.log('Saving blocks', blocks.map(b => b.index).join(', '));
-            profiler.start('saveBlocks');
-            yield saveFullBlocks(dao, blocks);
-            profiler.stop('saveBlocks');
-            // console.log('Saved blocks', blocks.map(b => b.index))
-        } while (true);
+        // let blockIndex = await getNextBlock(dao.lastBlockDao)
+        // const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
+        // const startTime: number = Date.now()
+        // do {
+        //   const elapsed = Date.now() - startTime
+        //   // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
+        //   if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
+        //     console.log('Reached timeout of ', elapsed, 'milliseconds')
+        //     console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '))
+        //     break
+        //   }
+        //
+        //   profiler.start('getBlocks')
+        //   const blocks = await blockQueue.getBlocks()
+        //   profiler.stop('getBlocks')
+        //   if (blocks.length == 0) {
+        //     console.log('No more blocks found.')
+        //     break
+        //   }
+        //
+        //   console.log('Saving blocks', blocks.map(b => b.index).join(', '))
+        //
+        //   profiler.start('saveBlocks')
+        //   await saveFullBlocks(dao, blocks)
+        //   profiler.stop('saveBlocks')
+        //
+        //   // console.log('Saved blocks', blocks.map(b => b.index))
     });
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;
+while (true)
+    ;
 //# sourceMappingURL=bitcoin-explorer.js.map

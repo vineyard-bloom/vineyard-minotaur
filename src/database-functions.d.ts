@@ -5,6 +5,7 @@ export declare type AddressMap = {
     [key: string]: number;
 };
 export declare function getOrCreateAddresses(ground: Modeler, addresses: AddressMap): Promise<void>;
+export declare function addressesAreAssociated(addresses: AddressMap): boolean;
 export declare function saveBlocks(ground: Modeler, blocks: blockchain.Block[]): Promise<any>;
 export interface CurrencyResult {
     currency: any;
