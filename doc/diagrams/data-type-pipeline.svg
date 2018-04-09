@@ -26,9 +26,7 @@
 <!-- Bitcoin\nTypes&#45;&gt;Vineyard\nBitcoin -->
 <g id="edge2" class="edge">
 <title>Bitcoin\nTypes&#45;&gt;Vineyard\nBitcoin</title>
-<path fill="none" stroke="#000000" d="M198.8086,-29.4156C206.3496,-29.4156 214.403,-29.4156 222.4075,-29.4156"/>
-<polygon fill="#000000" stroke="#000000" points="198.4889,-25.9157 188.4889,-29.4156 198.4889,-32.9157 198.4889,-25.9157"/>
-<polygon fill="#000000" stroke="#000000" points="222.4782,-32.9157 232.4782,-29.4156 222.4781,-25.9157 222.4782,-32.9157"/>
+<path fill="none" stroke="#000000" d="M188.4889,-29.4156C201.6283,-29.4156 217.5672,-29.4156 232.4782,-29.4156"/>
 </g>
 <!-- Ethereum\nTypes -->
 <g id="node2" class="node">
@@ -47,9 +45,7 @@
 <!-- Ethereum\nTypes&#45;&gt;Vineyard\nEthereum -->
 <g id="edge5" class="edge">
 <title>Ethereum\nTypes&#45;&gt;Vineyard\nEthereum</title>
-<path fill="none" stroke="#000000" d="M205.3951,-106.4156C210.3276,-106.4156 215.4013,-106.4156 220.4736,-106.4156"/>
-<polygon fill="#000000" stroke="#000000" points="205.1376,-102.9157 195.1376,-106.4156 205.1375,-109.9157 205.1376,-102.9157"/>
-<polygon fill="#000000" stroke="#000000" points="220.8372,-109.9157 230.8372,-106.4156 220.8372,-102.9157 220.8372,-109.9157"/>
+<path fill="none" stroke="#000000" d="M195.1376,-106.4156C206.2993,-106.4156 218.8523,-106.4156 230.8372,-106.4156"/>
 </g>
 <!-- Blockchain\nTypes -->
 <g id="node3" class="node">
@@ -68,9 +64,7 @@
 <!-- Blockchain\nTypes&#45;&gt;Vineyard\nMinotaur -->
 <g id="edge7" class="edge">
 <title>Blockchain\nTypes&#45;&gt;Vineyard\nMinotaur</title>
-<path fill="none" stroke="#000000" d="M456.4925,-67.4156C461.4878,-67.4156 466.5913,-67.4156 471.6665,-67.4156"/>
-<polygon fill="#000000" stroke="#000000" points="456.4265,-63.9157 446.4265,-67.4156 456.4264,-70.9157 456.4265,-63.9157"/>
-<polygon fill="#000000" stroke="#000000" points="472.0009,-70.9157 482.0009,-67.4156 472.0008,-63.9157 472.0009,-70.9157"/>
+<path fill="none" stroke="#000000" d="M446.4265,-67.4156C457.7576,-67.4156 470.2203,-67.4156 482.0009,-67.4156"/>
 </g>
 <!-- Minotaur\nTypes -->
 <g id="node4" class="node">
@@ -89,9 +83,7 @@
 <!-- Minotaur\nTypes&#45;&gt;Database -->
 <g id="edge9" class="edge">
 <title>Minotaur\nTypes&#45;&gt;Database</title>
-<path fill="none" stroke="#000000" d="M693.1688,-67.4156C698.2243,-67.4156 703.3759,-67.4156 708.4259,-67.4156"/>
-<polygon fill="#000000" stroke="#000000" points="692.9817,-63.9157 682.9816,-67.4156 692.9816,-70.9157 692.9817,-63.9157"/>
-<polygon fill="#000000" stroke="#000000" points="708.586,-70.9157 718.5859,-67.4156 708.5859,-63.9157 708.586,-70.9157"/>
+<path fill="none" stroke="#000000" d="M682.9816,-67.4156C694.4268,-67.4156 707.1707,-67.4156 718.5859,-67.4156"/>
 </g>
 <!-- Bitcoind -->
 <g id="node6" class="node">
@@ -102,16 +94,12 @@
 <!-- Bitcoind&#45;&gt;Bitcoin\nTypes -->
 <g id="edge1" class="edge">
 <title>Bitcoind&#45;&gt;Bitcoin\nTypes</title>
-<path fill="none" stroke="#000000" d="M98.7921,-29.4156C106.2959,-29.4156 113.8734,-29.4156 121.0158,-29.4156"/>
-<polygon fill="#000000" stroke="#000000" points="98.6294,-25.9157 88.6293,-29.4156 98.6293,-32.9157 98.6294,-25.9157"/>
-<polygon fill="#000000" stroke="#000000" points="121.1097,-32.9157 131.1096,-29.4156 121.1096,-25.9157 121.1097,-32.9157"/>
+<path fill="none" stroke="#000000" d="M88.6293,-29.4156C102.8808,-29.4156 118.287,-29.4156 131.1096,-29.4156"/>
 </g>
 <!-- Vineyard\nBitcoin&#45;&gt;Blockchain\nTypes -->
 <g id="edge3" class="edge">
 <title>Vineyard\nBitcoin&#45;&gt;Blockchain\nTypes</title>
-<path fill="none" stroke="#000000" d="M333.9477,-45.4793C341.5402,-47.7749 349.3264,-50.1292 356.8486,-52.4036"/>
-<polygon fill="#000000" stroke="#000000" points="334.6565,-42.0371 324.0715,-42.4931 332.6305,-48.7376 334.6565,-42.0371"/>
-<polygon fill="#000000" stroke="#000000" points="355.9617,-55.7918 366.5467,-55.3359 357.9877,-49.0914 355.9617,-55.7918"/>
+<path fill="none" stroke="#000000" d="M324.0715,-42.4931C337.8463,-46.658 353.0164,-51.2449 366.5467,-55.3359"/>
 </g>
 <!-- Geth -->
 <g id="node8" class="node">
@@ -122,23 +110,17 @@
 <!-- Geth&#45;&gt;Ethereum\nTypes -->
 <g id="edge4" class="edge">
 <title>Geth&#45;&gt;Ethereum\nTypes</title>
-<path fill="none" stroke="#000000" d="M84.4772,-106.4156C94.1681,-106.4156 104.5889,-106.4156 114.4969,-106.4156"/>
-<polygon fill="#000000" stroke="#000000" points="84.3477,-102.9157 74.3476,-106.4156 84.3476,-109.9157 84.3477,-102.9157"/>
-<polygon fill="#000000" stroke="#000000" points="114.5843,-109.9157 124.5843,-106.4156 114.5842,-102.9157 114.5843,-109.9157"/>
+<path fill="none" stroke="#000000" d="M74.3476,-106.4156C89.7224,-106.4156 108.5303,-106.4156 124.5843,-106.4156"/>
 </g>
 <!-- Vineyard\nEthereum&#45;&gt;Blockchain\nTypes -->
 <g id="edge6" class="edge">
 <title>Vineyard\nEthereum&#45;&gt;Blockchain\nTypes</title>
-<path fill="none" stroke="#000000" d="M334.7394,-89.6836C342.033,-87.4203 349.4901,-85.1062 356.7071,-82.8666"/>
-<polygon fill="#000000" stroke="#000000" points="333.643,-86.3591 325.1296,-92.6657 335.7177,-93.0446 333.643,-86.3591"/>
-<polygon fill="#000000" stroke="#000000" points="357.8483,-86.1773 366.3617,-79.8707 355.7736,-79.4918 357.8483,-86.1773"/>
+<path fill="none" stroke="#000000" d="M325.1296,-92.6657C338.557,-88.4989 353.2241,-83.9475 366.3617,-79.8707"/>
 </g>
 <!-- Vineyard\nMinotaur&#45;&gt;Minotaur\nTypes -->
 <g id="edge8" class="edge">
 <title>Vineyard\nMinotaur&#45;&gt;Minotaur\nTypes</title>
-<path fill="none" stroke="#000000" d="M589.1648,-67.4156C594.3561,-67.4156 599.5523,-67.4156 604.593,-67.4156"/>
-<polygon fill="#000000" stroke="#000000" points="588.9533,-63.9157 578.9532,-67.4156 588.9532,-70.9157 588.9533,-63.9157"/>
-<polygon fill="#000000" stroke="#000000" points="604.6704,-70.9157 614.6704,-67.4156 604.6703,-63.9157 604.6704,-70.9157"/>
+<path fill="none" stroke="#000000" d="M578.9532,-67.4156C590.9397,-67.4156 603.5325,-67.4156 614.6704,-67.4156"/>
 </g>
 </g>
 </svg>
