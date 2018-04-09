@@ -65,7 +65,7 @@ export function getLastBlockIndex(ground: Modeler, currency: number): Promise<nu
   return ground.querySingle(sql, { currency: currency })
     .then((value: any) =>
       (value && typeof value.blockIndex == 'string') ? parseInt(value.blockIndex) : undefined
-    )
+    ) as any
 }
 
 export async function setLastBlockIndex(ground: Modeler, currency: number, block: number) {
@@ -98,7 +98,7 @@ export function createIndexedLastBlockDao(ground: Modeler, currency: number): La
   return {
     getLastBlock: () => getLastBlockIndex(ground, currency),
     setLastBlock: (blockIndex: number) => setLastBlockIndex(ground, currency, blockIndex)
-  }
+  } as any
 }
 
 export function createLastBlockDao(ground: Modeler): LastBlockDaoOld {

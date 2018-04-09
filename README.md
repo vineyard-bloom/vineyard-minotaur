@@ -2,6 +2,10 @@
 
 Monitors blockchains using the Vineyard Blockchain Protocol
 
+## Documentation
+
+[Here's the documentation.](doc/index.md)
+
 ## Installing the Ethereum Explorer Monitor
 
 The Ethereum Explorer Monitor needs a Node.js server, a Geth node and a Postgres database.

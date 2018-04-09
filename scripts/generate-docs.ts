@@ -1,3 +1,15 @@
-import { generateDiagrams } from 'vineyard-docs'
+import { generateDiagrams, generateDocs } from 'vineyard-docs'
 
-generateDiagrams('src/diagrams', 'content/diagrams')
+generateDiagrams('src/doc/diagrams', 'doc/diagrams')
+
+generateDocs({
+  project: {
+    name: 'Vineyard Minotaur Documentation'
+  },
+  paths: {
+    src: ['src'],
+    content: 'src/doc/content',
+    output: 'doc',
+    tsconfig: './tsconfig.json',
+  }
+})

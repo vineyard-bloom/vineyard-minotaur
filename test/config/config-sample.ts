@@ -1,4 +1,4 @@
-import {FullConfig} from "../src/config-types"
+import {FullConfig} from "../../lab"
 
 export const localConfig: FullConfig = {
   database: {
@@ -16,8 +16,8 @@ export const localConfig: FullConfig = {
   },
   bitcoin: {
     "host": "localhost",
-    "user": "",
-    "pass": "",
+    "username": "",
+    "password": "",
     "port": 8332,
   }
 }

@@ -9,6 +9,7 @@ import { blockchain } from "vineyard-blockchain"
 import { MonitorDao } from "./types";
 import { Modeler } from "vineyard-data/legacy"
 import { MonitorConfig } from "./ethereum-explorer";
+import { createBlockQueue, scanBlocks } from "./monitor-logic";
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 
@@ -144,6 +145,10 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
+  return scanBlocks(blockQueue, saver, config, profiler)
+
   // let blockIndex = await getNextBlock(dao.lastBlockDao)
   // const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
   // const startTime: number = Date.now()
@@ -171,7 +176,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
   //   profiler.stop('saveBlocks')
   //
   //   // console.log('Saved blocks', blocks.map(b => b.index))
-  }
-  while (true)
+  // }
+  // while (true)
 
 }

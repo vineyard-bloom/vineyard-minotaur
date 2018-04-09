@@ -11,6 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const utility_1 = require("./utility");
 const index_1 = require("./utility/index");
 const database_functions_1 = require("./database-functions");
+const monitor_logic_1 = require("./monitor-logic");
 function gatherAddresses(blocks) {
     const addresses = {};
     for (let block of blocks) {
@@ -102,6 +103,9 @@ function saveFullBlocks(dao, blocks) {
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
+        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
+        const saver = (blocks) => saveFullBlocks(dao, blocks);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, config, profiler);
         // let blockIndex = await getNextBlock(dao.lastBlockDao)
         // const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
         // const startTime: number = Date.now()
@@ -129,9 +133,9 @@ function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1
         //   profiler.stop('saveBlocks')
         //
         //   // console.log('Saved blocks', blocks.map(b => b.index))
+        // }
+        // while (true)
     });
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;
-while (true)
-    ;
 //# sourceMappingURL=bitcoin-explorer.js.map
