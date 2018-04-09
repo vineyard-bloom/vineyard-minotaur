@@ -10,7 +10,7 @@ The pre-built monitors in Minotaur fall into two categories:
 
 Minotaur currently comes with the following Minitaurs:
 
-* __DepositMonitor__ - watches for certain transactions (usually transactions to a specific list of addresses.)
+* __Deposit Monitor__ - watches for certain transactions (usually transactions to a specific list of addresses.)
 
 and the following Macrotaurs:
 
