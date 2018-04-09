@@ -1,13 +1,20 @@
 digraph G {
   rankdir="LR";
   "Bitcoin\nTypes" [shape=box];
+  "Ethereum\nTypes" [shape=box];
   "Blockchain\nTypes" [shape=box];
   "Minotaur\nTypes" [shape=box];
   Database [shape=cylinder]
-  bitcoind -> "Bitcoin\nTypes" [dir=both]
-  "Bitcoin\nTypes" -> "Vineyard\nBitcoin" [dir=both]
-  "Vineyard\nBitcoin" -> "Blockchain\nTypes" [dir=both]
-  "Blockchain\nTypes" -> "Vineyard\nMinotaur" [dir=both]
-  "Vineyard\nMinotaur" -> "Minotaur\nTypes" [dir=both]
-  "Minotaur\nTypes" -> Database [dir=both]
+
+  Bitcoind -> "Bitcoin\nTypes" [arrowhead=none]
+  "Bitcoin\nTypes" -> "Vineyard\nBitcoin" [arrowhead=none]
+  "Vineyard\nBitcoin" -> "Blockchain\nTypes" [arrowhead=none]
+
+  Geth -> "Ethereum\nTypes" [arrowhead=none]
+  "Ethereum\nTypes" -> "Vineyard\nEthereum" [arrowhead=none]
+  "Vineyard\nEthereum" -> "Blockchain\nTypes" [arrowhead=none]
+
+  "Blockchain\nTypes" -> "Vineyard\nMinotaur" [arrowhead=none]
+  "Vineyard\nMinotaur" -> "Minotaur\nTypes" [arrowhead=none]
+  "Minotaur\nTypes" -> Database [arrowhead=none]
 }
