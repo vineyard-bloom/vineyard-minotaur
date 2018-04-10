@@ -22,3 +22,7 @@ and the following Macrotaurs:
 
 ![](diagrams/data-type-pipeline.svg)
 
+## Explorer Workflow
+
+![](diagrams/workflow.svg)
+

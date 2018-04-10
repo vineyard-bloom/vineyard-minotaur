@@ -1,4 +1,4 @@
-digraph G {
+digraph {
   rankdir="LR";
   "Bitcoin\nTypes" [shape=box];
   "Ethereum\nTypes" [shape=box];
