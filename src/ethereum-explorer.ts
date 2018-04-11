@@ -5,7 +5,10 @@ import BigNumber from "bignumber.js"
 import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
-import { AddressMap, getOrCreateAddresses, saveBlocks, saveCurrencies } from "./database-functions"
+import {
+  AddressMap, saveSingleTransactions, getOrCreateAddresses, saveBlocks,
+  saveCurrencies
+} from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
@@ -122,26 +125,6 @@ function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[], 
 async function setAddress(getOrCreateAddress: AddressDelegate, addresses: AddressMap, key: string) {
   const id = await getOrCreateAddress(key)
   addresses[key] = id
-}
-
-function saveTransactions(ground: any, blocks: FullBlock[], addresses: AddressMap) {
-  let transactionClauses: string[] = []
-  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
-  for (let block of blocks) {
-    transactionClauses = transactionClauses.concat(
-      block.transactions.map(t => {
-        const to = t.to ? addresses[t.to] : 'NULL'
-        const from = t.from ? addresses[t.from] : 'NULL'
-        return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
-      })
-    )
-  }
-
-  if (transactionClauses.length == 0)
-    return Promise.resolve()
-
-  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
-  return ground.querySingle(sql)
 }
 
 async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], addresses: AddressMap): Promise<void> {
@@ -292,7 +275,7 @@ async function saveFullBlocks(dao: EthereumMonitorDao, decodeTokenTransfer: bloc
       saveBlocks(ground, blocks),
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
       getOrCreateAddresses(dao.ground, addresses)
-        .then(() => saveTransactions(ground, blocks, addresses))
+        .then(() => saveSingleTransactions(ground, transactions, addresses))
         .then(() => saveContracts(ground, contracts, addresses))
         .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
     ]

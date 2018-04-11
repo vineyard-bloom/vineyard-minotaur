@@ -90,4 +90,17 @@ function getNextBlock(lastBlockDao) {
     });
 }
 exports.getNextBlock = getNextBlock;
+function saveSingleTransactions(ground, transactions, addresses) {
+    const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
+    const transactionClauses = transactions.map(t => {
+        const to = t.to ? addresses[t.to] : 'NULL';
+        const from = t.from ? addresses[t.from] : 'NULL';
+        return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
+    });
+    if (transactionClauses.length == 0)
+        return Promise.resolve();
+    const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
+    return ground.querySingle(sql);
+}
+exports.saveSingleTransactions = saveSingleTransactions;
 //# sourceMappingURL=database-functions.js.map

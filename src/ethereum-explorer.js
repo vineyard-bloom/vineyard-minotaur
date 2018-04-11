@@ -83,21 +83,6 @@ function setAddress(getOrCreateAddress, addresses, key) {
         addresses[key] = id;
     });
 }
-function saveTransactions(ground, blocks, addresses) {
-    let transactionClauses = [];
-    const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n';
-    for (let block of blocks) {
-        transactionClauses = transactionClauses.concat(block.transactions.map(t => {
-            const to = t.to ? addresses[t.to] : 'NULL';
-            const from = t.from ? addresses[t.from] : 'NULL';
-            return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`;
-        }));
-    }
-    if (transactionClauses.length == 0)
-        return Promise.resolve();
-    const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
-    return ground.querySingle(sql);
-}
 function saveContracts(ground, contracts, addresses) {
     return __awaiter(this, void 0, void 0, function* () {
         if (contracts.length == 0)
@@ -213,7 +198,7 @@ function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
             database_functions_1.saveBlocks(ground, blocks),
             dao.lastBlockDao.setLastBlock(lastBlockIndex),
             database_functions_1.getOrCreateAddresses(dao.ground, addresses)
-                .then(() => saveTransactions(ground, blocks, addresses))
+                .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
                 .then(() => saveContracts(ground, contracts, addresses))
                 .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
         ]);

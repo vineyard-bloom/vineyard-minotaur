@@ -1,4 +1,3 @@
-"use strict";
 // import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain"
 // import { MonitorDao, TransactionDao } from "./types"
 //

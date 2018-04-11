@@ -62,7 +62,10 @@ export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   return ground.querySingle(sql)
 }
 
-export interface CurrencyResult { currency: any, tokenContract: blockchain.TokenContract }
+export interface CurrencyResult {
+  currency: any,
+  tokenContract: blockchain.TokenContract
+}
 
 export async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]> {
   const result = []
@@ -82,4 +85,19 @@ export async function saveCurrencies(ground: Modeler, tokenContracts: blockchain
 export async function getNextBlock(lastBlockDao: LastBlockDao) {
   const lastBlockIndex = await lastBlockDao.getLastBlock()
   return typeof lastBlockIndex === 'number' ? lastBlockIndex + 1 : 0
+}
+
+export function saveSingleTransactions(ground: any, transactions: blockchain.SingleTransaction[], addresses: AddressMap) {
+  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
+  const transactionClauses = transactions.map(t => {
+    const to = t.to ? addresses[t.to] : 'NULL'
+    const from = t.from ? addresses[t.from] : 'NULL'
+    return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
+  })
+
+  if (transactionClauses.length == 0)
+    return Promise.resolve()
+
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  return ground.querySingle(sql)
 }
