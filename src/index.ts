@@ -7,4 +7,4 @@ export * from './ethereum-explorer'
 export * from './bitcoin-explorer'
 export * from './database-functions'
 export * from './minitaur'
-export { saveSingleTransactions } from "./database-functions";
+export { saveSingleTransactions } from "./database-functions"
