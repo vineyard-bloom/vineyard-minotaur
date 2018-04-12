@@ -84,7 +84,7 @@ export interface MonitorDao {
 
 export interface LastBlock {
   blockIndex?: number,
-  currency: string
+  currency: number
 }
 
 export interface Address {
