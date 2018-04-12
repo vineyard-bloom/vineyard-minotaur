@@ -1,9 +1,8 @@
 import { Collection } from 'vineyard-ground'
 import { blockchain } from "vineyard-blockchain"
-import { Address, BaseTransaction, Currency, LastBlock } from "./types";
+import { BaseTransaction, Currency, LastBlock } from "./types";
 
 export interface DepositMonitorManagerModel {
-  Address: Collection<Address>
   LastBlock: Collection<LastBlock>
   Transaction: Collection<BaseTransaction>
   ground: any
