@@ -11,7 +11,7 @@ export const localConfig: FullConfig = {
   },
   ethereum: {
     client: {
-      http: ""
+      http: "http://"
     }
   },
   bitcoin: {

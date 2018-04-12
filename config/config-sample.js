@@ -11,7 +11,7 @@ exports.localConfig = {
     },
     ethereum: {
         client: {
-            http: ""
+            http: "http://"
         }
     },
     bitcoin: {
