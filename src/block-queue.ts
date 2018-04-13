@@ -127,7 +127,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       return []
     }
 
-    const blocks = []
+    const blocks: Block[] = []
     let i = oldestResult
     for (let r of results) {
       if (r.index != i++)

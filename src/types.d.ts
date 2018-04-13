@@ -97,13 +97,13 @@ export interface NewTransaction {
     txid: string;
     amount: BigNumber;
     timeReceived: Date;
-    block: number;
+    blockIndex: number;
     status: blockchain.TransactionStatus;
-    to: string;
-    from: string;
-    currency: number;
+    to?: string;
+    from?: string;
 }
 export interface DepositTransaction extends NewTransaction {
+    currency: number;
     id: Id;
 }
 export interface ExternalTransaction extends NewTransaction {

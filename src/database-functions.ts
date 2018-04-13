@@ -68,7 +68,7 @@ export interface CurrencyResult {
 }
 
 export async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]> {
-  const result = []
+  const result: CurrencyResult[] = []
   for (let contract of tokenContracts) {
     const token = contract as blockchain.TokenContract
     const record = await ground.collections.Currency.create({

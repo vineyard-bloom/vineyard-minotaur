@@ -25,7 +25,7 @@ export class DepositMonitor {
   }
 
   private convertStatus(highestBlock: number, source: ExternalTransaction) {
-    return highestBlock - source.block >= this.minimumConfirmations
+    return highestBlock - source.blockIndex >= this.minimumConfirmations
       ? blockchain.TransactionStatus.accepted
       : blockchain.TransactionStatus.pending
   }
@@ -56,7 +56,7 @@ export class DepositMonitor {
 
       this.transactionHandler.onSave(transaction as any)
 
-      if (block.index - source.block >= this.minimumConfirmations) {
+      if (block.index - source.blockIndex >= this.minimumConfirmations) {
         return await this.transactionHandler.onConfirm(transaction as any)
       }
     }

@@ -18,7 +18,7 @@ class DepositMonitor {
         this.transactionHandler = transactionHandler;
     }
     convertStatus(highestBlock, source) {
-        return highestBlock - source.block >= this.minimumConfirmations
+        return highestBlock - source.blockIndex >= this.minimumConfirmations
             ? vineyard_blockchain_1.blockchain.TransactionStatus.accepted
             : vineyard_blockchain_1.blockchain.TransactionStatus.pending;
     }
@@ -46,7 +46,7 @@ class DepositMonitor {
                     currency: this.currency.id
                 });
                 this.transactionHandler.onSave(transaction);
-                if (block.index - source.block >= this.minimumConfirmations) {
+                if (block.index - source.blockIndex >= this.minimumConfirmations) {
                     return yield this.transactionHandler.onConfirm(transaction);
                 }
             }

@@ -56,7 +56,7 @@ async function createSaltContract(village: EthereumVillage) {
     address: '0x4156D3342D5c385a87D264F90653733592000581',
     from: '0x5d239fB4d8767745bE329d38703CdF4094858766',
     txid: '0xa7ead12fc3b20bc4555b26bcc8de55d651e90ba0da445bddad61eeaed2d28e17',
-  })
+  } as any)
 }
 
 async function createSaltContractReal(village: EthereumVillage) {
@@ -94,6 +94,12 @@ describe('eth-scan', function () {
   it('from 142937', async function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 142936 })
     console.log('Initialized village')
+    await startEthereumMonitor(village, {
+      queue: { maxSize: 1, minSize: 1 },
+      maxMilliseconds: 10 * second
+    })
+
+    await model.LastBlock.update({ currency: 2, blockIndex: 142966 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
       maxMilliseconds: 10 * second
