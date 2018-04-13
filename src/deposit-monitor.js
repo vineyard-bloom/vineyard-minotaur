@@ -17,10 +17,10 @@ class DepositMonitor {
         this.minimumConfirmations = minimumConfirmations;
         this.transactionHandler = transactionHandler;
     }
-    convertStatus(source) {
-        return source.confirmations >= this.minimumConfirmations
-            ? vineyard_blockchain_1.TransactionStatus.accepted
-            : vineyard_blockchain_1.TransactionStatus.pending;
+    convertStatus(highestBlock, source) {
+        return highestBlock - source.block >= this.minimumConfirmations
+            ? vineyard_blockchain_1.blockchain.TransactionStatus.accepted
+            : vineyard_blockchain_1.blockchain.TransactionStatus.pending;
     }
     saveExternalTransaction(source, block) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -39,14 +39,14 @@ class DepositMonitor {
                     txid: source.txid,
                     to: source.to,
                     from: source.from,
-                    status: this.convertStatus(source),
+                    status: this.convertStatus(block.index, source),
                     amount: source.amount,
                     timeReceived: source.timeReceived,
                     block: block.index,
                     currency: this.currency.id
                 });
                 this.transactionHandler.onSave(transaction);
-                if (source.confirmations >= this.minimumConfirmations) {
+                if (block.index - source.block >= this.minimumConfirmations) {
                     return yield this.transactionHandler.onConfirm(transaction);
                 }
             }
@@ -67,14 +67,14 @@ class DepositMonitor {
     }
     confirmExistingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const ExternalTransaction = yield this.model.setTransactionStatus(transaction, vineyard_blockchain_1.TransactionStatus.accepted);
+            const ExternalTransaction = yield this.model.setTransactionStatus(transaction, vineyard_blockchain_1.blockchain.TransactionStatus.accepted);
             return yield this.transactionHandler.onConfirm(ExternalTransaction);
         });
     }
     updatePendingTransaction(transaction) {
         return __awaiter(this, void 0, void 0, function* () {
             const transactionFromDatabase = yield this.model.getTransactionByTxid(transaction.txid);
-            if (transactionFromDatabase && transactionFromDatabase.status == vineyard_blockchain_1.TransactionStatus.pending)
+            if (transactionFromDatabase && transactionFromDatabase.status == vineyard_blockchain_1.blockchain.TransactionStatus.pending)
                 return yield this.confirmExistingTransaction(transaction);
             return transaction;
         });

@@ -6,5 +6,9 @@
     "sourceMap": true,
     "declaration": true,
     "newLine": "lf"
-  }
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*"
+  ]
 }

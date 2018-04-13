@@ -1,16 +1,13 @@
 import {
-  TransactionStatus,
+  blockchain,
   ReadClient,
   Currency,
   NewBlock,
   FullBlock
 } from 'vineyard-blockchain'
 import { SingleTransactionBlockchainModel } from './deposit-monitor-manager'
-import { TransactionHandler } from "./types2";
+import { ExternalTransaction, DepositTransaction, TransactionHandler } from "./types";
 import { LastBlock } from "./types";
-
-export type ExternalTransaction = any
-export type Transaction = any
 
 export class DepositMonitor {
   private model: SingleTransactionBlockchainModel
@@ -27,13 +24,13 @@ export class DepositMonitor {
     this.transactionHandler = transactionHandler;
   }
 
-  private convertStatus(source: ExternalTransaction) {
-    return source.confirmations >= this.minimumConfirmations
-      ? TransactionStatus.accepted
-      : TransactionStatus.pending
+  private convertStatus(highestBlock: number, source: ExternalTransaction) {
+    return highestBlock - source.block >= this.minimumConfirmations
+      ? blockchain.TransactionStatus.accepted
+      : blockchain.TransactionStatus.pending
   }
 
-  private async saveExternalTransaction(source: ExternalTransaction, block: NewBlock): Promise<Transaction | undefined> {
+  private async saveExternalTransaction(source: ExternalTransaction, block: NewBlock): Promise<DepositTransaction | undefined> {
     try {
       const existing = await this.model.getTransactionByTxid(source.txid)
       if (existing) {
@@ -50,7 +47,7 @@ export class DepositMonitor {
         txid: source.txid,
         to: source.to,
         from: source.from,
-        status: this.convertStatus(source),
+        status: this.convertStatus(block.index, source),
         amount: source.amount,
         timeReceived: source.timeReceived,
         block: block.index,
@@ -59,7 +56,7 @@ export class DepositMonitor {
 
       this.transactionHandler.onSave(transaction as any)
 
-      if (source.confirmations >= this.minimumConfirmations) {
+      if (block.index - source.block >= this.minimumConfirmations) {
         return await this.transactionHandler.onConfirm(transaction as any)
       }
     }
@@ -77,14 +74,14 @@ export class DepositMonitor {
     }
   }
 
-  private async confirmExistingTransaction(transaction: Transaction): Promise<Transaction> {
-    const ExternalTransaction = await this.model.setTransactionStatus(transaction, TransactionStatus.accepted)
+  private async confirmExistingTransaction(transaction: DepositTransaction): Promise<DepositTransaction> {
+    const ExternalTransaction = await this.model.setTransactionStatus(transaction, blockchain.TransactionStatus.accepted)
     return await this.transactionHandler.onConfirm(ExternalTransaction as any)
   }
 
-  private async updatePendingTransaction(transaction: Transaction): Promise<Transaction> {
+  private async updatePendingTransaction(transaction: DepositTransaction): Promise<DepositTransaction> {
     const transactionFromDatabase = await this.model.getTransactionByTxid(transaction.txid)
-    if (transactionFromDatabase && transactionFromDatabase.status == TransactionStatus.pending)
+    if (transactionFromDatabase && transactionFromDatabase.status == blockchain.TransactionStatus.pending)
       return await this.confirmExistingTransaction(transaction)
 
     return transaction

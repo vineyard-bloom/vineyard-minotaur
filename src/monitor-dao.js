@@ -8,21 +8,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-function getTransactionByTxidAndCurrency(transactionCollection, txid, currency) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield transactionCollection.first({
-            txid: txid,
-            currency: currency
-        }).exec();
-    });
-}
-exports.getTransactionByTxidAndCurrency = getTransactionByTxidAndCurrency;
-function saveTransaction(transactionCollection, transaction) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield transactionCollection.create(transaction);
-    });
-}
-exports.saveTransaction = saveTransaction;
+// export async function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string,
+//                                                       currency: number): Promise<Transaction | undefined> {
+//   return await transactionCollection.first(
+//     {
+//       txid: txid,
+//       currency: currency
+//     }).exec()
+// }
+//
+// export async function saveTransaction(transactionCollection: Collection<Transaction>,
+//                                       transaction: TransactionToSave): Promise<Transaction> {
+//   return await transactionCollection.create(transaction)
+// }
 function setStatus(transactionCollection, transaction, status) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield transactionCollection.update(transaction, {
@@ -31,44 +29,40 @@ function setStatus(transactionCollection, transaction, status) {
     });
 }
 exports.setStatus = setStatus;
-function listPendingTransactions(ground, transactionCollection, currency, maxBlockIndex) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sql = `
-    SELECT transactions.* FROM transactions
-    JOIN blocks ON blocks.id = transactions.block
-    AND blocks.index < :maxBlockIndex
-    WHERE status = 0 AND transactions.currency = :currency`;
-        return yield ground.query(sql, {
-            maxBlockIndex: maxBlockIndex,
-            currency: currency
-        });
-    });
-}
-exports.listPendingTransactions = listPendingTransactions;
-function getLastBlock(ground, currency) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sql = `
-  SELECT * FROM blocks
-  JOIN last_blocks ON last_blocks.block = blocks.id
-  `;
-        return ground.querySingle(sql);
-    });
-}
-exports.getLastBlock = getLastBlock;
-function setLastBlock(ground, currency, blockIndex) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const sql = `
-  UPDATE last_blocks 
-  SET "blockIndex" = :blockIndex 
-  WHERE currency = :currency
-  `;
-        return yield ground.query(sql, {
-            blockIndex: blockIndex,
-            currency: currency,
-        });
-    });
-}
-exports.setLastBlock = setLastBlock;
+//
+// export async function listPendingTransactions(ground: Modeler, transactionCollection: Collection<Transaction>,
+//                                               currency: number, maxBlockIndex: number): Promise<Transaction[]> {
+//   const sql = `
+//     SELECT transactions.* FROM transactions
+//     JOIN blocks ON blocks.id = transactions.block
+//     AND blocks.index < :maxBlockIndex
+//     WHERE status = 0 AND transactions.currency = :currency`
+//
+//   return await ground.query(sql, {
+//     maxBlockIndex: maxBlockIndex,
+//     currency: currency
+//   })
+// }
+//
+// export async function getLastBlock(ground: Modeler, currency: number): Promise<BlockInfo | undefined> {
+//   const sql = `
+//   SELECT * FROM blocks
+//   JOIN last_blocks ON last_blocks.block = blocks.id
+//   `
+//   return ground.querySingle(sql)
+// }
+//
+// export async function setLastBlock(ground: Modeler, currency: number, blockIndex: number) {
+//   const sql = `
+//   UPDATE last_blocks
+//   SET "blockIndex" = :blockIndex
+//   WHERE currency = :currency
+//   `
+//   return await ground.query(sql, {
+//     blockIndex: blockIndex,
+//     currency: currency,
+//   })
+// }
 function getLastBlockIndex(ground, currency) {
     const sql = `
   SELECT "blockIndex" FROM last_blocks WHERE currency = :currency
@@ -87,24 +81,24 @@ function setLastBlockIndex(ground, currency, block) {
     });
 }
 exports.setLastBlockIndex = setLastBlockIndex;
-function saveBlock(blockCollection, block) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const filter = block.hash
-            ? { currency: block.currency, hash: block.hash }
-            : { currency: block.currency, index: block.index };
-        const existing = yield blockCollection.first(filter);
-        if (existing)
-            return existing;
-        return yield blockCollection.create(block);
-    });
-}
-exports.saveBlock = saveBlock;
-function createBlockDao(model) {
-    return {
-        saveBlock: saveBlock.bind(null, model.Block)
-    };
-}
-exports.createBlockDao = createBlockDao;
+//
+// export async function saveBlock(blockCollection: Collection<BlockInfo>, currency: number, block: BaseBlock): Promise<BlockInfo> {
+//   const filter = block.hash
+//     ? { currency: currency, hash: block.hash }
+//     : { currency: currency, index: block.index }
+//
+//   const existing = await blockCollection.first(filter)
+//   if (existing)
+//     return existing
+//
+//   return await blockCollection.create(block)
+// }
+//
+// export function createBlockDao(model: Model, currency: number): BlockDao {
+//   return {
+//     saveBlock: saveBlock.bind(null, model.Block, currency)
+//   }
+// }
 function createIndexedLastBlockDao(ground, currency) {
     return {
         getLastBlock: () => getLastBlockIndex(ground, currency),
@@ -112,28 +106,28 @@ function createIndexedLastBlockDao(ground, currency) {
     };
 }
 exports.createIndexedLastBlockDao = createIndexedLastBlockDao;
-function createLastBlockDao(ground) {
-    return {
-        getLastBlock: getLastBlock.bind(null, ground, 1),
-        setLastBlock: setLastBlock.bind(null, ground, 1)
-    };
-}
-exports.createLastBlockDao = createLastBlockDao;
-function createTransactionDao(model) {
-    const ground = model.ground;
-    return {
-        getTransactionByTxid: getTransactionByTxidAndCurrency.bind(null, model.Transaction),
-        saveTransaction: saveTransaction.bind(null, model.Transaction),
-        setStatus: setStatus.bind(null, model.Transaction),
-    };
-}
-exports.createTransactionDao = createTransactionDao;
-function createMonitorDao(model) {
-    return {
-        blockDao: createBlockDao(model),
-        lastBlockDao: createLastBlockDao(model.ground),
-        transactionDao: createTransactionDao(model)
-    };
-}
-exports.createMonitorDao = createMonitorDao;
+//
+// export function createLastBlockDao(ground: Modeler): LastBlockDaoOld {
+//   return {
+//     getLastBlock: getLastBlock.bind(null, ground, 1),
+//     setLastBlock: setLastBlock.bind(null, ground, 1)
+//   }
+// }
+// export function createTransactionDao(model: Model): TransactionDaoOld {
+//   const ground = model.ground
+//   return {
+//     getTransactionByTxid: getTransactionByTxidAndCurrency.bind(null, model.Transaction),
+//     saveTransaction: saveTransaction.bind(null, model.Transaction),
+//     setStatus: setStatus.bind(null, model.Transaction),
+//     // listPendingTransactions: listPendingTransactions.bind(null, ground),
+//   }
+// }
+//
+// export function createMonitorDao(model: Model, currency: number): MonitorDaoOld {
+//   return {
+//     blockDao: createBlockDao(model, currency),
+//     lastBlockDao: createLastBlockDao(model.ground),
+//     transactionDao: createTransactionDao(model)
+//   }
+// } 
 //# sourceMappingURL=monitor-dao.js.map

@@ -1,9 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var TransactionStatus;
-(function (TransactionStatus) {
-    TransactionStatus[TransactionStatus["pending"] = 0] = "pending";
-    TransactionStatus[TransactionStatus["accepted"] = 1] = "accepted";
-    TransactionStatus[TransactionStatus["rejected"] = 2] = "rejected";
-})(TransactionStatus = exports.TransactionStatus || (exports.TransactionStatus = {}));
+// export interface Currency {
+//   id: number
+//   name: string
+// }
+//
+// export interface BitcoinTransactionInfo {
+//   outputIndex: number,
+//   used: boolean
+// }
+//
+// export type BitcoinTransaction = NewTransaction & BitcoinTransactionInfo
+//
+// export interface BitcoinReadClient<Transaction extends BitcoinTransaction, T extends NewTransaction> extends ReadClient<T> {
+//   getFullBitcoinBlock(block: Block): Promise<FullBlock<Transaction> | undefined>
+// }
 //# sourceMappingURL=types2.js.map

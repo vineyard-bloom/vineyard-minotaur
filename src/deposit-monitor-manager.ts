@@ -1,10 +1,10 @@
 import { Collection } from 'vineyard-ground'
 import { blockchain } from "vineyard-blockchain"
-import { BaseTransaction, Currency, LastBlock } from "./types";
+import { BaseTransaction, Currency, DepositTransaction, LastBlock } from "./types";
 
 export interface DepositMonitorManagerModel {
   LastBlock: Collection<LastBlock>
-  Transaction: Collection<BaseTransaction>
+  Transaction: Collection<DepositTransaction>
   ground: any
 }
 
@@ -17,19 +17,19 @@ export class DepositMonitorManager {
     this.currency = currency
   }
 
-  public async getTransactionByTxid(txid: string): Promise<BaseTransaction | undefined> {
+  public async getTransactionByTxid(txid: string): Promise<DepositTransaction | undefined> {
     return this.model.Transaction.first({ txid: txid, currency: this.currency.id }).exec()
   }
 
-  public async saveTransaction(transaction: BaseTransaction): Promise<BaseTransaction> {
+  public async saveTransaction(transaction: BaseTransaction): Promise<DepositTransaction> {
     return this.model.Transaction.create(transaction)
   }
 
-  public async setTransactionStatus(transaction: BaseTransaction, status: blockchain.TransactionStatus): Promise<BaseTransaction> {
+  public async setTransactionStatus(transaction: DepositTransaction, status: blockchain.TransactionStatus): Promise<DepositTransaction> {
     return this.model.Transaction.update(transaction, { status: status })
   }
 
-  public async listPending(maxBlockIndex: number): Promise<BaseTransaction[]> {
+  public async listPending(maxBlockIndex: number): Promise<DepositTransaction[]> {
     const sql = `
     SELECT transactions.* FROM transactions
     WHERE status = 0 

@@ -1,4 +1,4 @@
-import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain";
+import { blockchain, BlockInfo } from "vineyard-blockchain";
 import { BigNumber } from 'bignumber.js';
 export interface BaseAddress<Identity> {
     id: Identity;
@@ -15,10 +15,10 @@ export declare type TransactionCheck = (transaction: blockchain.SingleTransactio
 export declare type TransactionSaver = (source: blockchain.SingleTransaction, block: BlockInfo) => Promise<blockchain.SingleTransaction | undefined>;
 export declare type TransactionQueryDelegateOld = (txid: string) => Promise<blockchain.SingleTransaction | undefined>;
 export declare type TransactionSaveDelegateOld = (transaction: blockchain.SingleTransaction) => Promise<void>;
-export declare type TransactionStatusDelegateOld = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>;
+export declare type TransactionStatusDelegateOld = (transaction: blockchain.SingleTransaction, status: blockchain.TransactionStatus) => Promise<blockchain.SingleTransaction>;
 export declare type TransactionQueryDelegate<Transaction> = (txid: string) => Promise<Transaction | undefined>;
 export declare type TransactionSaveDelegate<Transaction> = (transaction: Transaction) => Promise<void>;
-export declare type TransactionStatusDelegate<Transaction> = (transaction: Transaction, status: TransactionStatus) => Promise<Transaction>;
+export declare type TransactionStatusDelegate<Transaction> = (transaction: Transaction, status: blockchain.TransactionStatus) => Promise<Transaction>;
 export declare type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>;
 export declare type BlockGetterOld = () => Promise<BlockInfo | undefined>;
 export declare type BlockGetter = () => Promise<number | undefined>;
@@ -74,4 +74,42 @@ export interface Currency {
 export interface BaseTransaction extends blockchain.BaseTransaction {
 }
 export interface Block extends blockchain.Block {
+}
+export interface NewBlock {
+    hash: string;
+    index: number;
+    currency: number;
+    timeMined: Date;
+}
+export declare type Id = string;
+export interface Block extends NewBlock {
+    id: Id;
+}
+export interface ExternalBlock {
+    hash: string;
+    index: number;
+    timeMined: Date;
+}
+export interface FullBlock<ExternalTransaction> extends ExternalBlock {
+    transactions: ExternalTransaction[];
+}
+export interface NewTransaction {
+    txid: string;
+    amount: BigNumber;
+    timeReceived: Date;
+    block: number;
+    status: blockchain.TransactionStatus;
+    to: string;
+    from: string;
+    currency: number;
+}
+export interface DepositTransaction extends NewTransaction {
+    id: Id;
+}
+export interface ExternalTransaction extends NewTransaction {
+}
+export interface TransactionHandler {
+    shouldTrackTransaction(transaction: ExternalTransaction): Promise<boolean>;
+    onConfirm(transaction: DepositTransaction): Promise<DepositTransaction>;
+    onSave(transaction: DepositTransaction): Promise<DepositTransaction>;
 }

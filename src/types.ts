@@ -1,4 +1,4 @@
-import { blockchain, BlockInfo, TransactionStatus } from "vineyard-blockchain"
+import { blockchain, BlockInfo } from "vineyard-blockchain"
 import { BigNumber } from 'bignumber.js'
 
 export interface BaseAddress<Identity> {
@@ -21,13 +21,13 @@ export type TransactionQueryDelegateOld = (txid: string) => Promise<blockchain.S
 
 export type TransactionSaveDelegateOld = (transaction: blockchain.SingleTransaction) => Promise<void>
 
-export type TransactionStatusDelegateOld = (transaction: blockchain.SingleTransaction, status: TransactionStatus) => Promise<blockchain.SingleTransaction>
+export type TransactionStatusDelegateOld = (transaction: blockchain.SingleTransaction, status: blockchain.TransactionStatus) => Promise<blockchain.SingleTransaction>
 
 export type TransactionQueryDelegate<Transaction> = (txid: string) => Promise<Transaction | undefined>
 
 export type TransactionSaveDelegate<Transaction> = (transaction: Transaction) => Promise<void>
 
-export type TransactionStatusDelegate<Transaction> = (transaction: Transaction, status: TransactionStatus) => Promise<Transaction>
+export type TransactionStatusDelegate<Transaction> = (transaction: Transaction, status: blockchain.TransactionStatus) => Promise<Transaction>
 
 export type PendingTransactionDelegate = (maxBlockIndex: number) => Promise<blockchain.SingleTransaction[]>
 
@@ -104,4 +104,50 @@ export interface BaseTransaction extends blockchain.BaseTransaction {
 
 export interface Block extends blockchain.Block {
 
+}
+
+export interface NewBlock {
+  hash: string
+  index: number
+  currency: number
+  timeMined: Date
+}
+export type Id = string
+
+export interface Block extends NewBlock {
+  id: Id
+}
+
+export interface ExternalBlock {
+  hash: string
+  index: number
+  timeMined: Date
+}
+
+export interface FullBlock<ExternalTransaction> extends ExternalBlock {
+  transactions: ExternalTransaction[]
+}
+
+export interface NewTransaction {
+  txid: string
+  amount: BigNumber
+  timeReceived: Date
+  block: number
+  status: blockchain.TransactionStatus
+  to: string
+  from: string
+  currency: number
+}
+
+export interface DepositTransaction extends NewTransaction {
+  id: Id
+}
+
+export interface ExternalTransaction extends NewTransaction {
+}
+
+export interface TransactionHandler {
+  shouldTrackTransaction(transaction: ExternalTransaction): Promise<boolean>
+  onConfirm(transaction: DepositTransaction): Promise<DepositTransaction>
+  onSave(transaction: DepositTransaction): Promise<DepositTransaction>
 }

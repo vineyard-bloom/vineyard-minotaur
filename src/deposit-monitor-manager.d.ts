@@ -1,19 +1,19 @@
 import { Collection } from 'vineyard-ground';
 import { blockchain } from "vineyard-blockchain";
-import { BaseTransaction, Currency, LastBlock } from "./types";
+import { BaseTransaction, Currency, DepositTransaction, LastBlock } from "./types";
 export interface DepositMonitorManagerModel {
     LastBlock: Collection<LastBlock>;
-    Transaction: Collection<BaseTransaction>;
+    Transaction: Collection<DepositTransaction>;
     ground: any;
 }
 export declare class DepositMonitorManager {
     model: DepositMonitorManagerModel;
     currency: Currency;
     constructor(model: DepositMonitorManagerModel, currency: Currency);
-    getTransactionByTxid(txid: string): Promise<BaseTransaction | undefined>;
-    saveTransaction(transaction: BaseTransaction): Promise<BaseTransaction>;
-    setTransactionStatus(transaction: BaseTransaction, status: blockchain.TransactionStatus): Promise<BaseTransaction>;
-    listPending(maxBlockIndex: number): Promise<BaseTransaction[]>;
+    getTransactionByTxid(txid: string): Promise<DepositTransaction | undefined>;
+    saveTransaction(transaction: BaseTransaction): Promise<DepositTransaction>;
+    setTransactionStatus(transaction: DepositTransaction, status: blockchain.TransactionStatus): Promise<DepositTransaction>;
+    listPending(maxBlockIndex: number): Promise<DepositTransaction[]>;
     getLastBlock(): Promise<LastBlock | undefined>;
     setLastBlock(block: LastBlock): Promise<LastBlock>;
 }
