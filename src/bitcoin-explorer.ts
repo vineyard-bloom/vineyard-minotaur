@@ -1,19 +1,17 @@
-import { ExternalBlockQueue } from "./block-queue";
 import { EmptyProfiler, Profiler } from "./utility";
 import { flatMap } from "./utility/index";
-import {
-  addressesAreAssociated, AddressMap, getNextBlock, getOrCreateAddresses,
-  saveBlocks
-} from "./database-functions";
+import { addressesAreAssociated, AddressMap, getOrCreateAddresses, saveBlocks } from "./database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorDao } from "./types";
 import { Modeler } from "vineyard-data/legacy"
 import { MonitorConfig } from "./ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 
+
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
+
 
 export interface BitcoinMonitorDao extends MonitorDao {
   ground: Modeler

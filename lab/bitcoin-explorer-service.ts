@@ -4,8 +4,9 @@ import { SimpleProfiler } from "../src/utility"
 import { FullConfig } from "./config-types";
 import { getBitcoinExplorerSchema } from "../src/schema";
 import { BitcoinBlockReader } from "vineyard-bitcoin";
+import { BitcoinModel } from "../src/bitcoin-model"
 
-export type BitcoinVillage = MinotaurVillage<EthereumModel>
+export type BitcoinVillage = MinotaurVillage<BitcoinModel>
 
 export async function startBitcoinMonitor(village: BitcoinVillage, config: MonitorConfig) {
   try {
@@ -23,6 +24,6 @@ export async function startBitcoinMonitor(village: BitcoinVillage, config: Monit
   }
 }
 
-export function createBitcoinVillage(config: FullConfig): Promise<BitcoinVillage> {
-  return createVillage(getBitcoinExplorerSchema(), config)
+export async function createBitcoinVillage(config: FullConfig): Promise<BitcoinVillage> {
+  return createVillage<BitcoinModel>(getBitcoinExplorerSchema(), config)
 }

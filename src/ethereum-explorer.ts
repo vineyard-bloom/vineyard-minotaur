@@ -6,8 +6,11 @@ import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
 import {
-  AddressMap, saveSingleTransactions, getOrCreateAddresses, saveBlocks,
-  saveCurrencies
+  AddressMap,
+  getOrCreateAddresses,
+  saveBlocks,
+  saveCurrencies,
+  saveSingleTransactions
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 
@@ -18,6 +21,7 @@ export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.Ful
 export interface EthereumTransaction extends blockchain.BlockTransaction {
   to?: number
   from?: number
+  currency: string
 }
 
 export type AddressDelegate = (externalAddress: string) => Promise<number>

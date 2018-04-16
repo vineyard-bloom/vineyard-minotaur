@@ -8,3 +8,4 @@ export * from './bitcoin-explorer';
 export * from './database-functions';
 export * from './minitaur';
 export { saveSingleTransactions } from "./database-functions";
+export { BitcoinTransaction } from "./bitcoin-model";

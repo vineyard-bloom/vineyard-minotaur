@@ -6,6 +6,7 @@ export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockc
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;
+    currency: string;
 }
 export declare type AddressDelegate = (externalAddress: string) => Promise<number>;
 export interface TokenTransferRecord {

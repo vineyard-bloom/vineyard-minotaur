@@ -5,7 +5,8 @@ function __export(m) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./profiler"));
 function flatMap(array, mapper) {
-    return array.reduce((accumulator, a) => accumulator.concat(mapper(a)), []);
+    return array.reduce(function (accumulator, a) {
+        return accumulator.concat(mapper(a));
+    }, []);
 }
 exports.flatMap = flatMap;
-//# sourceMappingURL=index.js.map
