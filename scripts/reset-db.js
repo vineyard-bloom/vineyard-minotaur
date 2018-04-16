@@ -35,53 +35,40 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require('source-map-support').install();
-var lab_1 = require("../lab");
 var config_1 = require("../config/config");
+var ethereum_explorer_service_1 = require("../lab/ethereum-explorer-service");
 function initialize(model) {
     return __awaiter(this, void 0, void 0, function () {
+        var dbModel, village;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, model.ground.regenerate()];
-                case 1:
-                    _a.sent();
-                    return [4 /*yield*/, model.Currency.create({ name: 'Bitcoin' })];
-                case 2:
-                    _a.sent();
-                    return [4 /*yield*/, model.Currency.create({ name: 'Ethereum' })
-                        // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-                    ];
-                case 3:
-                    _a.sent();
-                    // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-                    return [4 /*yield*/, model.LastBlock.create({ currency: 2 })];
-                case 4:
-                    // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-function main() {
-    return __awaiter(this, void 0, void 0, function () {
-        var village, model;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, lab_1.createEthereumVillage(config_1.localConfig)];
+                case 0:
+                    if (!!model) return [3 /*break*/, 2];
+                    return [4 /*yield*/, ethereum_explorer_service_1.createEthereumVillage(config_1.localConfig)];
                 case 1:
                     village = _a.sent();
-                    model = village.model;
-                    // await initialize(model)
-                    console.log('Initialized village');
-                    return [4 /*yield*/, lab_1.startEthereumMonitor(village, {
-                            queue: { maxSize: 10, minSize: 5 },
-                        })];
+                    dbModel = village.model;
+                    return [3 /*break*/, 3];
                 case 2:
+                    dbModel = model;
+                    _a.label = 3;
+                case 3: return [4 /*yield*/, dbModel.ground.regenerate()];
+                case 4:
                     _a.sent();
+                    return [4 /*yield*/, dbModel.Currency.create({ name: 'Bitcoin' })];
+                case 5:
+                    _a.sent();
+                    return [4 /*yield*/, dbModel.Currency.create({ name: 'Ethereum' })];
+                case 6:
+                    _a.sent();
+                    return [4 /*yield*/, dbModel.LastBlock.create({ currency: 2 })];
+                case 7:
+                    _a.sent();
+                    process.exit(0);
                     return [2 /*return*/];
             }
         });
     });
 }
-main();
+exports.initialize = initialize;
+initialize();

@@ -13,3 +13,4 @@ __export(require("./database-functions"));
 __export(require("./minitaur"));
 var database_functions_1 = require("./database-functions");
 exports.saveSingleTransactions = database_functions_1.saveSingleTransactions;
+//# sourceMappingURL=index.js.map

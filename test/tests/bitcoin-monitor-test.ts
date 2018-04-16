@@ -1,8 +1,9 @@
+import { localConfig } from "../config/config-sample"
+
 require('source-map-support').install()
 import { EthereumModel } from "../../src";
 import { assert } from 'chai'
 import { BitcoinVillage, createBitcoinVillage, startBitcoinMonitor } from "../../lab"
-import { localConfig } from "../config/config"
 
 const second = 1000
 const minute = 60 * second

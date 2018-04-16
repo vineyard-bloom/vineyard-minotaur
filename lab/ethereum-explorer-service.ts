@@ -3,9 +3,10 @@ import {
   createEthereumExplorerDao, createSingleCurrencyTransactionDao, EthereumModel, MonitorConfig,
   scanEthereumExplorerBlocks, getEthereumExplorerSchema
 } from "../src";
-import { decodeTokenTransfer, EthereumBlockReader } from '../../vineyard-ethereum'
 import { SimpleProfiler } from "../src/utility";
 import { FullConfig } from "./config-types";
+import { EthereumBlockReader } from "vineyard-ethereum/src/block-reader"
+import { decodeTokenTransfer } from "vineyard-ethereum/src/client-functions"
 
 export type EthereumVillage = MinotaurVillage<EthereumModel>
 

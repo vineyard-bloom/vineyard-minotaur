@@ -2,17 +2,8 @@ require('source-map-support').install()
 import { createEthereumVillage, startEthereumMonitor } from "../lab";
 import {localConfig} from '../config/config'
 
-async function initialize(model: any) {
-  await (model.ground as any).regenerate()
-  await model.Currency.create({ name: 'Bitcoin' })
-  await model.Currency.create({ name: 'Ethereum' })
-  // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-  await model.LastBlock.create({ currency: 2 })
-}
-
-async function main() {
+async function main(): Promise<void> {
   const village = await createEthereumVillage(localConfig)
-  // await initialize(village.model)
   console.log('Initialized village')
   await startEthereumMonitor(village, {
     queue: { maxSize: 10, minSize: 5 },

@@ -1,10 +1,11 @@
+import { localConfig } from "../config/config-sample"
+
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
 import { EthereumModel } from "../../src";
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
 import { assert } from 'chai'
 import { blockchain } from "vineyard-blockchain"
-import { localConfig } from "../config/config"
 
 const second = 1000
 const minute = 60 * second

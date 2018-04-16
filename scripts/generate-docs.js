@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const vineyard_docs_1 = require("vineyard-docs");
+var vineyard_docs_1 = require("vineyard-docs");
 vineyard_docs_1.generateDiagrams('src/doc/diagrams', 'doc/diagrams');
 vineyard_docs_1.generateDocs({
     project: {
@@ -13,4 +13,3 @@ vineyard_docs_1.generateDocs({
         tsconfig: './tsconfig.json',
     }
 });
-//# sourceMappingURL=generate-docs.js.map
