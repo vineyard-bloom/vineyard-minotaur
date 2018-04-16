@@ -1,4 +1,4 @@
-import { localConfig } from "../config/config-sample"
+import { localConfig } from "../config/config"
 
 require('source-map-support').install()
 import { EthereumModel } from "../../src";
