@@ -13,6 +13,7 @@ import {
   saveSingleTransactions
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
+import { getTransactionByTxid, saveSingleCurrencyBlock } from "./explorer-helpers"
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
 
@@ -46,21 +47,6 @@ export interface EthereumModel {
 export interface EthereumMonitorDao extends MonitorDao {
   getOrCreateAddress: AddressDelegate,
   ground: Modeler
-}
-
-export async function saveSingleCurrencyBlock(blockCollection: Collection<blockchain.Block>,
-                                              block: blockchain.Block): Promise<void> {
-
-  const existing = await blockCollection.first({ index: block.index })
-  if (existing)
-    return
-
-  await blockCollection.create(block)
-}
-
-export function getTransactionByTxid<Tx>(transactionCollection: Collection<Tx>,
-                                         txid: string): Promise<Tx | undefined> {
-  return transactionCollection.first({ txid: txid }).exec()
 }
 
 export async function getOrCreateAddressReturningId(addressCollection: Collection<Address>,

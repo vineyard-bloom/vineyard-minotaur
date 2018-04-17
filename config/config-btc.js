@@ -16,8 +16,9 @@ exports.localConfig = {
     },
     bitcoin: {
         "host": "localhost",
-        "username": "",
-        "password": "",
-        "port": 8332,
+        "username": "user",
+        "password": "password",
+        "port": 18332,
     }
 };
+//# sourceMappingURL=config-btc.js.map

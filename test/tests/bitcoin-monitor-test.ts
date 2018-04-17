@@ -1,9 +1,9 @@
 import { localConfig } from "../config/config"
-
-require('source-map-support').install()
-import { EthereumModel } from "../../src";
 import { assert } from 'chai'
 import { BitcoinVillage, createBitcoinVillage, startBitcoinMonitor } from "../../lab"
+import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
+
+require('source-map-support').install()
 
 const second = 1000
 const minute = 60 * second
@@ -11,7 +11,7 @@ const minute = 60 * second
 describe('btc-scan', function () {
   this.timeout(10 * minute)
   let village: BitcoinVillage
-  let model: EthereumModel
+  let model: BitcoinModel
 
   beforeEach(async function () {
     village = await createBitcoinVillage(localConfig)

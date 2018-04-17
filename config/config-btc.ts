@@ -16,8 +16,8 @@ export const localConfig: FullConfig = {
   },
   bitcoin: {
     "host": "localhost",
-    "username": "",
-    "password": "",
-    "port": 8332,
+    "username": "user",
+    "password": "password",
+    "port": 18332,
   }
 }

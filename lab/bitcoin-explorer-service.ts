@@ -4,7 +4,7 @@ import { SimpleProfiler } from "../src/utility"
 import { FullConfig } from "./config-types";
 import { getBitcoinExplorerSchema } from "../src/schema";
 import { BitcoinBlockReader } from "vineyard-bitcoin";
-import { BitcoinModel } from "../src/bitcoin-model"
+import { BitcoinModel, createBitcoinExplorerDao } from "../src/bitcoin-explorer/bitcoin-model"
 
 export type BitcoinVillage = MinotaurVillage<BitcoinModel>
 
@@ -13,7 +13,7 @@ export async function startBitcoinMonitor(village: BitcoinVillage, config: Monit
     const model = village.model
     const bitcoinConfig = village.config.bitcoin
     const client = BitcoinBlockReader.createFromConfig(bitcoinConfig)
-    const dao = createEthereumExplorerDao(model)
+    const dao = createBitcoinExplorerDao(model)
     console.log('Starting cron')
     const profiler = new SimpleProfiler()
     await scanBitcoinExplorerBlocks(dao, client, config, profiler)

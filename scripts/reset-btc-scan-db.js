@@ -10,25 +10,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
 const config_btc_1 = require("../config/config-btc");
-require('source-map-support').install();
-function initialize(model) {
+function resetBtcScanDb(config) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield model.ground.regenerate();
-        yield model.Currency.create({ name: 'Bitcoin' });
-        yield model.Currency.create({ name: 'Ethereum' });
-        // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-        yield model.LastBlock.create({ currency: 2 });
+        if (!config.database.devMode)
+            throw new Error('Can only reset db in devMode.');
+        const dbModel = (yield bitcoin_explorer_service_1.createBitcoinVillage(config)).model;
+        yield dbModel.ground.regenerate();
+        yield dbModel.Currency.create({ name: 'Bitcoin' });
+        yield dbModel.Currency.create({ name: 'Ethereum' });
+        yield dbModel.LastBlock.create({ currency: 1 });
+        yield dbModel.LastBlock.create({ currency: 2 });
+        process.exit(0);
     });
 }
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const village = yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig);
-        const model = village.model;
-        console.log('Initialized village');
-        yield bitcoin_explorer_service_1.startBitcoinMonitor(village, {
-            queue: { maxSize: 10, minSize: 5 },
-        });
-    });
-}
-main();
-//# sourceMappingURL=btc-scan.js.map
+exports.resetBtcScanDb = resetBtcScanDb;
+resetBtcScanDb(config_btc_1.localConfig);
+//# sourceMappingURL=reset-btc-scan-db.js.map

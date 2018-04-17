@@ -1,11 +1,11 @@
-import { EmptyProfiler, Profiler } from "./utility";
-import { flatMap } from "./utility/index";
-import { addressesAreAssociated, AddressMap, getOrCreateAddresses, saveBlocks } from "./database-functions";
+import { EmptyProfiler, Profiler } from "../utility";
+import { flatMap } from "../utility/index";
+import { addressesAreAssociated, AddressMap, getOrCreateAddresses, saveBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
-import { MonitorDao } from "./types";
+import { MonitorDao } from "../types";
 import { Modeler } from "vineyard-data/legacy"
-import { MonitorConfig } from "./ethereum-explorer";
-import { createBlockQueue, scanBlocks } from "./monitor-logic";
+import { MonitorConfig } from "../ethereum-explorer";
+import { createBlockQueue, scanBlocks } from "../monitor-logic";
 
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
@@ -17,12 +17,13 @@ export interface BitcoinMonitorDao extends MonitorDao {
   ground: Modeler
 }
 
-function gatherAddresses(blocks: FullBlock[]) {
+function gatherAddresses(blocks: FullBlock[]): AddressMap {
   const addresses: AddressMap = {}
   for (let block of blocks) {
     for (let transaction of block.transactions) {
+      console.log(JSON.stringify(transaction))
       for (let output of transaction.outputs) {
-        addresses[output.scriptPubKey.addresses[0]] = -1
+        if(output.scriptPubKey.addresses) addresses[output.scriptPubKey.addresses[0].replace(/\s/g,'')] = -1
       }
     }
   }
@@ -111,13 +112,17 @@ function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], addres
     return Promise.resolve()
 
   const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n'
-  const transactionClauses: string[] = outputs.map(association => {
-    const output = association.output
-    return `(${selectTxidClause(association.txid)}, ${association.index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addresses[output.scriptPubKey.addresses[0]]}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`
+  const transactionClauses: string[] = outputs.filter(association => association.output.scriptPubKey.addresses).map(association => {
+    return createTxOutSQL(association, addresses[association.output.scriptPubKey.addresses[0]])
   })
 
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
   return ground.querySingle(sql)
+}
+
+function createTxOutSQL(association: AssociatedOutput, addressId: number): string {
+  const { output, txid, index } = association
+  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`
 }
 
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {

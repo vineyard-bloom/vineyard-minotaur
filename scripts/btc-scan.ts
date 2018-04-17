@@ -1,5 +1,5 @@
 import { createBitcoinVillage, startBitcoinMonitor } from "../lab/bitcoin-explorer-service"
-import { localConfig } from '../config/config'
+import { localConfig } from '../config/config-btc'
 
 require('source-map-support').install()
 
@@ -14,7 +14,6 @@ async function initialize(model: any) {
 async function main() {
   const village = await createBitcoinVillage(localConfig)
   const model = village.model
-  // await initialize(model)
   console.log('Initialized village')
   await startBitcoinMonitor(village, {
     queue: { maxSize: 10, minSize: 5 },
