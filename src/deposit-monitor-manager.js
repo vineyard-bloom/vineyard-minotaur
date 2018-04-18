@@ -34,7 +34,7 @@ class DepositMonitorManager {
     SELECT transactions.* FROM transactions
     WHERE status = 0 
     AND transactions.currency = :currency
-    AND transactions.index < :maxBlockIndex`;
+    AND transactions."blockIndex" < :maxBlockIndex`;
             return this.model.ground.query(sql, {
                 maxBlockIndex: maxBlockIndex,
                 currency: this.currency.id
