@@ -20,34 +20,26 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
 }
 
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
-  const ground = dao.ground
-  const transactions = flatMap(blocks, b => b.transactions)
+  const { ground } = dao
 
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
-
-  await Promise.all([
-      saveBlocks(ground, blocks),
-      dao.lastBlockDao.setLastBlock(lastBlockIndex),
-      saveTransactionData(ground, transactions)
-    ]
-  )
-
-  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
-}
-
-async function saveTransactionData(ground: any, transactions: MultiTransaction[]): Promise<void> {
+  const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)
-  //Ignore outputs without addresses, this implies they are OP_RETURNS and do not transact in btc value.
   const outputs = flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses)
 
   const addresses = gatherAddresses(inputs, outputs)
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
 
   await Promise.all([
-    await saveTransactions(ground, transactions),
-    await saveTransactionInputs(ground, inputs, addressesFromDb),
-    await saveTransactionOutputs(ground, outputs, addressesFromDb)
-  ])
+      saveBlocks(ground, blocks),
+      dao.lastBlockDao.setLastBlock(lastBlockIndex),
+      await saveTransactions(ground, transactions),
+      await saveTransactionInputs(ground, inputs, addressesFromDb),
+      await saveTransactionOutputs(ground, outputs, addressesFromDb)
+    ]
+  )
+
+  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
 }
 
 async function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[]): Promise<void> {

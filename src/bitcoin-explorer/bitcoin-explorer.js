@@ -23,29 +23,21 @@ function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
-        const ground = dao.ground;
-        const transactions = index_1.flatMap(blocks, b => b.transactions);
+        const { ground } = dao;
         const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
-        yield Promise.all([
-            database_functions_1.saveBlocks(ground, blocks),
-            dao.lastBlockDao.setLastBlock(lastBlockIndex),
-            saveTransactionData(ground, transactions)
-        ]);
-        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
-    });
-}
-function saveTransactionData(ground, transactions) {
-    return __awaiter(this, void 0, void 0, function* () {
+        const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
-        //Ignore outputs without addresses, this implies they are OP_RETURNS and do not transact in btc value.
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses);
         const addresses = gatherAddresses(inputs, outputs);
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
         yield Promise.all([
+            database_functions_1.saveBlocks(ground, blocks),
+            dao.lastBlockDao.setLastBlock(lastBlockIndex),
             yield saveTransactions(ground, transactions),
             yield saveTransactionInputs(ground, inputs, addressesFromDb),
             yield saveTransactionOutputs(ground, outputs, addressesFromDb)
         ]);
+        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
 function saveTransactions(ground, transactions) {
