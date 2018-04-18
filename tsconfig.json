@@ -8,6 +8,7 @@
     "newLine": "lf"
   },
   "include": [
+    "config/**/*",
     "src/**/*",
     "scripts/**/*",
     "test/**/*"
