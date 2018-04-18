@@ -4,5 +4,5 @@ import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain";
 export declare type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) => Promise<void>;
-export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: BlockQueueConfig): Promise<ExternalBlockQueue<Block>>;
+export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: BlockQueueConfig): Promise<ExternalBlockQueue<IndexedBlock>>;
 export declare function scanBlocks<Block extends IndexedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, config: MonitorConfig, profiler?: Profiler): Promise<any>;

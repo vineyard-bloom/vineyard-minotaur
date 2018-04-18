@@ -27,6 +27,4 @@ var sql_helpers_4 = require("./bitcoin-explorer/sql-helpers");
 exports.CREATE_TX_IN = sql_helpers_4.CREATE_TX_IN;
 var sql_helpers_5 = require("./bitcoin-explorer/sql-helpers");
 exports.CREATE_TX_OUT = sql_helpers_5.CREATE_TX_OUT;
-var sql_helpers_6 = require("./bitcoin-explorer/sql-helpers");
-exports.arrayDiff = sql_helpers_6.arrayDiff;
 //# sourceMappingURL=index.js.map

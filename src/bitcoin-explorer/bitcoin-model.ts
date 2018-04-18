@@ -1,10 +1,13 @@
 import { BigNumber } from "bignumber.js"
-import { Address, BaseBlock, Currency, ID, LastBlock } from "../types";
+import { Address, BaseBlock, Currency, ID, LastBlock, MonitorDao } from "../types";
 import { blockchain } from "vineyard-blockchain"
 import { Collection, Modeler } from "vineyard-data/legacy"
-import { BitcoinMonitorDao } from "./bitcoin-explorer"
 import { createIndexedLastBlockDao } from "../monitor-dao"
 import { saveSingleCurrencyBlock } from "../explorer-helpers"
+
+export interface BitcoinMonitorDao extends MonitorDao {
+  ground: Modeler
+}
 
 export function createBitcoinExplorerDao(model: BitcoinModel): BitcoinMonitorDao {
   return {

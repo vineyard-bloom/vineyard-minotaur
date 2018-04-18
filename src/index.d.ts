@@ -16,4 +16,4 @@ export { nullify } from "./bitcoin-explorer/sql-helpers";
 export { nullifyString } from "./bitcoin-explorer/sql-helpers";
 export { CREATE_TX_IN } from "./bitcoin-explorer/sql-helpers";
 export { CREATE_TX_OUT } from "./bitcoin-explorer/sql-helpers";
-export { arrayDiff } from "./bitcoin-explorer/sql-helpers";
+export { BitcoinMonitorDao } from "./bitcoin-explorer/bitcoin-model";

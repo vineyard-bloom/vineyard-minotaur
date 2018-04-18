@@ -82,15 +82,6 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
   return a1.filter(x => !set2.has(x))
 }
 
-export function addressesAreAssociated(addresses: AddressMap): boolean {
-  for (let i in addresses) {
-    if (addresses[i] === -1)
-      return false
-  }
-
-  return true
-}
-
 export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
   let inserts: string[] = []

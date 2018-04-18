@@ -9,7 +9,6 @@ export declare function getOrCreateAddresses2(ground: Modeler, addresses: string
 export declare function getExistingAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap>;
 export declare function saveNewAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap>;
 export declare function arrayDiff<T>(a1: T[], a2: T[]): T[];
-export declare function addressesAreAssociated(addresses: AddressMap): boolean;
 export declare function saveBlocks(ground: Modeler, blocks: blockchain.Block[]): Promise<any>;
 export interface CurrencyResult {
     currency: any;

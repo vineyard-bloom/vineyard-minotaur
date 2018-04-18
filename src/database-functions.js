@@ -90,14 +90,6 @@ function arrayDiff(a1, a2) {
     return a1.filter(x => !set2.has(x));
 }
 exports.arrayDiff = arrayDiff;
-function addressesAreAssociated(addresses) {
-    for (let i in addresses) {
-        if (addresses[i] === -1)
-            return false;
-    }
-    return true;
-}
-exports.addressesAreAssociated = addressesAreAssociated;
 function saveBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
