@@ -32,9 +32,9 @@ CREATE TABLE "public"."currencies" (
     CONSTRAINT "currencies_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
-INSERT INTO "currencies" ("id", "name", "created", "modified") VALUES
-(1,	'Bitcoin',	'2018-03-13 12:29:12.33-06',	'2018-03-13 12:29:12.33-06'),
-(2,	'Ethereum',	'2018-03-13 12:29:12.36-06',	'2018-03-13 12:29:12.36-06');
+INSERT INTO "currencies" ("name", "created", "modified") VALUES
+('Bitcoin',	'2018-03-13 12:29:12.33-06',	'2018-03-13 12:29:12.33-06'),
+('Ethereum',	'2018-03-13 12:29:12.36-06',	'2018-03-13 12:29:12.36-06');
 
 
 CREATE SEQUENCE transactions_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 START 1 CACHE 1;
