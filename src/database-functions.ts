@@ -42,6 +42,46 @@ export async function getOrCreateAddresses(ground: Modeler, addresses: AddressMa
   }
 }
 
+export async function getOrCreateAddresses2(ground: Modeler, addresses: string[]): Promise<AddressMap> {
+  const existingAddresses = await getExistingAddresses(ground, addresses)
+  const newlySavedAddresses = await saveNewAddresses(ground, arrayDiff(addresses, Object.keys(existingAddresses)))
+  return { ...existingAddresses, ...newlySavedAddresses }
+}
+
+export async function getExistingAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap> {
+  const addressMap: AddressMap = {}
+  if(addresses.length === 0 ) return addressMap
+
+  const header = `SELECT "id", "address" FROM addresses WHERE "address" IN (`
+  const sql = header + addresses.map( add => `'${add}'` ).join(',\n') + ');'
+
+  const rows = await ground.query(sql)
+  for (let row of rows) {
+    addressMap[row.address.trim()] = parseInt(row.id)
+  }
+  return addressMap
+}
+
+export async function saveNewAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap> {
+  const addressMap: AddressMap = {}
+  if(addresses.length === 0) return addressMap
+
+  const inserts: string[] = addresses.map(add => `('${add}', NOW(), NOW())`)
+  const insertHeader = 'INSERT INTO "addresses" ("address", "created", "modified") VALUES\n'
+  const sql = insertHeader + inserts.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";'
+
+  const rows = await ground.query(sql)
+  for (let row of rows) {
+    addressMap[row.address.trim()] = parseInt(row.id)
+  }
+  return addressMap
+}
+
+export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
+  const set2 = new Set(a2)
+  return a1.filter(x => !set2.has(x))
+}
+
 export function addressesAreAssociated(addresses: AddressMap): boolean {
   for (let i in addresses) {
     if (addresses[i] === -1)

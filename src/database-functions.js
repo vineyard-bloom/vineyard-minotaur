@@ -46,6 +46,50 @@ function getOrCreateAddresses(ground, addresses) {
     });
 }
 exports.getOrCreateAddresses = getOrCreateAddresses;
+function getOrCreateAddresses2(ground, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const existingAddresses = yield getExistingAddresses(ground, addresses);
+        const newlySavedAddresses = yield saveNewAddresses(ground, arrayDiff(addresses, Object.keys(existingAddresses)));
+        return Object.assign({}, existingAddresses, newlySavedAddresses);
+    });
+}
+exports.getOrCreateAddresses2 = getOrCreateAddresses2;
+function getExistingAddresses(ground, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const addressMap = {};
+        if (addresses.length === 0)
+            return addressMap;
+        const header = `SELECT "id", "address" FROM addresses WHERE "address" IN (`;
+        const sql = header + addresses.map(add => `'${add}'`).join(',\n') + ');';
+        const rows = yield ground.query(sql);
+        for (let row of rows) {
+            addressMap[row.address.trim()] = parseInt(row.id);
+        }
+        return addressMap;
+    });
+}
+exports.getExistingAddresses = getExistingAddresses;
+function saveNewAddresses(ground, addresses) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const addressMap = {};
+        if (addresses.length === 0)
+            return addressMap;
+        const inserts = addresses.map(add => `('${add}', NOW(), NOW())`);
+        const insertHeader = 'INSERT INTO "addresses" ("address", "created", "modified") VALUES\n';
+        const sql = insertHeader + inserts.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "id", "address";';
+        const rows = yield ground.query(sql);
+        for (let row of rows) {
+            addressMap[row.address.trim()] = parseInt(row.id);
+        }
+        return addressMap;
+    });
+}
+exports.saveNewAddresses = saveNewAddresses;
+function arrayDiff(a1, a2) {
+    const set2 = new Set(a2);
+    return a1.filter(x => !set2.has(x));
+}
+exports.arrayDiff = arrayDiff;
 function addressesAreAssociated(addresses) {
     for (let i in addresses) {
         if (addresses[i] === -1)

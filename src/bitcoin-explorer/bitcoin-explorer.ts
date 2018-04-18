@@ -1,65 +1,104 @@
 import { EmptyProfiler, Profiler } from "../utility";
 import { flatMap } from "../utility/index";
-import { addressesAreAssociated, AddressMap, getOrCreateAddresses, saveBlocks } from "../database-functions";
+import { AddressMap, getOrCreateAddresses2, saveBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorDao } from "../types";
 import { Modeler } from "vineyard-data/legacy"
 import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
+import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
+import MultiTransaction = blockchain.MultiTransaction
 
+export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
+                                                client: MultiTransactionBlockClient,
+                                                config: MonitorConfig,
+                                                profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
-type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
-
-export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
-
-
-export interface BitcoinMonitorDao extends MonitorDao {
-  ground: Modeler
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
+  return scanBlocks(blockQueue, saver, config, profiler)
 }
 
-function gatherAddresses(blocks: FullBlock[]): AddressMap {
-  const addresses: AddressMap = {}
-  for (let block of blocks) {
-    for (let transaction of block.transactions) {
-      console.log(JSON.stringify(transaction))
-      for (let output of transaction.outputs) {
-        if(output.scriptPubKey.addresses) addresses[output.scriptPubKey.addresses[0].replace(/\s/g,'')] = -1
-      }
-    }
-  }
+async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
+  const ground = dao.ground
+  const transactions = flatMap(blocks, b => b.transactions)
 
-  return addresses
+  const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
+
+  await Promise.all([
+      saveBlocks(ground, blocks),
+      dao.lastBlockDao.setLastBlock(lastBlockIndex),
+      saveTransactionData(ground, transactions)
+    ]
+  )
+
+  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
 }
 
-async function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[], addresses: AddressMap) {
-  if (!addressesAreAssociated(addresses))
-    throw new Error("Not all addresses were properly saved or loaded")
+async function saveTransactionData(ground: any, transactions: MultiTransaction[]): Promise<void> {
+  const inputs = flatMap(transactions, mapTransactionInputs)
+  //Ignore outputs without addresses, this implies they are OP_RETURNS and do not transact in btc value.
+  const outputs = flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses)
 
+  const addresses = gatherAddresses(inputs, outputs)
+  const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
+
+  await Promise.all([
+    await saveTransactions(ground, transactions),
+    await saveTransactionInputs(ground, inputs, addressesFromDb),
+    await saveTransactionOutputs(ground, outputs, addressesFromDb)
+  ])
+}
+
+async function saveTransactions(ground: any, transactions: blockchain.MultiTransaction[]): Promise<void> {
   if (transactions.length == 0)
     return Promise.resolve()
 
   const header = 'INSERT INTO "transactions" ("status", "txid", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
-  const transactionClauses: string[] = transactions.map(t => {
-    return `(${t.status}, '${t.txid}', ${t.fee}, ${t.nonce}, 1, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
-  })
+  const transactionClauses: string[] = transactions.map(CREATE_TX)
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  await ground.querySingle(sql)
+}
+
+async function saveTransactionInputs(ground: any, inputs: AssociatedInput[], addresses: AddressMap): Promise<void> {
+  if (inputs.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n'
+  const transactionClauses: string[] = inputs.map(
+    association => CREATE_TX_IN(association, addresses[association.input.address || 'NOT_FOUND'])
+  )
 
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
   await ground.querySingle(sql)
-
-  const inputs = flatMap(transactions, mapTransactionInputs)
-  const outputs = flatMap(transactions, mapTransactionOutputs)
-
-  await saveTransactionInputs(ground, inputs, addresses)
-  await saveTransactionOutputs(ground, outputs, addresses)
 }
 
-interface AssociatedInput {
+async function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], addresses: AddressMap): Promise<void> {
+  if (outputs.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n'
+  const transactionClauses: string[] = outputs.map(
+    association => CREATE_TX_OUT(association, addresses[association.output.scriptPubKey.addresses[0]])
+  )
+
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  await ground.querySingle(sql)
+}
+
+function gatherAddresses(inputs: AssociatedInput[], outputs: AssociatedOutput[]): string[] {
+  const outputAddresses = flatMap(outputs, o => o.output.scriptPubKey.addresses)
+  const inputAddresses = inputs.filter(i => i.input.address).map(i => i.input.address as string)
+  return [...new Set([...outputAddresses, ...inputAddresses])]
+}
+
+export interface AssociatedInput {
   txid: string
   index: number
   input: blockchain.TransactionInput
 }
 
-interface AssociatedOutput {
+export interface AssociatedOutput {
   txid: string
   index: number
   output: blockchain.TransactionOutput
@@ -81,105 +120,9 @@ function mapTransactionOutputs(transaction: blockchain.MultiTransaction): Associ
   }))
 }
 
-function selectTxidClause(txid: string) {
-  return `(SELECT tx.id FROM transactions tx WHERE tx.txid = '${txid}')`
-}
+type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
+export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
 
-function nullify(value: any) {
-  return (value === undefined || value === null) ? 'NULL' : value
-}
-
-function nullifyString(value: string | undefined | null) {
-  return (value === undefined || value === null) ? 'NULL' : "'" + value + "'"
-}
-
-function saveTransactionInputs(ground: any, inputs: AssociatedInput[], addresses: AddressMap) {
-  if (inputs.length == 0)
-    return Promise.resolve()
-
-  const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n'
-  const transactionClauses: string[] = inputs.map(association => {
-    const input = association.input
-    return `(${selectTxidClause(association.txid)}, '${association.index}', ${input.txid ? selectTxidClause(input.txid) : 'NULL'}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'": 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${input.address ? addresses[input.address] : 'NULL'}, ${nullify(input.amount)}, ${nullify(input.valueSat)}, ${nullifyString(input.coinbase)},  NOW(), NOW())`
-  })
-
-  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
-  return ground.querySingle(sql)
-}
-
-function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], addresses: AddressMap) {
-  if (outputs.length == 0)
-    return Promise.resolve()
-
-  const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n'
-  const transactionClauses: string[] = outputs.filter(association => association.output.scriptPubKey.addresses).map(association => {
-    return createTxOutSQL(association, addresses[association.output.scriptPubKey.addresses[0]])
-  })
-
-  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
-  return ground.querySingle(sql)
-}
-
-function createTxOutSQL(association: AssociatedOutput, addressId: number): string {
-  const { output, txid, index } = association
-  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`
-}
-
-async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
-  const ground = dao.ground
-  const transactions = flatMap(blocks, b => b.transactions)
-
-  const addresses = gatherAddresses(blocks)
-  const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
-
-  await Promise.all([
-      saveBlocks(ground, blocks),
-      dao.lastBlockDao.setLastBlock(lastBlockIndex),
-      getOrCreateAddresses(dao.ground, addresses)
-        .then(() => saveTransactions(ground, transactions, addresses))
-    ]
-  )
-
-  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
-}
-
-export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
-                                                client: MultiTransactionBlockClient,
-                                                config: MonitorConfig,
-                                                profiler: Profiler = new EmptyProfiler()): Promise<any> {
-
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, config, profiler)
-
-  // let blockIndex = await getNextBlock(dao.lastBlockDao)
-  // const blockQueue = new ExternalBlockQueue(client, blockIndex, config.queue)
-  // const startTime: number = Date.now()
-  // do {
-  //   const elapsed = Date.now() - startTime
-  //   // console.log('Scanning block', blockIndex, 'elapsed', elapsed)
-  //   if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
-  //     console.log('Reached timeout of ', elapsed, 'milliseconds')
-  //     console.log('Canceled blocks', blockQueue.requests.map(b => b.blockIndex).join(', '))
-  //     break
-  //   }
-  //
-  //   profiler.start('getBlocks')
-  //   const blocks = await blockQueue.getBlocks()
-  //   profiler.stop('getBlocks')
-  //   if (blocks.length == 0) {
-  //     console.log('No more blocks found.')
-  //     break
-  //   }
-  //
-  //   console.log('Saving blocks', blocks.map(b => b.index).join(', '))
-  //
-  //   profiler.start('saveBlocks')
-  //   await saveFullBlocks(dao, blocks)
-  //   profiler.stop('saveBlocks')
-  //
-  //   // console.log('Saved blocks', blocks.map(b => b.index))
-  // }
-  // while (true)
-
+export interface BitcoinMonitorDao extends MonitorDao {
+  ground: Modeler
 }
