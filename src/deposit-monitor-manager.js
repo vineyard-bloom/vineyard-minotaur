@@ -54,7 +54,7 @@ class DepositMonitorManager {
         return __awaiter(this, void 0, void 0, function* () {
             const currentLastBlock = yield this.getLastBlock();
             if (currentLastBlock) {
-                return yield this.model.LastBlock.update(currentLastBlock.blockIndex, block);
+                return yield this.model.LastBlock.update(currentLastBlock.currency, block);
             }
             else {
                 return yield this.model.LastBlock.create(block);

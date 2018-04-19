@@ -54,7 +54,7 @@ export class DepositMonitorManager {
   public async setLastBlock(block: LastBlock) {
     const currentLastBlock = await this.getLastBlock()
     if (currentLastBlock) {
-      return await this.model.LastBlock.update(currentLastBlock.blockIndex, block)
+      return await this.model.LastBlock.update(currentLastBlock.currency, block)
     } else {
       return await this.model.LastBlock.create(block)
     }
