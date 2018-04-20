@@ -12,7 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "bignumber.js": "^4.0.0",
-    "vineyard-blockchain": "vineyard-bloom/vineyard-blockchain#1.0.0-beta",
+    "vineyard-blockchain": "github:vineyard-bloom/vineyard-blockchain#1.0.0-beta",
     "vineyard-data": "vineyard-bloom/vineyard-data#1.0.0-beta"
   },
   "devDependencies": {
@@ -22,9 +22,9 @@
     "chai": "^4.1.2",
     "mocha": "^3.2.0",
     "source-map-support": "^0.4.14",
-    "typescript": "^2.8.1",
     "ts-node": "^6.0.0",
-    "vineyard-bitcoin": "vineyard-bloom/vineyard-bitcoin#1.3.0-beta",
+    "typescript": "^2.8.1",
+    "vineyard-bitcoin": "github:vineyard-bloom/vineyard-bitcoin#1.3.0-beta",
     "vineyard-docs": "vineyard-bloom/vineyard-docs#1.0.0-beta",
     "vineyard-ethereum": "vineyard-bloom/vineyard-ethereum#1.0.0-beta",
     "vineyard-ground": "vineyard-bloom/vineyard-ground#1.x"

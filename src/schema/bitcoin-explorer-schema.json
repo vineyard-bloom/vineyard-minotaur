@@ -113,18 +113,6 @@
       "sequence": {
         "type": "long"
       },
-      "address": {
-        "type": "Address",
-        "nullable": true
-      },
-      "amount": {
-        "type": "bignumber",
-        "nullable": true
-      },
-      "valueSat": {
-        "type": "bignumber",
-        "nullable": true
-      },
       "coinbase": {
         "type": "string",
         "nullable": true
@@ -154,18 +142,6 @@
       },
       "amount": {
         "type": "bignumber"
-      },
-      "spentTxId": {
-        "type": "string",
-        "nullable": true
-      },
-      "spentHeight": {
-        "type": "long",
-        "nullable": true
-      },
-      "spentIndex": {
-        "type": "long",
-        "nullable": true
       }
     }
   }

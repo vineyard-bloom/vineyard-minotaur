@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const bitcoinjs_lib_1 = require("bitcoinjs-lib");
 exports.localConfig = {
     database: {
         host: "localhost",
@@ -19,6 +20,7 @@ exports.localConfig = {
         "username": "user",
         "password": "password",
         "port": 18332,
+        "network": bitcoinjs_lib_1.networks.testnet
     }
 };
 //# sourceMappingURL=config-btc.js.map

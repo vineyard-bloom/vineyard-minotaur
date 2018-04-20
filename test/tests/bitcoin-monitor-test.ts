@@ -2,6 +2,9 @@ import { localConfig } from "../config/config"
 import { assert } from 'chai'
 import { BitcoinVillage, createBitcoinVillage, startBitcoinMonitor } from "../../lab"
 import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
+import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
+import { MultiTransactionBlockClient } from "../../src/bitcoin-explorer/bitcoin-explorer"
+import { resetBtcScanDb } from "../../scripts/reset-btc-scan-db"
 
 require('source-map-support').install()
 
@@ -12,21 +15,31 @@ describe('btc-scan', function () {
   this.timeout(10 * minute)
   let village: BitcoinVillage
   let model: BitcoinModel
+  let client: MultiTransactionBlockClient
+  let rpcClient: any
+
+  before(async function(){
+    const bitcoinConfig = localConfig.bitcoin
+    village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
+    model = village.model
+    const { username: user, password: pass, ...common } = bitcoinConfig
+    const classicalBitcoinConfig = { user, pass, ...common }
+  })
 
   beforeEach(async function () {
-    village = await createBitcoinVillage(localConfig)
-    model = village.model
-    await (model.ground as any).regenerate()
-    await model.Currency.create({ name: 'Bitcoin' })
+    await resetBtcScanDb(village)
   })
 
   it('from start', async function () {
-    await model.LastBlock.create({ currency: 2 })
     console.log('Initialized village')
     await startBitcoinMonitor(village, {
       queue: { maxSize: 10, minSize: 5 },
-      maxMilliseconds: 1 * minute
+      maxMilliseconds: minute
     })
     assert(true)
+  })
+
+  it('retrieves coinbase txs', async function () {
+    console.log('Initialized village')
   })
 })
