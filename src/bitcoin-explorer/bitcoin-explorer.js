@@ -27,12 +27,12 @@ function mapTransactionOutputs(transaction) {
         output: output
     }));
 }
-function saveTransactionInputs(ground, inputs, addresses) {
+function saveTransactionInputs(ground, inputs) {
     return __awaiter(this, void 0, void 0, function* () {
         if (inputs.length == 0)
             return Promise.resolve();
-        const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n';
-        const transactionClauses = inputs.map(association => sql_helpers_1.CREATE_TX_IN(association, addresses[association.input.address || 'NOT_FOUND']));
+        const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "coinbase", "created", "modified") VALUES\n';
+        const transactionClauses = inputs.map(association => sql_helpers_1.CREATE_TX_IN(association));
         const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "sourceTransaction", "sourceIndex";';
         yield ground.query(sql);
     });
@@ -57,10 +57,8 @@ function saveTransactions(ground, transactions) {
         yield ground.querySingle(sql);
     });
 }
-function gatherAddresses(inputs, outputs) {
-    const outputAddresses = index_1.flatMap(outputs, o => o.output.scriptPubKey.addresses);
-    const inputAddresses = inputs.filter(i => i.input.address).map(i => i.input.address);
-    return [...new Set([...outputAddresses, ...inputAddresses])];
+function gatherAddresses(outputs) {
+    return index_1.flatMap(outputs, o => o.output.scriptPubKey.addresses);
 }
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -69,14 +67,14 @@ function saveFullBlocks(dao, blocks) {
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses);
-        const addresses = gatherAddresses(inputs, outputs);
+        const addresses = gatherAddresses(outputs);
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
         yield Promise.all([
             database_functions_1.saveBlocks(ground, blocks),
             dao.lastBlockDao.setLastBlock(lastBlockIndex),
-            yield saveTransactions(ground, transactions),
-            yield saveTransactionInputs(ground, inputs, addressesFromDb),
-            yield saveTransactionOutputs(ground, outputs, addressesFromDb)
+            saveTransactions(ground, transactions),
+            saveTransactionInputs(ground, inputs),
+            saveTransactionOutputs(ground, outputs, addressesFromDb)
         ]);
         console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });

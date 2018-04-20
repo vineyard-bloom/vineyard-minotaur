@@ -12,14 +12,14 @@ function nullifyString(value) {
     return (value === undefined || value === null) ? 'NULL' : "'" + value + "'";
 }
 exports.nullifyString = nullifyString;
-function CREATE_TX_IN(association, addressId) {
+function CREATE_TX_IN(association) {
     const { txid, index, input } = association;
-    return `(${selectTxidClause(txid)}, '${index}', ${selectTxidClause(input.txid)}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'" : 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${addressId || 'NULL'}, ${nullify(input.amount)}, ${nullify(input.valueSat)}, ${nullifyString(input.coinbase)},  NOW(), NOW())`;
+    return `(${selectTxidClause(txid)}, '${index}', ${selectTxidClause(input.txid)}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'" : 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${nullifyString(input.coinbase)},  NOW(), NOW())`;
 }
 exports.CREATE_TX_IN = CREATE_TX_IN;
 function CREATE_TX_OUT(association, addressId) {
     const { output, txid, index } = association;
-    return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, NOW(), NOW())`;
+    return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.valueSat}, NOW(), NOW())`;
 }
 exports.CREATE_TX_OUT = CREATE_TX_OUT;
 function CREATE_TX(transaction) {

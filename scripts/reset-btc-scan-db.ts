@@ -3,10 +3,13 @@ import { DevModeler } from "vineyard-ground/source/modeler"
 import { FullConfig } from "../lab/config-types"
 import { createBitcoinVillage } from "../lab/bitcoin-explorer-service"
 import { localConfig } from "../config/config-btc"
+import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 
 export async function resetBtcScanDb(config: FullConfig): Promise<void> {
   if(!config.database.devMode) throw new Error('Can only reset db in devMode.')
-  const dbModel = (await createBitcoinVillage(config)).model as SharedModel
+
+  const bitcoinConfig = config.bitcoin
+  const dbModel = (await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))).model as SharedModel
 
   await (dbModel.ground as DevModeler).regenerate()
 
@@ -15,9 +18,7 @@ export async function resetBtcScanDb(config: FullConfig): Promise<void> {
 
   await dbModel.LastBlock.create({ currency: 1 })
   await dbModel.LastBlock.create({ currency: 2 })
-
-  process.exit(0)
 }
 export type SharedModel = {ground: Modeler, LastBlock: any, Currency: any}
 
-resetBtcScanDb(localConfig)
+resetBtcScanDb(localConfig).then(() => process.exit(0))

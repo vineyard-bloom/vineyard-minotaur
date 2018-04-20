@@ -113,18 +113,6 @@
       "sequence": {
         "type": "long"
       },
-      "address": {
-        "type": "Address",
-        "nullable": true
-      },
-      "amount": {
-        "type": "bignumber",
-        "nullable": true
-      },
-      "valueSat": {
-        "type": "bignumber",
-        "nullable": true
-      },
       "coinbase": {
         "type": "string",
         "nullable": true

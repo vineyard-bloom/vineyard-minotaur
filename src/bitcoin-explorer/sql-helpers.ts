@@ -14,14 +14,14 @@ export function nullifyString (value: string | undefined | null) {
   return (value === undefined || value === null) ? 'NULL' : "'" + value + "'"
 }
 
-export function CREATE_TX_IN (association: AssociatedInput, addressId: number | undefined): string {
+export function CREATE_TX_IN (association: AssociatedInput): string {
   const {txid, index, input} = association
-  return `(${selectTxidClause(txid)}, '${index}', ${selectTxidClause(input.txid)}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'" : 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${addressId || 'NULL'}, ${nullify(input.amount)}, ${nullify(input.valueSat)}, ${nullifyString(input.coinbase)},  NOW(), NOW())`
+  return `(${selectTxidClause(txid)}, '${index}', ${selectTxidClause(input.txid)}, ${nullify(input.vout)}, ${input.scriptSig ? "'" + input.scriptSig.hex + "'" : 'NULL'}, ${input.scriptSig ? "'" + input.scriptSig.asm + "'" : 'NULL'}, ${input.sequence}, ${nullifyString(input.coinbase)},  NOW(), NOW())`
 }
 
 export function CREATE_TX_OUT (association: AssociatedOutput, addressId: number): string {
   const {output, txid, index} = association
-  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, NOW(), NOW())`
+  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.valueSat}, NOW(), NOW())`
 }
 
 export function CREATE_TX(transaction: MultiTransaction): string {

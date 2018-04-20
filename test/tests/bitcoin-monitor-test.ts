@@ -2,6 +2,7 @@ import { localConfig } from "../config/config"
 import { assert } from 'chai'
 import { BitcoinVillage, createBitcoinVillage, startBitcoinMonitor } from "../../lab"
 import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
+import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 
 require('source-map-support').install()
 
@@ -14,7 +15,8 @@ describe('btc-scan', function () {
   let model: BitcoinModel
 
   beforeEach(async function () {
-    village = await createBitcoinVillage(localConfig)
+    const bitcoinConfig = localConfig.bitcoin
+    village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
     model = village.model
     await (model.ground as any).regenerate()
     await model.Currency.create({ name: 'Bitcoin' })

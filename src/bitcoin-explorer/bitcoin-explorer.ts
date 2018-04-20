@@ -38,15 +38,13 @@ function mapTransactionOutputs(transaction: blockchain.MultiTransaction): Associ
   }))
 }
 
-async function saveTransactionInputs(ground: any, inputs: AssociatedInput[], addresses: AddressMap): Promise<void> {
+async function saveTransactionInputs(ground: any, inputs: AssociatedInput[]): Promise<void> {
   if (inputs.length == 0)
     return Promise.resolve()
-
-  const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "coinbase", "created", "modified") VALUES\n'
   const transactionClauses: string[] = inputs.map(
-    association => CREATE_TX_IN(association, addresses[association.input.address || 'NOT_FOUND'])
+    association => CREATE_TX_IN(association)
   )
-
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "sourceTransaction", "sourceIndex";'
   await ground.query(sql)
 }
@@ -74,10 +72,8 @@ async function saveTransactions(ground: any, transactions: blockchain.MultiTrans
   await ground.querySingle(sql)
 }
 
-function gatherAddresses(inputs: AssociatedInput[], outputs: AssociatedOutput[]): string[] {
-  const outputAddresses = flatMap(outputs, o => o.output.scriptPubKey.addresses)
-  const inputAddresses = inputs.filter(i => i.input.address).map(i => i.input.address as string)
-  return [...new Set([...outputAddresses, ...inputAddresses])]
+function gatherAddresses(outputs: AssociatedOutput[]): string[] {
+  return flatMap(outputs, o => o.output.scriptPubKey.addresses)
 }
 
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
@@ -88,15 +84,15 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   const inputs = flatMap(transactions, mapTransactionInputs)
   const outputs = flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses)
 
-  const addresses = gatherAddresses(inputs, outputs)
+  const addresses = gatherAddresses(outputs)
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
 
   await Promise.all([
       saveBlocks(ground, blocks),
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
-      await saveTransactions(ground, transactions),
-      await saveTransactionInputs(ground, inputs, addressesFromDb),
-      await saveTransactionOutputs(ground, outputs, addressesFromDb)
+      saveTransactions(ground, transactions),
+      saveTransactionInputs(ground, inputs),
+      saveTransactionOutputs(ground, outputs, addressesFromDb)
     ]
   )
 
