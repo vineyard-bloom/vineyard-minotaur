@@ -11,12 +11,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
 const config_btc_1 = require("../config/config-btc");
 const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
-function resetBtcScanDb(config) {
+function resetBtcScanDb(village) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!config.database.devMode)
+        if (!village.config.database.devMode)
             throw new Error('Can only reset db in devMode.');
-        const bitcoinConfig = config.bitcoin;
-        const dbModel = (yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(bitcoinConfig))).model;
+        const dbModel = village.model;
         yield dbModel.ground.regenerate();
         yield dbModel.Currency.create({ name: 'Bitcoin' });
         yield dbModel.Currency.create({ name: 'Ethereum' });
@@ -26,6 +25,8 @@ function resetBtcScanDb(config) {
 }
 exports.resetBtcScanDb = resetBtcScanDb;
 if (require.main === module) {
-    resetBtcScanDb(config_btc_1.localConfig).then(() => process.exit(0));
+    bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(config_btc_1.localConfig.bitcoin))
+        .then(resetBtcScanDb)
+        .then(() => process.exit(0));
 }
 //# sourceMappingURL=reset-btc-scan-db.js.map
