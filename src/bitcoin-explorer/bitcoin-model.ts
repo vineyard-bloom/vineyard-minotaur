@@ -60,8 +60,5 @@ export interface TxOut {
   scriptPubKeyHex: string,
   scriptPubKeyAsm: string,
   address: ID<Address>,
-  amount: BigNumber,
-  spentTxId: string | undefined,
-  spentHeight: number | undefined,
-  spentIndex: number | undefined
+  amount: BigNumber
 }

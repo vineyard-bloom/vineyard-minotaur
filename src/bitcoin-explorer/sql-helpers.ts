@@ -21,7 +21,7 @@ export function CREATE_TX_IN (association: AssociatedInput, addressId: number | 
 
 export function CREATE_TX_OUT (association: AssociatedOutput, addressId: number): string {
   const {output, txid, index} = association
-  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`
+  return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, NOW(), NOW())`
 }
 
 export function CREATE_TX(transaction: MultiTransaction): string {

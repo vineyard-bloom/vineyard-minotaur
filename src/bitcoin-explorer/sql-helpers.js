@@ -19,7 +19,7 @@ function CREATE_TX_IN(association, addressId) {
 exports.CREATE_TX_IN = CREATE_TX_IN;
 function CREATE_TX_OUT(association, addressId) {
     const { output, txid, index } = association;
-    return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, ${nullifyString(output.spentTxId)}, ${nullify(output.spentHeight)}, ${nullify(output.spentIndex)},  NOW(), NOW())`;
+    return `(${selectTxidClause(txid)}, ${index}, '${output.scriptPubKey.hex}', '${output.scriptPubKey.asm}', '${addressId}', ${output.value}, NOW(), NOW())`;
 }
 exports.CREATE_TX_OUT = CREATE_TX_OUT;
 function CREATE_TX(transaction) {

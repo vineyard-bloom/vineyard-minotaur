@@ -55,7 +55,7 @@ async function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], 
   if (outputs.length == 0)
     return Promise.resolve()
 
-  const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "created", "modified") VALUES\n'
   const transactionClauses: string[] = outputs.map(
     association => CREATE_TX_OUT(association, addresses[association.output.scriptPubKey.addresses[0]])
   )

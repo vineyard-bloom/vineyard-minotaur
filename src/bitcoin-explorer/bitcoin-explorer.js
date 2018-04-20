@@ -41,7 +41,7 @@ function saveTransactionOutputs(ground, outputs, addresses) {
     return __awaiter(this, void 0, void 0, function* () {
         if (outputs.length == 0)
             return Promise.resolve();
-        const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "spentTxId", "spentHeight", "spentIndex", "created", "modified") VALUES\n';
+        const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "created", "modified") VALUES\n';
         const transactionClauses = outputs.map(association => sql_helpers_1.CREATE_TX_OUT(association, addresses[association.output.scriptPubKey.addresses[0]]));
         const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
         yield ground.querySingle(sql);
