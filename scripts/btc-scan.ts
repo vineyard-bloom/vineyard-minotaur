@@ -1,5 +1,6 @@
 import { createBitcoinVillage, startBitcoinMonitor } from "../lab/bitcoin-explorer-service"
 import { localConfig } from '../config/config-btc'
+import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 
 require('source-map-support').install()
 
@@ -12,12 +13,12 @@ async function initialize(model: any) {
 }
 
 async function main() {
-  const village = await createBitcoinVillage(localConfig)
-  const model = village.model
+  const bitcoinConfig = localConfig.bitcoin
+  const village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
   console.log('Initialized village')
+
   await startBitcoinMonitor(village, {
     queue: { maxSize: 10, minSize: 5 },
-    // maxMilliseconds: 30000,
   })
 }
 

@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
 const config_btc_1 = require("../config/config-btc");
+const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
 require('source-map-support').install();
 function initialize(model) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -22,8 +23,8 @@ function initialize(model) {
 }
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const village = yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig);
-        const model = village.model;
+        const bitcoinConfig = config_btc_1.localConfig.bitcoin;
+        const village = yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(bitcoinConfig));
         console.log('Initialized village');
         yield bitcoin_explorer_service_1.startBitcoinMonitor(village, {
             queue: { maxSize: 10, minSize: 5 },
