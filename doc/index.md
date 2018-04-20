@@ -12,6 +12,8 @@ Minotaur currently comes with the following Minitaurs:
 
 * __Deposit Monitor__ - watches for certain transactions (usually transactions to a specific list of addresses.)
 
+* __Minitaur__ - Deposit Monitor's simpler, more general replacement.  Minitaur is still being fleshed out.
+
 and the following Macrotaurs:
 
 * __Bitcoin Explorer__ - Tracks an entire bitcoin blockchain and stores all tx ins and outs.
