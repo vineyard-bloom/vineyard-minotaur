@@ -1,4 +1,5 @@
 import {FullConfig} from "../lab"
+import { networks } from "bitcoinjs-lib"
 
 export const localConfig: FullConfig = {
   database: {
@@ -19,5 +20,6 @@ export const localConfig: FullConfig = {
     "username": "user",
     "password": "password",
     "port": 18332,
+    "network": networks.testnet
   }
 }

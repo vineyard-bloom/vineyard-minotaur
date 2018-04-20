@@ -42,7 +42,7 @@ function saveTransactionOutputs(ground, outputs, addresses) {
         if (outputs.length == 0)
             return Promise.resolve();
         const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "created", "modified") VALUES\n';
-        const transactionClauses = outputs.map(association => sql_helpers_1.CREATE_TX_OUT(association, addresses[association.output.scriptPubKey.addresses[0]]));
+        const transactionClauses = outputs.map(association => sql_helpers_1.CREATE_TX_OUT(association, addresses[association.output.address]));
         const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
         yield ground.querySingle(sql);
     });
@@ -58,7 +58,7 @@ function saveTransactions(ground, transactions) {
     });
 }
 function gatherAddresses(outputs) {
-    return index_1.flatMap(outputs, o => o.output.scriptPubKey.addresses);
+    return [...new Set(outputs.map(o => o.output.address))];
 }
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -66,7 +66,7 @@ function saveFullBlocks(dao, blocks) {
         const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
-        const outputs = index_1.flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses);
+        const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
         const addresses = gatherAddresses(outputs);
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
         yield saveTransactions(ground, transactions);

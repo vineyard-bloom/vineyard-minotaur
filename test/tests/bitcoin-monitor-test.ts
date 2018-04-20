@@ -5,9 +5,6 @@ import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { MultiTransactionBlockClient } from "../../src/bitcoin-explorer/bitcoin-explorer"
 import { resetBtcScanDb } from "../../scripts/reset-btc-scan-db"
-import { BitcoinLab } from "vineyard-bitcoin/lab/bitcoin-lab"
-import { BitcoinClient } from "vineyard-bitcoin/src/bitcoin-client"
-import { regtestWalletConfig } from "../config/regtest-wallet-config"
 
 require('source-map-support').install()
 

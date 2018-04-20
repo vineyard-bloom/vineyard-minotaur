@@ -57,7 +57,7 @@ async function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], 
 
   const header = 'INSERT INTO "txouts" ("transaction", "index", "scriptPubKeyHex", "scriptPubKeyAsm", "address", "amount", "created", "modified") VALUES\n'
   const transactionClauses: string[] = outputs.map(
-    association => CREATE_TX_OUT(association, addresses[association.output.scriptPubKey.addresses[0]])
+    association => CREATE_TX_OUT(association, addresses[association.output.address])
   )
 
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
@@ -75,7 +75,7 @@ async function saveTransactions(ground: any, transactions: blockchain.MultiTrans
 }
 
 function gatherAddresses(outputs: AssociatedOutput[]): string[] {
-  return flatMap(outputs, o => o.output.scriptPubKey.addresses)
+  return [...new Set(outputs.map(o => o.output.address))]
 }
 
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
@@ -84,8 +84,7 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
   const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)
-  const outputs = flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses)
-
+  const outputs = flatMap(transactions, mapTransactionOutputs)
   const addresses = gatherAddresses(outputs)
 
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)

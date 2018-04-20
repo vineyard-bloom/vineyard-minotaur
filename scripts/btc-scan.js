@@ -15,12 +15,12 @@ const reset_btc_scan_db_1 = require("./reset-btc-scan-db");
 require('source-map-support').install();
 function main(resetDb) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (resetDb && resetDb === '-r') {
-            yield reset_btc_scan_db_1.resetBtcScanDb(config_btc_1.localConfig);
-        }
         const bitcoinConfig = config_btc_1.localConfig.bitcoin;
         const village = yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(bitcoinConfig));
         console.log('Initialized village');
+        if (resetDb && resetDb === '-r') {
+            yield reset_btc_scan_db_1.resetBtcScanDb(village);
+        }
         yield bitcoin_explorer_service_1.startBitcoinMonitor(village, {
             queue: { maxSize: 10, minSize: 5 },
         });
