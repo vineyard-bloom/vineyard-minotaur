@@ -154,18 +154,6 @@
       },
       "amount": {
         "type": "bignumber"
-      },
-      "spentTxId": {
-        "type": "string",
-        "nullable": true
-      },
-      "spentHeight": {
-        "type": "long",
-        "nullable": true
-      },
-      "spentIndex": {
-        "type": "long",
-        "nullable": true
       }
     }
   }

@@ -33,9 +33,8 @@ function saveTransactionInputs(ground, inputs, addresses) {
             return Promise.resolve();
         const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "address", "amount", "valueSat", "coinbase", "created", "modified") VALUES\n';
         const transactionClauses = inputs.map(association => sql_helpers_1.CREATE_TX_IN(association, addresses[association.input.address || 'NOT_FOUND']));
-        const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "transaction", "index";';
-        const createdInputs = yield ground.query(sql);
-        const x = 3;
+        const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "sourceTransaction", "sourceIndex";';
+        yield ground.query(sql);
     });
 }
 function saveTransactionOutputs(ground, outputs, addresses) {

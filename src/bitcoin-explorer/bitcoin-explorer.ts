@@ -5,7 +5,7 @@ import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
-import { BitcoinMonitorDao } from "./bitcoin-model"
+import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
@@ -47,9 +47,8 @@ async function saveTransactionInputs(ground: any, inputs: AssociatedInput[], add
     association => CREATE_TX_IN(association, addresses[association.input.address || 'NOT_FOUND'])
   )
 
-  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "transaction", "index";'
-  const createdInputs = await ground.query(sql)
-  const x = 3
+  const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING RETURNING "sourceTransaction", "sourceIndex";'
+  await ground.query(sql)
 }
 
 async function saveTransactionOutputs(ground: any, outputs: AssociatedOutput[], addresses: AddressMap): Promise<void> {

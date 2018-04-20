@@ -99,7 +99,7 @@ export class DepositMonitor {
     if (!blockInfo)
       return undefined
 
-    const fullBlock = await this.client.getFullBlock(blockInfo)
+    const fullBlock = await this.client.getFullBlock(blockInfo.index)
     if (!fullBlock) {
       console.error('Invalid block', blockInfo)
       return undefined

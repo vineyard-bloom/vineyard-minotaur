@@ -92,7 +92,7 @@ class DepositMonitor {
             const blockInfo = yield this.client.getNextBlockInfo(lastBlock);
             if (!blockInfo)
                 return undefined;
-            const fullBlock = yield this.client.getFullBlock(blockInfo);
+            const fullBlock = yield this.client.getFullBlock(blockInfo.index);
             if (!fullBlock) {
                 console.error('Invalid block', blockInfo);
                 return undefined;
