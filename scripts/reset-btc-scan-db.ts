@@ -21,4 +21,6 @@ export async function resetBtcScanDb(config: FullConfig): Promise<void> {
 }
 export type SharedModel = {ground: Modeler, LastBlock: any, Currency: any}
 
-resetBtcScanDb(localConfig).then(() => process.exit(0))
+if (require.main === module) {
+  resetBtcScanDb(localConfig).then(() => process.exit(0))
+}

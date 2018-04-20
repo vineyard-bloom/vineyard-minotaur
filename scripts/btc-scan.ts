@@ -1,18 +1,14 @@
 import { createBitcoinVillage, startBitcoinMonitor } from "../lab/bitcoin-explorer-service"
 import { localConfig } from '../config/config-btc'
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
+import { resetBtcScanDb } from "./reset-btc-scan-db"
 
 require('source-map-support').install()
 
-async function initialize(model: any) {
-  await (model.ground as any).regenerate()
-  await model.Currency.create({ name: 'Bitcoin' })
-  await model.Currency.create({ name: 'Ethereum' })
-  // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-  await model.LastBlock.create({ currency: 2 })
-}
-
-async function main() {
+async function main(resetDb?: string) {
+  if(resetDb && resetDb === '-r'){
+    await resetBtcScanDb(localConfig)
+  }
   const bitcoinConfig = localConfig.bitcoin
   const village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
   console.log('Initialized village')
@@ -22,4 +18,4 @@ async function main() {
   })
 }
 
-main()
+main(process.argv[2])

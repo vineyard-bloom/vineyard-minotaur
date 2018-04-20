@@ -69,10 +69,10 @@ function saveFullBlocks(dao, blocks) {
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses);
         const addresses = gatherAddresses(outputs);
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
+        yield saveTransactions(ground, transactions);
         yield Promise.all([
             database_functions_1.saveBlocks(ground, blocks),
             dao.lastBlockDao.setLastBlock(lastBlockIndex),
-            saveTransactions(ground, transactions),
             saveTransactionInputs(ground, inputs),
             saveTransactionOutputs(ground, outputs, addressesFromDb)
         ]);

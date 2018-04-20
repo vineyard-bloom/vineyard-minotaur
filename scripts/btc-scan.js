@@ -11,18 +11,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
 const config_btc_1 = require("../config/config-btc");
 const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
+const reset_btc_scan_db_1 = require("./reset-btc-scan-db");
 require('source-map-support').install();
-function initialize(model) {
+function main(resetDb) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield model.ground.regenerate();
-        yield model.Currency.create({ name: 'Bitcoin' });
-        yield model.Currency.create({ name: 'Ethereum' });
-        // await model.LastBlock.create({ currency: 2, blockIndex: 46401 })
-        yield model.LastBlock.create({ currency: 2 });
-    });
-}
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
+        if (resetDb && resetDb === '-r') {
+            yield reset_btc_scan_db_1.resetBtcScanDb(config_btc_1.localConfig);
+        }
         const bitcoinConfig = config_btc_1.localConfig.bitcoin;
         const village = yield bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(bitcoinConfig));
         console.log('Initialized village');
@@ -31,5 +26,5 @@ function main() {
         });
     });
 }
-main();
+main(process.argv[2]);
 //# sourceMappingURL=btc-scan.js.map

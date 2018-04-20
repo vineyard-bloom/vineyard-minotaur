@@ -25,5 +25,7 @@ function resetBtcScanDb(config) {
     });
 }
 exports.resetBtcScanDb = resetBtcScanDb;
-resetBtcScanDb(config_btc_1.localConfig).then(() => process.exit(0));
+if (require.main === module) {
+    resetBtcScanDb(config_btc_1.localConfig).then(() => process.exit(0));
+}
 //# sourceMappingURL=reset-btc-scan-db.js.map

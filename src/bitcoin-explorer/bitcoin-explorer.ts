@@ -6,6 +6,7 @@ import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
+import { isNullOrUndefined } from "util"
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
@@ -41,6 +42,7 @@ function mapTransactionOutputs(transaction: blockchain.MultiTransaction): Associ
 async function saveTransactionInputs(ground: any, inputs: AssociatedInput[]): Promise<void> {
   if (inputs.length == 0)
     return Promise.resolve()
+
   const header = 'INSERT INTO "txins" ("transaction", "index", "sourceTransaction", "sourceIndex", "scriptSigHex", "scriptSigAsm", "sequence", "coinbase", "created", "modified") VALUES\n'
   const transactionClauses: string[] = inputs.map(
     association => CREATE_TX_IN(association)
@@ -85,12 +87,13 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   const outputs = flatMap(transactions, mapTransactionOutputs).filter(o => o.output.scriptPubKey.addresses)
 
   const addresses = gatherAddresses(outputs)
+
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
+  await saveTransactions(ground, transactions)
 
   await Promise.all([
       saveBlocks(ground, blocks),
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
-      saveTransactions(ground, transactions),
       saveTransactionInputs(ground, inputs),
       saveTransactionOutputs(ground, outputs, addressesFromDb)
     ]
