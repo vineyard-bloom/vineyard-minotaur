@@ -1,6 +1,7 @@
 import { Collection } from 'vineyard-ground'
 import { blockchain } from "vineyard-blockchain"
-import { BaseTransaction, Currency, DepositTransaction, LastBlock } from "./types";
+import { Currency, DepositTransaction, LastBlock } from "./types";
+import { Omit } from "./schema/index"
 
 export interface DepositMonitorManagerModel {
   LastBlock: Collection<LastBlock>
@@ -21,7 +22,7 @@ export class DepositMonitorManager {
     return this.model.Transaction.first({ txid: txid, currency: this.currency.id }).exec()
   }
 
-  public async saveTransaction(transaction: BaseTransaction): Promise<DepositTransaction> {
+  public async saveTransaction(transaction: Omit<DepositTransaction, 'id'>): Promise<DepositTransaction> {
     return this.model.Transaction.create(transaction)
   }
 
@@ -34,7 +35,7 @@ export class DepositMonitorManager {
     SELECT transactions.* FROM transactions
     WHERE status = 0 
     AND transactions.currency = :currency
-    AND transactions.index < :maxBlockIndex`
+    AND transactions."blockIndex" < :maxBlockIndex`
 
     return this.model.ground.query(sql, {
       maxBlockIndex: maxBlockIndex,
@@ -53,7 +54,7 @@ export class DepositMonitorManager {
   public async setLastBlock(block: LastBlock) {
     const currentLastBlock = await this.getLastBlock()
     if (currentLastBlock) {
-      return await this.model.LastBlock.update(currentLastBlock.blockIndex, block)
+      return await this.model.LastBlock.update(currentLastBlock.currency, block)
     } else {
       return await this.model.LastBlock.create(block)
     }

@@ -12,7 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "bignumber.js": "^4.0.0",
-    "vineyard-blockchain": "vineyard-bloom/vineyard-blockchain#1.0.0-beta",
+    "vineyard-blockchain": "github:vineyard-bloom/vineyard-blockchain#1.0.0-beta",
     "vineyard-data": "vineyard-bloom/vineyard-data#1.0.0-beta"
   },
   "devDependencies": {
