@@ -22,7 +22,7 @@ class DepositMonitor {
             ? vineyard_blockchain_1.blockchain.TransactionStatus.accepted
             : vineyard_blockchain_1.blockchain.TransactionStatus.pending;
     }
-    saveExternalTransaction(source, block) {
+    saveExternalTransaction(source, blockIndex) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const existing = yield this.model.getTransactionByTxid(source.txid);
@@ -39,14 +39,14 @@ class DepositMonitor {
                     txid: source.txid,
                     to: source.to,
                     from: source.from,
-                    status: this.convertStatus(block.index, source),
+                    status: this.convertStatus(blockIndex, source),
                     amount: source.amount,
                     timeReceived: source.timeReceived,
-                    block: block.index,
+                    blockIndex,
                     currency: this.currency.id
                 });
                 this.transactionHandler.onSave(transaction);
-                if (block.index - source.blockIndex >= this.minimumConfirmations) {
+                if (blockIndex - source.blockIndex >= this.minimumConfirmations) {
                     return yield this.transactionHandler.onConfirm(transaction);
                 }
             }
@@ -56,11 +56,11 @@ class DepositMonitor {
             }
         });
     }
-    saveExternalTransactions(transactions, block) {
+    saveExternalTransactions(transactions, blockIndex) {
         return __awaiter(this, void 0, void 0, function* () {
             for (let transaction of transactions) {
                 if (yield this.transactionHandler.shouldTrackTransaction(transaction)) {
-                    yield this.saveExternalTransaction(transaction, block);
+                    yield this.saveExternalTransaction(transaction, blockIndex);
                 }
             }
         });
@@ -89,7 +89,7 @@ class DepositMonitor {
     }
     gatherTransactions(lastBlock) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blockInfo = yield this.client.getNextBlockInfo(lastBlock);
+            const blockInfo = yield this.client.getNextBlockInfo(lastBlock ? lastBlock.blockIndex : 0);
             if (!blockInfo)
                 return undefined;
             const fullBlock = yield this.client.getFullBlock(blockInfo.index);
@@ -98,17 +98,14 @@ class DepositMonitor {
                 return undefined;
             }
             const block = {
-                hash: fullBlock.hash,
-                index: fullBlock.index,
-                timeMined: fullBlock.timeMined,
+                blockIndex: fullBlock.index,
                 currency: this.currency.id
             };
             if (!fullBlock.transactions) {
                 return block;
             }
-            yield this.saveExternalTransactions(fullBlock.transactions, block);
-            const newLastBlock = yield this.model.setLastBlock(block);
-            return newLastBlock;
+            yield this.saveExternalTransactions(fullBlock.transactions, block.blockIndex);
+            return this.model.setLastBlock(block);
         });
     }
     updatePendingTransactions(maxBlockIndex) {

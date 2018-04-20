@@ -10,8 +10,8 @@ export declare class DepositMonitor {
     private transactionHandler;
     constructor(model: SingleTransactionBlockchainModel, client: ReadClient<ExternalTransaction>, currency: Currency, minimumConfirmations: number, transactionHandler: TransactionHandler);
     private convertStatus(highestBlock, source);
-    private saveExternalTransaction(source, block);
-    private saveExternalTransactions(transactions, block);
+    private saveExternalTransaction(source, blockIndex);
+    private saveExternalTransactions(transactions, blockIndex);
     private confirmExistingTransaction(transaction);
     private updatePendingTransaction(transaction);
     scanBlocks(): Promise<void>;
