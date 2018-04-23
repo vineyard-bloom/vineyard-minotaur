@@ -1,6 +1,10 @@
 import { MinotaurVillage } from "./village";
-import { MonitorConfig, EthereumModel } from "../src";
+import { MonitorConfig } from "../src";
 import { FullConfig } from "./config-types";
-export declare type BitcoinVillage = MinotaurVillage<EthereumModel>;
+import { BitcoinModel } from "../src/bitcoin-explorer/bitcoin-model";
+import { MultiTransactionBlockClient } from "../src/bitcoin-explorer/bitcoin-explorer";
+export declare type BitcoinVillage = MinotaurVillage<BitcoinModel> & {
+    client: MultiTransactionBlockClient;
+};
 export declare function startBitcoinMonitor(village: BitcoinVillage, config: MonitorConfig): Promise<void>;
-export declare function createBitcoinVillage(config: FullConfig): Promise<BitcoinVillage>;
+export declare function createBitcoinVillage(config: FullConfig, client: MultiTransactionBlockClient): Promise<BitcoinVillage>;

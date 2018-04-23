@@ -94,7 +94,6 @@ export interface Address {
 
 export interface Currency {
   id: number
-  address?: number
   name: string
 }
 
@@ -151,3 +150,5 @@ export interface TransactionHandler {
   onConfirm(transaction: DepositTransaction): Promise<DepositTransaction>
   onSave(transaction: DepositTransaction): Promise<DepositTransaction>
 }
+
+export type ID<T extends { id: any }> = T['id']

@@ -14,19 +14,7 @@ const utility_1 = require("./utility");
 const index_1 = require("./utility/index");
 const database_functions_1 = require("./database-functions");
 const monitor_logic_1 = require("./monitor-logic");
-function saveSingleCurrencyBlock(blockCollection, block) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const existing = yield blockCollection.first({ index: block.index });
-        if (existing)
-            return;
-        yield blockCollection.create(block);
-    });
-}
-exports.saveSingleCurrencyBlock = saveSingleCurrencyBlock;
-function getTransactionByTxid(transactionCollection, txid) {
-    return transactionCollection.first({ txid: txid }).exec();
-}
-exports.getTransactionByTxid = getTransactionByTxid;
+const explorer_helpers_1 = require("./explorer-helpers");
 function getOrCreateAddressReturningId(addressCollection, externalAddress) {
     return __awaiter(this, void 0, void 0, function* () {
         const internalAddress = yield addressCollection.first({ address: externalAddress });
@@ -38,7 +26,7 @@ function getOrCreateAddressReturningId(addressCollection, externalAddress) {
 exports.getOrCreateAddressReturningId = getOrCreateAddressReturningId;
 function createSingleCurrencyTransactionDao(model) {
     return {
-        getTransactionByTxid: getTransactionByTxid.bind(null, model.Transaction),
+        getTransactionByTxid: explorer_helpers_1.getTransactionByTxid.bind(null, model.Transaction),
         saveTransaction: (transaction) => __awaiter(this, void 0, void 0, function* () {
             yield model.Transaction.create(transaction);
         }),
@@ -49,7 +37,7 @@ exports.createSingleCurrencyTransactionDao = createSingleCurrencyTransactionDao;
 function createEthereumExplorerDao(model) {
     return {
         blockDao: {
-            saveBlock: (block) => saveSingleCurrencyBlock(model.Block, block)
+            saveBlock: (block) => explorer_helpers_1.saveSingleCurrencyBlock(model.Block, block)
         },
         lastBlockDao: monitor_dao_1.createIndexedLastBlockDao(model.ground, 2),
         // transactionDao: createSingleCurrencyTransactionDao(model),

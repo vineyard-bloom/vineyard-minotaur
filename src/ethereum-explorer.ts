@@ -6,10 +6,14 @@ import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
 import {
-  AddressMap, saveSingleTransactions, getOrCreateAddresses, saveBlocks,
-  saveCurrencies
+  AddressMap,
+  getOrCreateAddresses,
+  saveBlocks,
+  saveCurrencies,
+  saveSingleTransactions
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
+import { getTransactionByTxid, saveSingleCurrencyBlock } from "./explorer-helpers"
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
 
@@ -18,6 +22,7 @@ export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.Ful
 export interface EthereumTransaction extends blockchain.BlockTransaction {
   to?: number
   from?: number
+  currency: string
 }
 
 export type AddressDelegate = (externalAddress: string) => Promise<number>
@@ -42,21 +47,6 @@ export interface EthereumModel {
 export interface EthereumMonitorDao extends MonitorDao {
   getOrCreateAddress: AddressDelegate,
   ground: Modeler
-}
-
-export async function saveSingleCurrencyBlock(blockCollection: Collection<blockchain.Block>,
-                                              block: blockchain.Block): Promise<void> {
-
-  const existing = await blockCollection.first({ index: block.index })
-  if (existing)
-    return
-
-  await blockCollection.create(block)
-}
-
-export function getTransactionByTxid<Tx>(transactionCollection: Collection<Tx>,
-                                         txid: string): Promise<Tx | undefined> {
-  return transactionCollection.first({ txid: txid }).exec()
 }
 
 export async function getOrCreateAddressReturningId(addressCollection: Collection<Address>,

@@ -6,6 +6,7 @@ export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockc
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;
+    currency: string;
 }
 export declare type AddressDelegate = (externalAddress: string) => Promise<number>;
 export interface TokenTransferRecord {
@@ -29,8 +30,6 @@ export interface EthereumMonitorDao extends MonitorDao {
     getOrCreateAddress: AddressDelegate;
     ground: Modeler;
 }
-export declare function saveSingleCurrencyBlock(blockCollection: Collection<blockchain.Block>, block: blockchain.Block): Promise<void>;
-export declare function getTransactionByTxid<Tx>(transactionCollection: Collection<Tx>, txid: string): Promise<Tx | undefined>;
 export declare function getOrCreateAddressReturningId(addressCollection: Collection<Address>, externalAddress: string): Promise<number>;
 export declare function createSingleCurrencyTransactionDao(model: EthereumModel): TransactionDao<EthereumTransaction>;
 export declare function createEthereumExplorerDao(model: EthereumModel): EthereumMonitorDao;

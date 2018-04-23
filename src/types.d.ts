@@ -68,7 +68,6 @@ export interface Address {
 }
 export interface Currency {
     id: number;
-    address?: number;
     name: string;
 }
 export interface BaseTransaction extends blockchain.BaseTransaction {
@@ -113,3 +112,6 @@ export interface TransactionHandler {
     onConfirm(transaction: DepositTransaction): Promise<DepositTransaction>;
     onSave(transaction: DepositTransaction): Promise<DepositTransaction>;
 }
+export declare type ID<T extends {
+    id: any;
+}> = T['id'];

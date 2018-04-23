@@ -82,7 +82,9 @@ class ExternalBlockQueue {
                 this.highestBlockIndex = yield this.client.getHeighestBlockIndex();
             }
             const remaining = this.highestBlockIndex - this.blockIndex;
-            const count = Math.min(remaining, this.config.maxSize) - this.requests.length;
+            let count = Math.min(remaining, this.config.maxSize) - this.requests.length;
+            if (count < 0)
+                count = 0;
             console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '));
             for (let i = 0; i < count; ++i) {
                 this.addRequest(this.blockIndex++);
