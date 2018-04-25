@@ -23,14 +23,11 @@ export interface BitcoinTransaction extends blockchain.BlockTransaction {
 export interface TxIn {
     transaction: ID<BitcoinTransaction>;
     index: number;
-    sourceTransaction: string | undefined;
+    sourceTransaction: ID<BitcoinTransaction> | undefined;
     sourceIndex: number | undefined;
     scriptSigHex: string | undefined;
     scriptSigAsm: string | undefined;
     sequence: number;
-    address: ID<Address>;
-    amount: BigNumber | undefined;
-    valueSat: BigNumber | undefined;
     coinbase: string | undefined;
 }
 export interface TxOut {

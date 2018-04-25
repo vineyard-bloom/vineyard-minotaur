@@ -4,7 +4,7 @@ import { networks } from "bitcoinjs-lib"
 export const localConfig: FullConfig = {
   database: {
     host: "localhost",
-    database: "vineyard_minotaur_btc_dev",
+    database: "sql_vineyard_minotaur_btc_dev",
     devMode: true,
     username: "",
     password: "",

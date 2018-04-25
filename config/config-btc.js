@@ -4,7 +4,7 @@ const bitcoinjs_lib_1 = require("bitcoinjs-lib");
 exports.localConfig = {
     database: {
         host: "localhost",
-        database: "vineyard_minotaur_btc_dev",
+        database: "sql_vineyard_minotaur_btc_dev",
         devMode: true,
         username: "",
         password: "",
