@@ -18,19 +18,4 @@ exports.bitcoinConfig = {
         "network": bitcoinjs_lib_1.networks.testnet
     }
 };
-exports.ethereumConfig = {
-    database: {
-        host: "localhost",
-        database: "vineyard_minotaur_dev",
-        devMode: true,
-        username: "",
-        password: "",
-        dialect: "postgres"
-    },
-    ethereum: {
-        client: {
-            http: "http://35.160.177.94:8545"
-        }
-    }
-};
-//# sourceMappingURL=config-sample.js.map
+//# sourceMappingURL=config-btc-sample.js.map
