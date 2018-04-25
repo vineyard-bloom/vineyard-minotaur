@@ -3,6 +3,7 @@ node_modules
 npm-*
 test/**/*.js
 test/**/*.d.ts
-config.*
+config-btc.*
+config-eth.*
 yarn*
 .node*

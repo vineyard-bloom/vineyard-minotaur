@@ -129,7 +129,8 @@
         "type": "Transaction"
       },
       "index": {
-        "type": "int"
+        "type": "int",
+        "autoIncrement": false
       },
       "scriptPubKeyHex": {
         "type": "string"

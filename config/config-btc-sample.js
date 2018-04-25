@@ -1,19 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoinjs_lib_1 = require("bitcoinjs-lib");
-exports.localConfig = {
+exports.bitcoinConfig = {
     database: {
         host: "localhost",
-        database: "vineyard_minotaur_btc_dev",
+        database: "sql_vineyard_minotaur_btc_dev",
         devMode: true,
         username: "",
         password: "",
         dialect: "postgres"
-    },
-    ethereum: {
-        client: {
-            http: "http://35.160.177.94:8545"
-        }
     },
     bitcoin: {
         "host": "localhost",
@@ -23,4 +18,4 @@ exports.localConfig = {
         "network": bitcoinjs_lib_1.networks.testnet
     }
 };
-//# sourceMappingURL=config-btc.js.map
+//# sourceMappingURL=config-btc-sample.js.map

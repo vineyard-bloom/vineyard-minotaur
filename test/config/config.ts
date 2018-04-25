@@ -1,18 +1,17 @@
-import {FullConfig} from "../lab"
-import { networks } from "bitcoinjs-lib"
+import {FullConfig} from "../../lab"
 
 export const localConfig: FullConfig = {
   database: {
     host: "localhost",
-    database: "vineyard_minotaur_btc_dev",
+    database: "",
     devMode: true,
-    username: "",
-    password: "",
+    username: "postgres",
+    password: "dev",
     dialect: "postgres"
   },
   ethereum: {
     client: {
-      http: "http://35.160.177.94:8545"
+      http: ""
     }
   },
   bitcoin: {
@@ -20,6 +19,5 @@ export const localConfig: FullConfig = {
     "username": "user",
     "password": "password",
     "port": 18332,
-    "network": networks.testnet
   }
 }

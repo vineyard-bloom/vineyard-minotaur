@@ -1,10 +1,10 @@
 import { createEthereumVillage } from "../lab/ethereum-explorer-service"
 import { Modeler } from "vineyard-data/legacy"
 import { DevModeler } from "vineyard-ground/source/modeler"
-import { FullConfig } from "../lab/config-types"
-import { localConfig } from "../config/config"
+import { EthereumConfig, FullConfig } from "../lab/config-types"
+import { ethereumConfig } from "../config/config-eth"
 
-export async function resetEthScanDb(config: FullConfig): Promise<void> {
+export async function resetEthScanDb(config: EthereumConfig): Promise<void> {
   if(!config.database.devMode) throw new Error('Can only reset db in devMode.')
   const dbModel = (await createEthereumVillage(config)).model as SharedModel
 
@@ -19,4 +19,4 @@ export async function resetEthScanDb(config: FullConfig): Promise<void> {
 }
 export type SharedModel = {ground: Modeler, LastBlock: any, Currency: any}
 
-resetEthScanDb(localConfig)
+resetEthScanDb(ethereumConfig)

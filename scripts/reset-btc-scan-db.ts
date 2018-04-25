@@ -1,7 +1,7 @@
 import { Modeler } from "vineyard-data/legacy"
 import { DevModeler } from "vineyard-ground/source/modeler"
 import { BitcoinVillage, createBitcoinVillage } from "../lab/bitcoin-explorer-service"
-import { localConfig } from "../config/config-btc"
+import { bitcoinConfig } from "../config/config-btc"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 
 export async function resetBtcScanDb(village: BitcoinVillage): Promise<void> {
@@ -20,7 +20,7 @@ export async function resetBtcScanDb(village: BitcoinVillage): Promise<void> {
 export type SharedModel = {ground: Modeler, LastBlock: any, Currency: any}
 
 if (require.main === module) {
-  createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(localConfig.bitcoin))
+  createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig.bitcoin))
     .then(resetBtcScanDb)
     .then(() => process.exit(0))
 }

@@ -25,7 +25,7 @@ function resetBtcScanDb(village) {
 }
 exports.resetBtcScanDb = resetBtcScanDb;
 if (require.main === module) {
-    bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.localConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(config_btc_1.localConfig.bitcoin))
+    bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.bitcoinConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(config_btc_1.bitcoinConfig.bitcoin))
         .then(resetBtcScanDb)
         .then(() => process.exit(0));
 }
