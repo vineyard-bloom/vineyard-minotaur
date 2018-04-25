@@ -4,11 +4,11 @@ import {
   scanEthereumExplorerBlocks, getEthereumExplorerSchema
 } from "../src";
 import { SimpleProfiler } from "../src/utility";
-import { FullConfig } from "./config-types";
+import { EthereumConfig, FullConfig } from "./config-types";
 import { EthereumBlockReader } from "vineyard-ethereum/src/block-reader"
 import { decodeTokenTransfer } from "vineyard-ethereum/src/client-functions"
 
-export type EthereumVillage = MinotaurVillage<EthereumModel>
+export type EthereumVillage = MinotaurVillage<EthereumModel, EthereumConfig>
 
 export async function startEthereumMonitor(village: EthereumVillage, config: MonitorConfig) {
   try {
@@ -27,6 +27,6 @@ export async function startEthereumMonitor(village: EthereumVillage, config: Mon
   }
 }
 
-export function createEthereumVillage(config: FullConfig): Promise<EthereumVillage> {
+export function createEthereumVillage(config: EthereumConfig): Promise<EthereumVillage> {
   return createVillage(getEthereumExplorerSchema(), config)
 }

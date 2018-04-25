@@ -1,9 +1,9 @@
 require('source-map-support').install()
 import { createEthereumVillage, startEthereumMonitor } from "../lab";
-import {localConfig} from '../config/config'
+import {ethereumConfig} from '../config/config-eth'
 
 async function main(): Promise<void> {
-  const village = await createEthereumVillage(localConfig)
+  const village = await createEthereumVillage(ethereumConfig)
   console.log('Initialized village')
   await startEthereumMonitor(village, {
     queue: { maxSize: 10, minSize: 5 },

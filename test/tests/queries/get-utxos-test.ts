@@ -1,6 +1,6 @@
 import { BitcoinVillage, createBitcoinVillage } from "../../../lab/bitcoin-explorer-service"
 import { BitcoinModel, BitcoinTransaction, TxOut, TxIn } from "../../../src/bitcoin-explorer/bitcoin-model"
-import { localConfig } from "../../../config/config-btc"
+import { bitcoinConfig } from "../../../config/config-btc"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { resetBtcScanDb } from "../../../scripts/reset-btc-scan-db"
 import { Omit } from "vineyard-bitcoin/src/types"
@@ -16,13 +16,12 @@ const second = 1000
 const minute = 60 * second
 
 describe('get-utxos', function () {
-  this.timeout(10 * minute)
   let village: BitcoinVillage
   let model: BitcoinModel
 
   before(async function(){
-    const bitcoinConfig = localConfig.bitcoin
-    village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
+    const bitcoinConfig = bitcoinConfig.bitcoin
+    village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
     model = village.model
   })
 

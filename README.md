@@ -14,9 +14,9 @@ On the Node.js server run the following commands:
 
 1. Run `git clone git@github.com:vineyard-bloom/vineyard-minotaur.git`
 2. Run `cd vineyard-minotaur`
-3. Run `cp config/config-sample.ts config/config.ts`.
-4. Run `cp test/config/config-sample.ts test/config/config.ts`
-5. Edit the database and ethereum settings in `config.ts`.
+3. Run `cp config/config-sample.ts config/config-eth.ts`.
+4. Run `cp test/config/config-sample.ts test/config/config-eth.ts`
+5. Edit the database and ethereum settings in `config-eth.ts`.
 6. Run the SQL script `lab/sql/ethereum-explorer-db.sql` in the target database.
 7. Run `yarn` or `npm i`
 8. Run `tsc` to compile the config.  (The rest of the TypeScript should already be compiled to JavaScript)

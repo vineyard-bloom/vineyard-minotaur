@@ -1,23 +1,36 @@
-import {FullConfig} from "../lab"
+import { networks } from "bitcoinjs-lib"
+import { BitcoinConfig, EthereumConfig } from "../lab/config-types"
 
-export const localConfig: FullConfig = {
+export const bitcoinConfig: BitcoinConfig = {
   database: {
     host: "localhost",
-    database: "",
+    database: "sql_vineyard_minotaur_btc_dev",
     devMode: true,
-    username: "postgres",
-    password: "dev",
+    username: "",
+    password: "",
+    dialect: "postgres"
+  },
+  bitcoin: {
+    "host": "localhost",
+    "username": "user",
+    "password": "password",
+    "port": 18332,
+    "network": networks.testnet
+  }
+}
+
+export const ethereumConfig: EthereumConfig = {
+  database: {
+    host: "localhost",
+    database: "vineyard_minotaur_dev",
+    devMode: true,
+    username: "",
+    password: "",
     dialect: "postgres"
   },
   ethereum: {
     client: {
-      http: "http://"
+      http: "http://35.160.177.94:8545"
     }
-  },
-  bitcoin: {
-    "host": "localhost",
-    "username": "",
-    "password": "",
-    "port": 8332,
   }
 }

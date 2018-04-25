@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ethereum_explorer_service_1 = require("../lab/ethereum-explorer-service");
-const config_1 = require("../config/config");
+const config_eth_1 = require("../config/config-eth");
 function resetEthScanDb(config) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!config.database.devMode)
@@ -24,5 +24,5 @@ function resetEthScanDb(config) {
     });
 }
 exports.resetEthScanDb = resetEthScanDb;
-resetEthScanDb(config_1.localConfig);
+resetEthScanDb(config_eth_1.ethereumConfig);
 //# sourceMappingURL=reset-eth-scan-db.js.map

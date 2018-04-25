@@ -5,6 +5,7 @@ export interface UTXO {
   amount: BigNumber
   index: number
 }
+
 export async function getUtxos(ground: any, btcAddress: string): Promise<UTXO[]> {
   const addressId = (await ground.querySingle(`Select id FROM addresses WHERE address='${btcAddress}'`)).id
 
