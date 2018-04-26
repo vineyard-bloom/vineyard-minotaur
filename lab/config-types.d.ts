@@ -1,4 +1,4 @@
-import { GeneralDatabaseConfig } from "../../vineyard-ground/source/index";
+import { GeneralDatabaseConfig } from "vineyard-ground";
 import { Network } from "bitcoinjs-lib";
 export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
     devMode?: boolean;
