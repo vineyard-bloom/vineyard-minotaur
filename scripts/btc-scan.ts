@@ -6,8 +6,7 @@ import { resetBtcScanDb } from "./reset-btc-scan-db"
 require('source-map-support').install()
 
 async function main(resetDb?: string) {
-  const bitcoinConfig = bitcoinConfig.bitcoin
-  const village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
+  const village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig.bitcoin))
   console.log('Initialized village')
 
   if(resetDb && resetDb === '-r'){

@@ -83,6 +83,9 @@ class DepositMonitor {
         return __awaiter(this, void 0, void 0, function* () {
             let lastBlock = yield this.model.getLastBlock();
             do {
+                const offsetAmount = !!lastBlock ? lastBlock.blockIndex - this.minimumConfirmations : 0;
+                const offsetBlock = offsetAmount > 0 ? offsetAmount : 0;
+                yield this.gatherTransactions({ blockIndex: lastBlock.index });
                 lastBlock = yield this.gatherTransactions(lastBlock);
             } while (lastBlock);
         });
