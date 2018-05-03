@@ -60,6 +60,13 @@ function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
+function checkIfBlockSaved(dao, block) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { index, hash } = block;
+        const retrievedBlock = yield dao.blockDao.getBlockByIndex(index);
+        return retrievedBlock && retrievedBlock.hash === hash;
+    });
+}
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
