@@ -13,4 +13,8 @@ export interface AssociatedOutput {
     index: number;
     output: blockchain.TransactionOutput;
 }
+export declare function checkIfBlockSaved(dao: BitcoinMonitorDao, block: {
+    index: number;
+    hash: string;
+}): Promise<boolean>;
 export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;

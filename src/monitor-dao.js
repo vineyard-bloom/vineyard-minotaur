@@ -129,5 +129,5 @@ exports.createIndexedLastBlockDao = createIndexedLastBlockDao;
 //     lastBlockDao: createLastBlockDao(model.ground),
 //     transactionDao: createTransactionDao(model)
 //   }
-// }
+// } 
 //# sourceMappingURL=monitor-dao.js.map

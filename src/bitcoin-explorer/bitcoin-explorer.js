@@ -67,6 +67,7 @@ function checkIfBlockSaved(dao, block) {
         return !!retrievedBlock && retrievedBlock.hash === hash;
     });
 }
+exports.checkIfBlockSaved = checkIfBlockSaved;
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
