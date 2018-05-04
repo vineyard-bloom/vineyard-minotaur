@@ -60,14 +60,24 @@ function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
-function checkIfBlockSaved(dao, block) {
+var ScannedBlockStatus;
+(function (ScannedBlockStatus) {
+    ScannedBlockStatus[ScannedBlockStatus["UpToDate"] = 0] = "UpToDate";
+    ScannedBlockStatus[ScannedBlockStatus["Outdated"] = 1] = "Outdated";
+    ScannedBlockStatus[ScannedBlockStatus["Nonexistent"] = 2] = "Nonexistent";
+})(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
+function checkBlockScanStatus(dao, block) {
     return __awaiter(this, void 0, void 0, function* () {
         const { index, hash } = block;
         const retrievedBlock = yield dao.blockDao.getBlockByIndex(index);
-        return !!retrievedBlock && retrievedBlock.hash === hash;
+        if (!retrievedBlock)
+            return ScannedBlockStatus.Nonexistent;
+        if (retrievedBlock.hash !== hash)
+            return ScannedBlockStatus.Outdated;
+        return ScannedBlockStatus.UpToDate;
     });
 }
-exports.checkIfBlockSaved = checkIfBlockSaved;
+exports.checkBlockScanStatus = checkBlockScanStatus;
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;

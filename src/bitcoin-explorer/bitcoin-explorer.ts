@@ -78,10 +78,13 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
   return [...new Set(outputs.map(o => o.output.address))]
 }
 
-export async function checkIfBlockSaved(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<boolean> {
+export enum ScannedBlockStatus { UpToDate, Outdated, Nonexistent }
+export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<ScannedBlockStatus> {
   const { index, hash } = block
   const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
-  return !!retrievedBlock && retrievedBlock.hash === hash
+  if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
+  if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
+  return ScannedBlockStatus.UpToDate
 }
 
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
