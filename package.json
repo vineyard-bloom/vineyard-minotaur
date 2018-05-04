@@ -13,7 +13,7 @@
   "dependencies": {
     "bignumber.js": "^4.0.0",
     "vineyard-blockchain": "github:vineyard-bloom/vineyard-blockchain#1.0.0-beta",
-    "vineyard-data": "vineyard-bloom/vineyard-data#1.0.0-beta"
+    "vineyard-data": "github:vineyard-bloom/vineyard-data#1.0.0-beta"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",

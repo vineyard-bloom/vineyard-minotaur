@@ -3,10 +3,10 @@ import {FullConfig} from "../../lab"
 export const localConfig: FullConfig = {
   database: {
     host: "localhost",
-    database: "",
+    database: "bitcoinminotaurdev",
     devMode: true,
-    username: "postgres",
-    password: "dev",
+    username: "",
+    password: "",
     dialect: "postgres"
   },
   ethereum: {
