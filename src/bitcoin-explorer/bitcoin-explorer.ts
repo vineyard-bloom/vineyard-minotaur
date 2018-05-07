@@ -87,6 +87,25 @@ export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { inde
   return ScannedBlockStatus.UpToDate
 }
 
+async function noName(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
+  const blocksToDelete = []
+  const blocksToSave = []
+
+  for (let i=0; i<blocks.length; i++) {
+    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i])
+    if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
+      blocksToSave.push(blocks[i]) 
+    }
+    else if (blockScanStatus === ScannedBlockStatus.Outdated) { 
+      blocksToDelete.push(blocks[i])
+      blocksToSave.push(blocks[i])
+    }
+  }
+
+  // deleteFullBlocks from database-functions.ts
+  await saveFullBlocks(dao, blocksToSave)
+}
+
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 

@@ -17,3 +17,4 @@ export interface CurrencyResult {
 export declare function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]>;
 export declare function getNextBlock(lastBlockDao: LastBlockDao): Promise<number>;
 export declare function saveSingleTransactions(ground: any, transactions: blockchain.SingleTransaction[], addresses: AddressMap): any;
+export declare function deleteFullBlocks(ground: any, blocks: blockchain.Block[]): Promise<void>;

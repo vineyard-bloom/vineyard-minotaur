@@ -78,6 +78,24 @@ function checkBlockScanStatus(dao, block) {
     });
 }
 exports.checkBlockScanStatus = checkBlockScanStatus;
+function noName(dao, blocks) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const blocksToDelete = [];
+        const blocksToSave = [];
+        for (let i = 0; i < blocks.length; i++) {
+            const blockScanStatus = yield checkBlockScanStatus(dao, blocks[i]);
+            if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
+                blocksToSave.push(blocks[i]);
+            }
+            else if (blockScanStatus === ScannedBlockStatus.Outdated) {
+                blocksToDelete.push(blocks[i]);
+                blocksToSave.push(blocks[i]);
+            }
+        }
+        // deleteFullBlocks from database-functions.ts
+        yield saveFullBlocks(dao, blocksToSave);
+    });
+}
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
