@@ -78,7 +78,7 @@
         "type": "datetime"
       },
       "blockIndex": {
-        "type": "long"
+        "type": "Block"
       }
     }
   },

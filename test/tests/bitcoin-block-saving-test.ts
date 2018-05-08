@@ -6,7 +6,7 @@ import { bitcoinConfig } from "../../config/config-btc"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { DevModeler } from "vineyard-ground/source/modeler"
 import { ScannedBlockStatus } from "../../src/bitcoin-explorer/bitcoin-explorer"
-import { randomBlock, randomBitcoinTransaction } from './random-type-helpers';
+import { randomBlock, randomBitcoinTransaction, randomBitcoinTxIn, randomBitcoinTxOut } from './random-type-helpers';
 
 describe('bitcoin block saving test', function () {
   let model: BitcoinModel
@@ -76,23 +76,32 @@ describe('bitcoin block saving test', function () {
     assert(await model.Block.get(blockFive.index))
   })
 
-  // Blocks have transactions and txins and txouts. Make sure all dependent transactions, txins, txouts are deleted, but none from the non-deleted block. 
   it('can delete one of two saved blocks and dependent transactions', async function() {
-    const blockOne = randomBlock()
-    const blockTwo = randomBlock()
+    await model.Currency.create({id: 1, name: 'btc'})
+    await model.Address.create({id: 6, address: 'River'})
 
-    const transactionOneOne = randomBitcoinTransaction(blockOne.index)
-    const transactionOneTwo = randomBitcoinTransaction(blockOne.index)
-    const transactionTwoOne = randomBitcoinTransaction(blockTwo.index)
-    const transactionTwoTwo = randomBitcoinTransaction(blockTwo.index)
-
+    const blockOne = await randomBlock()
+    const blockTwo = await randomBlock()
     await model.Block.create(blockOne)
     await model.Block.create(blockTwo)
 
+    const transactionOneOne = await randomBitcoinTransaction(blockOne.index)
+    const transactionOneTwo = await randomBitcoinTransaction(blockOne.index)
+    const transactionTwoOne = await randomBitcoinTransaction(blockTwo.index)
+    const transactionTwoTwo = await randomBitcoinTransaction(blockTwo.index)
     await model.Transaction.create(transactionOneOne)
     await model.Transaction.create(transactionOneTwo)
     await model.Transaction.create(transactionTwoOne)
     await model.Transaction.create(transactionTwoTwo)
+
+    const txInOne = await randomBitcoinTxIn(transactionOneOne.id)
+    const txOutOne = await randomBitcoinTxOut(transactionOneOne.id, 6)
+    const txInTwo = await randomBitcoinTxIn(transactionTwoOne.id)
+    const txOutTwo = await randomBitcoinTxOut(transactionTwoOne.id, 6)
+    await model.TxIn.create(txInOne)
+    await model.TxOut.create(txOutOne)
+    await model.TxIn.create(txInTwo)
+    await model.TxOut.create(txOutTwo)
 
     await deleteFullBlocks(model.ground, [ blockOne ])
 
@@ -100,5 +109,10 @@ describe('bitcoin block saving test', function () {
     assert(!await model.Transaction.get(transactionOneTwo.id))
     assert(await model.Transaction.get(transactionTwoOne.id))
     assert(await model.Transaction.get(transactionTwoTwo.id))
+
+    assert(!await model.TxIn.get(txInOne.transaction))
+    assert(!await model.TxOut.get(txOutOne.transaction))
+    assert(await model.TxIn.get(txInTwo.transaction))
+    assert(await model.TxOut.get(txOutTwo.transaction))
   })
 })
