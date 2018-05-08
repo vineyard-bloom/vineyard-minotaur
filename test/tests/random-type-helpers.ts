@@ -24,16 +24,6 @@ export function randomBitcoinTransaction(index?: number): BitcoinTransaction {
   }
 }
 
-// TxIn
-  // transaction: ID<BitcoinTransaction>
-  // index: number
-  // sourceTransaction: ID<BitcoinTransaction> | undefined
-  // sourceIndex: number | undefined
-  // scriptSigHex: string | undefined
-  // scriptSigAsm: string | undefined
-  // sequence: number
-  // coinbase: string | undefined
-
 export function randomBitcoinTxIn(id?: number): TxIn {
   return {
     transaction: id || getRandomIntInclusive(1, 1000),
@@ -46,14 +36,6 @@ export function randomBitcoinTxIn(id?: number): TxIn {
     coinbase: undefined
   }
 }
-
-// TxOut
-  // transaction: ID<BitcoinTransaction>,
-  // index: number,
-  // scriptPubKeyHex: string,
-  // scriptPubKeyAsm: string,
-  // address: ID<Address>,
-  // amount: BigNumber
 
 export function randomBitcoinTxOut(transactionId?: number, address?: number): TxOut {
   return {
