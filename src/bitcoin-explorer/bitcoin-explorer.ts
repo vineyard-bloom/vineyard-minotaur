@@ -3,7 +3,7 @@ import { flatMap } from "../utility/index";
 import { AddressMap, getOrCreateAddresses2, saveBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
-import { createBlockQueue, scanBlocks } from "../monitor-logic";
+import { createBlockQueue, scanBlocks, validateBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
@@ -136,6 +136,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
+  await validateBlocks(blockStorage)
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
   return scanBlocks(blockQueue, saver, config, profiler)

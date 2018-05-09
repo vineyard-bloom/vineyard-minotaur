@@ -18,6 +18,43 @@ function createBlockQueue(lastBlockDao, client, queueConfig) {
     });
 }
 exports.createBlockQueue = createBlockQueue;
+function findInvalidBlock(localSource, remoteSource) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let highestBlockIndex = yield localSource.getHighestBlockIndex();
+        let localBlock = yield localSource.getBlock(highestBlockIndex);
+        let foundInvalidBlocks = false;
+        while (true) {
+            const remoteBlock = yield remoteSource.getBlock(localBlock.index);
+            if (localBlock.hash == remoteBlock.hash) {
+                return foundInvalidBlocks
+                    ? localBlock.index + 1
+                    : undefined;
+            }
+            foundInvalidBlocks = true;
+            localBlock = yield localSource.getBlock(localBlock.index - 1);
+        }
+    });
+}
+exports.findInvalidBlock = findInvalidBlock;
+function validateBlocks(localBlockSource, remoteBlockSource, ground) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const rootInvalidBlock = findInvalidBlock(localBlockSource, remoteBlockSource);
+        if (rootInvalidBlock === undefined)
+            return;
+        // TODO: SQL to delete all blocks at and above rootInvalidBlock
+        const sql = `
+  BEGIN;
+  
+  DELETE * FROM blocks WHERE "index" >= :rootInvalidBlock;
+  
+  UPDATE last_blocks SET "blockIndex" = :rootInvalidBlock - 1 WHERE currency = :currency;
+  
+  COMMIT;
+  `;
+        return ground.query(sql, { rootInvalidBlock, currency });
+    });
+}
+exports.validateBlocks = validateBlocks;
 function scanBlocks(blockQueue, saveFullBlocks, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();

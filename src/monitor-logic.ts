@@ -2,7 +2,7 @@ import { getNextBlock } from "./database-functions";
 import { EmptyProfiler, Profiler } from "./utility";
 import { BlockQueueConfig, ExternalBlockQueue, IndexedBlock } from "./block-queue";
 import { LastBlockDao } from "./types";
-import { MonitorConfig, SingleTransactionBlockClient } from "./ethereum-explorer";
+import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
 
 export type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) => Promise<void>
@@ -14,11 +14,56 @@ export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao:
   return new ExternalBlockQueue(client, blockIndex, queueConfig)
 }
 
+export interface BlockSource {
+  getHighestBlockIndex(): Promise<number>
+
+  getBlock(index: number): Promise<blockchain.Block>
+}
+
+export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
+  let highestBlockIndex = await localSource.getHighestBlockIndex()
+  let localBlock = await localSource.getBlock(highestBlockIndex)
+  let foundInvalidBlocks = false
+
+  while (true) {
+    const remoteBlock = await remoteSource.getBlock(localBlock.index)
+    if (localBlock.hash == remoteBlock.hash) {
+      return foundInvalidBlocks
+        ? localBlock.index + 1
+        : undefined
+    }
+
+    foundInvalidBlocks = true
+    localBlock = await localSource.getBlock(localBlock.index - 1)
+  }
+}
+
+export async function validateBlocks(localBlockSource: BlockSource, remoteBlockSource: BlockSource, ground: What) {
+  const rootInvalidBlock = findInvalidBlock(localBlockSource, remoteBlockSource)
+  if (rootInvalidBlock === undefined)
+    return
+
+  // TODO: SQL to delete all blocks at and above rootInvalidBlock
+
+  const sql = `
+  BEGIN;
+  
+  DELETE * FROM blocks WHERE "index" >= :rootInvalidBlock;
+  
+  UPDATE last_blocks SET "blockIndex" = :rootInvalidBlock - 1 WHERE currency = :currency;
+  
+  COMMIT;
+  `
+
+  return ground.query(sql, { rootInvalidBlock, currency })
+}
+
 export async function scanBlocks<Block extends IndexedBlock>(blockQueue: ExternalBlockQueue<Block>,
                                                              saveFullBlocks: BlockSaver<Block>,
                                                              config: MonitorConfig,
                                                              profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const startTime: number = Date.now()
+
   do {
     const elapsed = Date.now() - startTime
     if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
