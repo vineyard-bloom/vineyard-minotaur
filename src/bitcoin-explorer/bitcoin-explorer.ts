@@ -7,7 +7,6 @@ import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
-import { BlockWithConfirmed } from "..";
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
@@ -138,7 +137,6 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
-  // const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  const saver = (blocks: BlockWithConfirmed[], minConfirmedBlockIndex: number) => saveFullBlocks(dao, blocks)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
   return scanBlocks(blockQueue, saver, config, profiler)
 }
