@@ -128,6 +128,7 @@ export interface FullBlock<ExternalTransaction> extends ExternalBlock {
   transactions: ExternalTransaction[]
 }
 
+// export interface BlockWithConfirmed extends blockchain.FullBlock<blockchain.MultiTransaction> {
 export interface BlockWithConfirmed extends blockchain.Block {
   confirmed: boolean
 }

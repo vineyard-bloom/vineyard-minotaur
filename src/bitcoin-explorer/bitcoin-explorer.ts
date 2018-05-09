@@ -7,8 +7,9 @@ import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
+import { BlockWithConfirmed } from "..";
 
-type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
+// type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
 
 export interface AssociatedInput {
@@ -79,24 +80,23 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 }
 
 export enum ScannedBlockStatus { UpToDate, Outdated, Nonexistent }
-// Passing in number of new blocks we want to keep scanning, added 'undefined' to possible expected types
-export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }, minConfirmedBlockIndex: number): Promise<ScannedBlockStatus | undefined> {
+// Pass in minConfirmedBlockIndex
+export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }, minConfirmedBlockIndex: number): Promise<ScannedBlockStatus> {
   const { index, hash } = block
-
-  // if the current block's index is close enough to the highest block index, check the block's status
-    const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
-    if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
-    if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
-    return ScannedBlockStatus.UpToDate
+  // Add if logic for scanning only unconfirmed blocks?
+  const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
+  if (!retrievedBlock) return ScannedBlockStatus.Nonexistent
+  if (retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
+  return ScannedBlockStatus.UpToDate
 }
 
-async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[], minConfirmedBlockIndex: number): Promise<void> {
+async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: BlockWithConfirmed[], minConfirmedBlockIndex: number): Promise<void> {
   // Refactor to return an object containing blocksToDelete and blocksToSave arrays
   const blocksToDelete = []
   const blocksToSave = []
 
   for (let i = 0; i < blocks.length; i++) {
-    // Passing in number of blocks we want to keep scanning
+    // Pass in minConfirmedBlockIndex
     const blockScanStatus = await checkBlockScanStatus(dao, blocks[i], minConfirmedBlockIndex)
     if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
       blocksToSave.push(blocks[i]) 
@@ -112,8 +112,7 @@ async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[
   await saveFullBlocks(dao, blocksToSave)
 }
 
-// Add minconfirmations
-async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
+async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: BlockWithConfirmed[]): Promise<void> {
   const { ground } = dao
 
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
@@ -122,7 +121,7 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   const outputs = flatMap(transactions, mapTransactionOutputs)
   const addresses = gatherAddresses(outputs)
 
-  // TODO: return true/false depending on highest index
+  // TODO: return true/false depending on highest index, something like:
   // const blocksWithConfirmed = blocks.map()
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
   await saveTransactions(ground, transactions)
@@ -144,6 +143,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
+  // const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
+  const saver = (blocks: BlockWithConfirmed[], minConfirmedBlockIndex: number) => saveFullBlocks(dao, blocks)
   return scanBlocks(blockQueue, saver, config, profiler)
 }

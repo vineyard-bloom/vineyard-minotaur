@@ -92,11 +92,11 @@ function arrayDiff(a1, a2) {
 exports.arrayDiff = arrayDiff;
 function saveBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
-        // TODO: Add confirmed column
-        const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
+        // Added confirmed column
+        const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified", "confirmed") VALUES\n';
         let inserts = [];
         for (let block of blocks) {
-            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`);
+            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW(), '${block.confirmed}')`);
         }
         const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);

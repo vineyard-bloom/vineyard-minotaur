@@ -83,11 +83,11 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
 }
 
 export async function saveBlocks(ground: Modeler, blocks: BlockWithConfirmed[]) {
-  // TODO: Add confirmed column
-  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
+  // Added confirmed column
+  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified", "confirmed") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
+    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW(), '${block.confirmed}')`)
   }
 
   const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
