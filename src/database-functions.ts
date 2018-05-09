@@ -1,6 +1,6 @@
 import { blockchain } from 'vineyard-blockchain'
 import { Modeler } from 'vineyard-data/legacy'
-import { LastBlockDao, BlockWithConfirmed } from "./types";
+import { LastBlockDao } from "./types";
 
 export type AddressMap = { [key: string]: number }
 
@@ -82,9 +82,8 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
   return a1.filter(x => !set2.has(x))
 }
 
-export async function saveBlocks(ground: Modeler, blocks: BlockWithConfirmed[]) {
-  // Added confirmed column
-  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified", "confirmed") VALUES\n'
+export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
+  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
     inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW(), '${block.confirmed}')`)

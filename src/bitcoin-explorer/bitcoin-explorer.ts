@@ -1,6 +1,6 @@
 import { EmptyProfiler, Profiler } from "../utility";
 import { flatMap } from "../utility/index";
-import { AddressMap, getOrCreateAddresses2, saveBlocks, deleteFullBlocks } from "../database-functions";
+import { AddressMap, getOrCreateAddresses2, saveBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
@@ -9,7 +9,7 @@ import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
 import { BlockWithConfirmed } from "..";
 
-// type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
+type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
 
 export interface AssociatedInput {
@@ -80,24 +80,20 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 }
 
 export enum ScannedBlockStatus { UpToDate, Outdated, Nonexistent }
-// Pass in minConfirmedBlockIndex
-export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }, minConfirmedBlockIndex: number): Promise<ScannedBlockStatus> {
+export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<ScannedBlockStatus> {
   const { index, hash } = block
-  // Add if logic for scanning only unconfirmed blocks?
   const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
-  if (!retrievedBlock) return ScannedBlockStatus.Nonexistent
-  if (retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
+  if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
+  if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
   return ScannedBlockStatus.UpToDate
 }
 
-async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: BlockWithConfirmed[], minConfirmedBlockIndex: number): Promise<void> {
-  // Refactor to return an object containing blocksToDelete and blocksToSave arrays
+async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const blocksToDelete = []
   const blocksToSave = []
 
-  for (let i = 0; i < blocks.length; i++) {
-    // Pass in minConfirmedBlockIndex
-    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i], minConfirmedBlockIndex)
+  for (let i=0; i<blocks.length; i++) {
+    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i])
     if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
       blocksToSave.push(blocks[i]) 
     }
@@ -107,27 +103,26 @@ async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: BlockWithC
     }
   }
 
-  // Should deleteFullBlocks take 'dao.ground'?
-  await deleteFullBlocks(dao.ground, blocksToDelete)
+  // deleteFullBlocks from database-functions.ts
   await saveFullBlocks(dao, blocksToSave)
 }
 
-async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: BlockWithConfirmed[]): Promise<void> {
+async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 
+  // Can save to sortedBlocks var and set lasBlockIndex
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
   const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)
   const outputs = flatMap(transactions, mapTransactionOutputs)
   const addresses = gatherAddresses(outputs)
 
-  // TODO: return true/false depending on highest index, something like:
-  // const blocksWithConfirmed = blocks.map()
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
   await saveTransactions(ground, transactions)
 
   await Promise.all([
       saveBlocks(ground, blocks),
+      // Add param for oldest block being saved
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
       saveTransactionInputs(ground, inputs),
       saveTransactionOutputs(ground, outputs, addressesFromDb)

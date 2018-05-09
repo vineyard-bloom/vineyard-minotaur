@@ -8,4 +8,3 @@ config-eth.*
 config.*
 yarn*
 .node*
-.vscode
