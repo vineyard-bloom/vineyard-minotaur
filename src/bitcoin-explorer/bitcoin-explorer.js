@@ -66,9 +66,11 @@ var ScannedBlockStatus;
     ScannedBlockStatus[ScannedBlockStatus["Outdated"] = 1] = "Outdated";
     ScannedBlockStatus[ScannedBlockStatus["Nonexistent"] = 2] = "Nonexistent";
 })(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
-function checkBlockScanStatus(dao, block) {
+// Passing in number of new blocks we want to keep scanning, added 'undefined' to possible expected types
+function checkBlockScanStatus(dao, block, minConfirmedBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
         const { index, hash } = block;
+        // if the current block's index is close enough to the highest block index, check the block's status
         const retrievedBlock = yield dao.blockDao.getBlockByIndex(index);
         if (!retrievedBlock)
             return ScannedBlockStatus.Nonexistent;
@@ -78,12 +80,14 @@ function checkBlockScanStatus(dao, block) {
     });
 }
 exports.checkBlockScanStatus = checkBlockScanStatus;
-function noName(dao, blocks) {
+function saveOrDeleteFullBlocks(dao, blocks, minConfirmedBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
+        // Refactor to return an object containing blocksToDelete and blocksToSave arrays
         const blocksToDelete = [];
         const blocksToSave = [];
         for (let i = 0; i < blocks.length; i++) {
-            const blockScanStatus = yield checkBlockScanStatus(dao, blocks[i]);
+            // Passing in number of blocks we want to keep scanning
+            const blockScanStatus = yield checkBlockScanStatus(dao, blocks[i], minConfirmedBlockIndex);
             if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
                 blocksToSave.push(blocks[i]);
             }
@@ -92,10 +96,12 @@ function noName(dao, blocks) {
                 blocksToSave.push(blocks[i]);
             }
         }
-        // deleteFullBlocks from database-functions.ts
+        // Should deleteFullBlocks take 'dao.ground'?
+        yield database_functions_1.deleteFullBlocks(dao.ground, blocksToDelete);
         yield saveFullBlocks(dao, blocksToSave);
     });
 }
+// Add minconfirmations
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
@@ -104,6 +110,8 @@ function saveFullBlocks(dao, blocks) {
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
         const addresses = gatherAddresses(outputs);
+        // TODO: return true/false depending on highest index
+        // const blocksWithConfirmed = blocks.map()
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
         yield saveTransactions(ground, transactions);
         yield Promise.all([

@@ -21,5 +21,5 @@ export declare enum ScannedBlockStatus {
 export declare function checkBlockScanStatus(dao: BitcoinMonitorDao, block: {
     index: number;
     hash: string;
-}): Promise<ScannedBlockStatus>;
+}, minConfirmedBlockIndex: number): Promise<ScannedBlockStatus | undefined>;
 export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;

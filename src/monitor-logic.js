@@ -37,7 +37,8 @@ function scanBlocks(blockQueue, saveFullBlocks, config, profiler = new utility_1
             }
             console.log('Saving blocks', blocks.map((b) => b.index).join(', '));
             profiler.start('saveBlocks');
-            yield saveFullBlocks(blocks);
+            const minConfirmedBlockIndex = blockQueue.getHighestBlockIndex() - config.minConfirmations;
+            yield saveFullBlocks(blocks, minConfirmedBlockIndex);
             profiler.stop('saveBlocks');
         } while (true);
     });

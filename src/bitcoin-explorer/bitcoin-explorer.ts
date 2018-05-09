@@ -1,6 +1,6 @@
 import { EmptyProfiler, Profiler } from "../utility";
 import { flatMap } from "../utility/index";
-import { AddressMap, getOrCreateAddresses2, saveBlocks } from "../database-functions";
+import { AddressMap, getOrCreateAddresses2, saveBlocks, deleteFullBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
@@ -79,20 +79,25 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 }
 
 export enum ScannedBlockStatus { UpToDate, Outdated, Nonexistent }
-export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<ScannedBlockStatus> {
+// Passing in number of new blocks we want to keep scanning, added 'undefined' to possible expected types
+export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }, minConfirmedBlockIndex: number): Promise<ScannedBlockStatus | undefined> {
   const { index, hash } = block
-  const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
-  if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
-  if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
-  return ScannedBlockStatus.UpToDate
+
+  // if the current block's index is close enough to the highest block index, check the block's status
+    const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
+    if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
+    if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
+    return ScannedBlockStatus.UpToDate
 }
 
-async function noName(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
+async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[], minConfirmedBlockIndex: number): Promise<void> {
+  // Refactor to return an object containing blocksToDelete and blocksToSave arrays
   const blocksToDelete = []
   const blocksToSave = []
 
-  for (let i=0; i<blocks.length; i++) {
-    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i])
+  for (let i = 0; i < blocks.length; i++) {
+    // Passing in number of blocks we want to keep scanning
+    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i], minConfirmedBlockIndex)
     if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
       blocksToSave.push(blocks[i]) 
     }
@@ -102,10 +107,12 @@ async function noName(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void
     }
   }
 
-  // deleteFullBlocks from database-functions.ts
+  // Should deleteFullBlocks take 'dao.ground'?
+  await deleteFullBlocks(dao.ground, blocksToDelete)
   await saveFullBlocks(dao, blocksToSave)
 }
 
+// Add minconfirmations
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 
@@ -115,6 +122,8 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   const outputs = flatMap(transactions, mapTransactionOutputs)
   const addresses = gatherAddresses(outputs)
 
+  // TODO: return true/false depending on highest index
+  // const blocksWithConfirmed = blocks.map()
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
   await saveTransactions(ground, transactions)
 

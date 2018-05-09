@@ -5,7 +5,7 @@ import { LastBlockDao } from "./types";
 import { MonitorConfig, SingleTransactionBlockClient } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
 
-export type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) => Promise<void>
+export type BlockSaver<Block extends IndexedBlock> = (blocks: Block[], minConfirmedBlockIndex: number) => Promise<void>
 
 export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao,
                                                                    client: blockchain.BlockReader<Block>,
@@ -38,7 +38,8 @@ export async function scanBlocks<Block extends IndexedBlock>(blockQueue: Externa
     console.log('Saving blocks', blocks.map((b: any) => b.index).join(', '))
 
     profiler.start('saveBlocks')
-    await saveFullBlocks(blocks)
+    const minConfirmedBlockIndex = blockQueue.getHighestBlockIndex() - config.minConfirmations
+    await saveFullBlocks(blocks, minConfirmedBlockIndex)
     profiler.stop('saveBlocks')
   }
   while (true)

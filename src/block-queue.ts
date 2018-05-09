@@ -17,7 +17,7 @@ export interface IndexedBlock {
 export class ExternalBlockQueue<Block extends IndexedBlock> {
   private blocks: Block[] = []
   private blockIndex: number
-  private highestBlockIndex: number
+  private highestBlockIndex: number | undefined
   private client: blockchain.BlockReader<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
@@ -102,9 +102,9 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   private async update(): Promise<void> {
-    if (this.highestBlockIndex === undefined) {
-      this.highestBlockIndex = await this.client.getHeighestBlockIndex()
-    }
+    // if (this.highestBlockIndex === undefined) {
+    this.highestBlockIndex = await this.client.getHeighestBlockIndex()
+    // }
 
     const remaining = this.highestBlockIndex - this.blockIndex
     let count = Math.min(remaining, this.config.maxSize) - this.requests.length

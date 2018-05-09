@@ -1,6 +1,6 @@
 import { blockchain } from 'vineyard-blockchain';
 import { Modeler } from 'vineyard-data/legacy';
-import { LastBlockDao } from "./types";
+import { LastBlockDao, BlockWithConfirmed } from "./types";
 export declare type AddressMap = {
     [key: string]: number;
 };
@@ -9,7 +9,7 @@ export declare function getOrCreateAddresses2(ground: Modeler, addresses: string
 export declare function getExistingAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap>;
 export declare function saveNewAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap>;
 export declare function arrayDiff<T>(a1: T[], a2: T[]): T[];
-export declare function saveBlocks(ground: Modeler, blocks: blockchain.Block[]): Promise<any>;
+export declare function saveBlocks(ground: Modeler, blocks: BlockWithConfirmed[]): Promise<any>;
 export interface CurrencyResult {
     currency: any;
     tokenContract: blockchain.TokenContract;

@@ -92,6 +92,7 @@ function arrayDiff(a1, a2) {
 exports.arrayDiff = arrayDiff;
 function saveBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
+        // TODO: Add confirmed column
         const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
         let inserts = [];
         for (let block of blocks) {
