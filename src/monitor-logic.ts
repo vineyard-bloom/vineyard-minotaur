@@ -4,6 +4,7 @@ import { BlockQueueConfig, ExternalBlockQueue, IndexedBlock } from "./block-queu
 import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
+import { Modeler } from "vineyard-ground";
 
 export type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) => Promise<void>
 
@@ -20,7 +21,7 @@ export interface BlockSource {
   getBlock(index: number): Promise<blockchain.Block>
 }
 
-export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
+export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): Promise<number | undefined> {
   let highestBlockIndex = await localSource.getHighestBlockIndex()
   let localBlock = await localSource.getBlock(highestBlockIndex)
   let foundInvalidBlocks = false
@@ -38,7 +39,8 @@ export async function findInvalidBlock(localSource: BlockSource, remoteSource: B
   }
 }
 
-export async function validateBlocks(localBlockSource: BlockSource, remoteBlockSource: BlockSource, ground: What) {
+// Use Modeler for ground?
+export async function validateBlocks(localBlockSource: BlockSource, remoteBlockSource: BlockSource, ground: Modeler) {
   const rootInvalidBlock = findInvalidBlock(localBlockSource, remoteBlockSource)
   if (rootInvalidBlock === undefined)
     return
