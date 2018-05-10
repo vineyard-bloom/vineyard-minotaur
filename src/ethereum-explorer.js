@@ -91,7 +91,7 @@ function saveContracts(ground, contracts, addresses) {
             const token = bundle.tokenContract;
             const address = addresses[token.address];
             const contractRecord = contractRecords.filter((c) => c.address === address)[0];
-            if (!contractRecord) // Must be rescanning a block and already have a contract record
+            if (!contractRecord)
                 continue;
             const currency = bundle.currency;
             yield ground.collections.Token.create({
@@ -197,7 +197,7 @@ function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, pr
     return __awaiter(this, void 0, void 0, function* () {
         const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
         const saver = (blocks) => saveFullBlocks(dao, decodeTokenTransfer, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, config, profiler);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;

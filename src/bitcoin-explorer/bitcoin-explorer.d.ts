@@ -13,13 +13,4 @@ export interface AssociatedOutput {
     index: number;
     output: blockchain.TransactionOutput;
 }
-export declare enum ScannedBlockStatus {
-    UpToDate = 0,
-    Outdated = 1,
-    Nonexistent = 2,
-}
-export declare function checkBlockScanStatus(dao: BitcoinMonitorDao, block: {
-    index: number;
-    hash: string;
-}): Promise<ScannedBlockStatus>;
 export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;
