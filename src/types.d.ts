@@ -26,7 +26,6 @@ export declare type LastBlockDelegate = (blockIndex: number) => Promise<BlockInf
 export declare type BlockCurrencyDelegate = (block: BaseBlock) => Promise<void>;
 export declare type AddressIdentityDelegate<Identity> = (externalAddress: string) => Promise<Identity>;
 export interface BlockDao {
-    getBlockByIndex: (index: number) => Promise<blockchain.Block | undefined>;
     saveBlock: BlockCurrencyDelegate;
 }
 export interface LastBlockDaoOld {

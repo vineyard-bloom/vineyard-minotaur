@@ -86,7 +86,7 @@ export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW(), '${block.confirmed}')`)
+    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
   }
 
   const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'

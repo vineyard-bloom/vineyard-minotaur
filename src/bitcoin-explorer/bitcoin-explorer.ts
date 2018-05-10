@@ -3,7 +3,7 @@ import { flatMap } from "../utility/index";
 import { AddressMap, getOrCreateAddresses2, saveBlocks } from "../database-functions";
 import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
-import { createBlockQueue, scanBlocks, validateBlocks } from "../monitor-logic";
+import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
@@ -78,34 +78,6 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
   return [...new Set(outputs.map(o => o.output.address))]
 }
 
-export enum ScannedBlockStatus { UpToDate, Outdated, Nonexistent }
-export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<ScannedBlockStatus> {
-  const { index, hash } = block
-  const retrievedBlock = await dao.blockDao.getBlockByIndex(index)
-  if(!retrievedBlock) return ScannedBlockStatus.Nonexistent
-  if(retrievedBlock.hash !== hash) return ScannedBlockStatus.Outdated
-  return ScannedBlockStatus.UpToDate
-}
-
-async function saveOrDeleteFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
-  const blocksToDelete = []
-  const blocksToSave = []
-
-  for (let i=0; i<blocks.length; i++) {
-    const blockScanStatus = await checkBlockScanStatus(dao, blocks[i])
-    if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
-      blocksToSave.push(blocks[i]) 
-    }
-    else if (blockScanStatus === ScannedBlockStatus.Outdated) { 
-      blocksToDelete.push(blocks[i])
-      blocksToSave.push(blocks[i])
-    }
-  }
-
-  // deleteFullBlocks from database-functions.ts
-  await saveFullBlocks(dao, blocksToSave)
-}
-
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 
@@ -136,8 +108,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
-  await validateBlocks(blockStorage)
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, config, profiler)
+  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }

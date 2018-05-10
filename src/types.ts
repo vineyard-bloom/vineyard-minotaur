@@ -42,7 +42,7 @@ export type BlockCurrencyDelegate = (block: BaseBlock) => Promise<void>
 export type AddressIdentityDelegate<Identity> = (externalAddress: string) => Promise<Identity>
 
 export interface BlockDao {
-  getBlockByIndex: (index: number) => Promise<blockchain.Block | undefined>
+  // getBlockByIndex: (index: number) => Promise<blockchain.Block | undefined>
   saveBlock: BlockCurrencyDelegate
 }
 

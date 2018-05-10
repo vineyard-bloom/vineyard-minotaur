@@ -60,42 +60,6 @@ function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
-var ScannedBlockStatus;
-(function (ScannedBlockStatus) {
-    ScannedBlockStatus[ScannedBlockStatus["UpToDate"] = 0] = "UpToDate";
-    ScannedBlockStatus[ScannedBlockStatus["Outdated"] = 1] = "Outdated";
-    ScannedBlockStatus[ScannedBlockStatus["Nonexistent"] = 2] = "Nonexistent";
-})(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
-function checkBlockScanStatus(dao, block) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { index, hash } = block;
-        const retrievedBlock = yield dao.blockDao.getBlockByIndex(index);
-        if (!retrievedBlock)
-            return ScannedBlockStatus.Nonexistent;
-        if (retrievedBlock.hash !== hash)
-            return ScannedBlockStatus.Outdated;
-        return ScannedBlockStatus.UpToDate;
-    });
-}
-exports.checkBlockScanStatus = checkBlockScanStatus;
-function saveOrDeleteFullBlocks(dao, blocks) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const blocksToDelete = [];
-        const blocksToSave = [];
-        for (let i = 0; i < blocks.length; i++) {
-            const blockScanStatus = yield checkBlockScanStatus(dao, blocks[i]);
-            if (blockScanStatus === ScannedBlockStatus.Nonexistent) {
-                blocksToSave.push(blocks[i]);
-            }
-            else if (blockScanStatus === ScannedBlockStatus.Outdated) {
-                blocksToDelete.push(blocks[i]);
-                blocksToSave.push(blocks[i]);
-            }
-        }
-        // deleteFullBlocks from database-functions.ts
-        yield saveFullBlocks(dao, blocksToSave);
-    });
-}
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
@@ -119,10 +83,9 @@ function saveFullBlocks(dao, blocks) {
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield monitor_logic_1.validateBlocks(blockStorage);
         const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
         const saver = (blocks) => saveFullBlocks(dao, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, config, profiler);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
     });
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;

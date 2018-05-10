@@ -27,7 +27,7 @@ describe('bitcoin block saving test', function () {
     const block = await model.Block.create(newBlock)
 
     const scannedBlockStatus = await checkBlockScanStatus(dao, block)
-    assert.equal(ScannedBlockStatus.UpToDate, scannedBlockStatus)
+    assert.equal(ScannedBlockStatus.same, scannedBlockStatus)
   })
 
   it('can detect when block has  been rescanned with changes', async function () {
@@ -35,12 +35,12 @@ describe('bitcoin block saving test', function () {
     const block = await model.Block.create(newBlock)
 
     const scannedBlockStatus = await checkBlockScanStatus(dao, {index: block.index, hash: 'newHash'})
-    assert.equal(ScannedBlockStatus.Outdated, scannedBlockStatus)
+    assert.equal(ScannedBlockStatus.replaced, scannedBlockStatus)
   })
 
   it('can detect when block has never been scanned', async function () {
     const scannedBlockStatus = await checkBlockScanStatus(dao, {index: 1, hash: 'originalHash'})
-    assert.equal(ScannedBlockStatus.Nonexistent, scannedBlockStatus)
+    assert.equal(ScannedBlockStatus._new, scannedBlockStatus)
   })
 
   it('can delete one of two saved blocks', async function () {
