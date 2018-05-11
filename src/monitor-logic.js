@@ -17,10 +17,10 @@ var ScannedBlockStatus;
     ScannedBlockStatus[ScannedBlockStatus["same"] = 1] = "same";
     ScannedBlockStatus[ScannedBlockStatus["replaced"] = 2] = "replaced";
 })(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
-function createBlockQueue(lastBlockDao, client, queueConfig) {
+function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
-        return new block_queue_1.ExternalBlockQueue(client, blockIndex, queueConfig);
+        return new block_queue_1.ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig);
     });
 }
 exports.createBlockQueue = createBlockQueue;
@@ -70,8 +70,9 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new u
                 .map(blockMapper);
             const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
                 .map(blockMapper);
+            // TODO: Delete the replaced blocks
             profiler.start('saveBlocks');
-            yield saveFullBlocks(newBlocks);
+            yield saveFullBlocks(newBlocks.concat(replacedBlocks));
             profiler.stop('saveBlocks');
         } while (true);
     });

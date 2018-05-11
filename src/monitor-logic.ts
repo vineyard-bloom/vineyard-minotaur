@@ -20,9 +20,10 @@ export interface IndexedHashedBlock extends IndexedBlock {
 
 export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao,
                                                                    client: blockchain.BlockReader<Block>,
-                                                                   queueConfig: BlockQueueConfig) {
+                                                                   queueConfig: BlockQueueConfig,
+                                                                   minConfirmations: number) {
   let blockIndex = await getNextBlock(lastBlockDao)
-  return new ExternalBlockQueue(client, blockIndex, queueConfig)
+  return new ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig)
 }
 
 export interface BlockSource {
@@ -113,8 +114,10 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
       .map(blockMapper)
 
+    // TODO: Delete the replaced blocks
+
     profiler.start('saveBlocks')
-    await saveFullBlocks(newBlocks)
+    await saveFullBlocks(newBlocks.concat(replacedBlocks))
     profiler.stop('saveBlocks')
   }
   while (true)
