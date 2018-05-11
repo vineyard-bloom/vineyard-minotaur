@@ -13,6 +13,7 @@ async function main(resetDb?: string) {
     await resetBtcScanDb(village)
   }
 
+  // Pass minConfirmations in with config?
   await startBitcoinMonitor(village, {
     queue: { maxSize: 10, minSize: 5 },
   })

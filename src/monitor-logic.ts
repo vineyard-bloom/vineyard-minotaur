@@ -114,7 +114,6 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
       .map(blockMapper)
 
-    // TODO: Delete the replaced blocks
     profiler.start('deleteBlocks')
     await deleteFullBlocks(ground, replacedBlocks.map(block => block.index))
     profiler.stop('deleteBlocks')

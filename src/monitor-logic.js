@@ -70,7 +70,6 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new u
                 .map(blockMapper);
             const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
                 .map(blockMapper);
-            // TODO: Delete the replaced blocks
             profiler.start('deleteBlocks');
             yield database_functions_1.deleteFullBlocks(ground, replacedBlocks.map(block => block.index));
             profiler.stop('deleteBlocks');

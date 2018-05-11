@@ -13,4 +13,4 @@ export interface AssociatedOutput {
     index: number;
     output: blockchain.TransactionOutput;
 }
-export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+export declare function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao, client: MultiTransactionBlockClient, config: MonitorConfig, profiler: Profiler | undefined, minConfirmations: number): Promise<any>;

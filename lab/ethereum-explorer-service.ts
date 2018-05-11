@@ -10,6 +10,7 @@ import { decodeTokenTransfer } from "vineyard-ethereum/src/client-functions"
 
 export type EthereumVillage = MinotaurVillage<EthereumModel, EthereumConfig>
 
+// Pass minConfirmations in with config?
 export async function startEthereumMonitor(village: EthereumVillage, config: MonitorConfig) {
   try {
     const model = village.model
@@ -19,7 +20,7 @@ export async function startEthereumMonitor(village: EthereumVillage, config: Mon
     const transactionDao = createSingleCurrencyTransactionDao(model)
     console.log('Starting cron')
     const profiler = new SimpleProfiler()
-    await scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler)
+    await scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler, minConfirmations)
     profiler.logFlat()
   }
   catch (error) {

@@ -106,9 +106,10 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
 export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 client: MultiTransactionBlockClient,
                                                 config: MonitorConfig,
-                                                profiler: Profiler = new EmptyProfiler()): Promise<any> {
+                                                profiler: Profiler = new EmptyProfiler(),
+                                                minConfirmations: number): Promise<any> {
 
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, minConfirmations)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }

@@ -15,6 +15,7 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const village = yield lab_1.createEthereumVillage(config_1.localConfig);
         console.log('Initialized village');
+        // Pass minConfirmations in with config?
         yield lab_1.startEthereumMonitor(village, {
             queue: { maxSize: 10, minSize: 5 },
         });

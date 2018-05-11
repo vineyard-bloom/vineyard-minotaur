@@ -193,9 +193,9 @@ function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
         console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
-function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler()) {
+function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler(), minConfirmations) {
     return __awaiter(this, void 0, void 0, function* () {
-        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
+        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, minConfirmations);
         const saver = (blocks) => saveFullBlocks(dao, decodeTokenTransfer, blocks);
         return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
     });

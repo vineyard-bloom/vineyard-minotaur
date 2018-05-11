@@ -41,4 +41,4 @@ export interface MonitorConfig {
     maxMilliseconds?: number;
     maxBlocksPerScan?: number;
 }
-export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler: Profiler | undefined, minConfirmations: number): Promise<any>;
