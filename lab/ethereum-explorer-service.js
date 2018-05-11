@@ -13,10 +13,13 @@ const src_1 = require("../src");
 const utility_1 = require("../src/utility");
 const block_reader_1 = require("vineyard-ethereum/src/block-reader");
 const client_functions_1 = require("vineyard-ethereum/src/client-functions");
-// Pass minConfirmations in with config?
 function startEthereumMonitor(village, config) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const defaults = {
+                minConfirmations: 12
+            };
+            const appliedConfig = Object.assign({}, defaults, config);
             const model = village.model;
             const ethereumConfig = village.config.ethereum;
             const client = block_reader_1.EthereumBlockReader.createFromConfig(ethereumConfig.client);
@@ -24,7 +27,7 @@ function startEthereumMonitor(village, config) {
             const transactionDao = src_1.createSingleCurrencyTransactionDao(model);
             console.log('Starting cron');
             const profiler = new utility_1.SimpleProfiler();
-            yield src_1.scanEthereumExplorerBlocks(dao, client, client_functions_1.decodeTokenTransfer, config, profiler, minConfirmations);
+            yield src_1.scanEthereumExplorerBlocks(dao, client, client_functions_1.decodeTokenTransfer, appliedConfig, profiler);
             profiler.logFlat();
         }
         catch (error) {

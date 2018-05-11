@@ -13,15 +13,18 @@ const src_1 = require("../src");
 const utility_1 = require("../src/utility");
 const schema_1 = require("../src/schema");
 const bitcoin_model_1 = require("../src/bitcoin-explorer/bitcoin-model");
-// Pass minConfirmations in with config?
 function startBitcoinMonitor(village, config) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const defaults = {
+                minConfirmations: 7
+            };
+            const appliedConfig = Object.assign({}, defaults, config);
             const { model, client } = village;
             const dao = bitcoin_model_1.createBitcoinExplorerDao(model);
             console.log('Starting cron');
             const profiler = new utility_1.SimpleProfiler();
-            yield src_1.scanBitcoinExplorerBlocks(dao, client, config, profiler, minConfirmations);
+            yield src_1.scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler);
             profiler.logFlat();
         }
         catch (error) {

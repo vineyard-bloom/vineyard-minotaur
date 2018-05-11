@@ -1,5 +1,6 @@
 import { blockchain, BlockInfo } from "vineyard-blockchain"
 import { BigNumber } from 'bignumber.js'
+import { MonitorConfig } from ".";
 
 export interface BaseAddress<Identity> {
   id: Identity

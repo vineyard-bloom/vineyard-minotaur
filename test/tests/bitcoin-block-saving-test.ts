@@ -1,12 +1,12 @@
 import { assert } from 'chai'
-import { checkBlockScanStatus, deleteFullBlocks } from "../../src";
+import { deleteFullBlocks } from "../../src";
 import { BitcoinModel, createBitcoinExplorerDao, BitcoinMonitorDao } from '../../src/bitcoin-explorer/bitcoin-model';
 import { createBitcoinVillage } from "../../lab/bitcoin-explorer-service"
 import { bitcoinConfig } from "../../config/config-btc"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { DevModeler } from "vineyard-ground/source/modeler"
-import { ScannedBlockStatus } from "../../src/bitcoin-explorer/bitcoin-explorer"
 import { randomBlock, randomBitcoinTransaction, randomBitcoinTxIn, randomBitcoinTxOut } from './random-type-helpers';
+import { ScannedBlockStatus } from '../../src/monitor-logic';
 
 describe('bitcoin block saving test', function () {
   let model: BitcoinModel
@@ -22,26 +22,27 @@ describe('bitcoin block saving test', function () {
     await (model.ground as DevModeler).regenerate()
   })
 
-  it('can detect when block has been rescanned with no changes', async function () {
-    const newBlock = randomBlock()
-    const block = await model.Block.create(newBlock)
+  // scannedBlockStatus is now set in scanBlocks()
+  // it('can detect when block has been rescanned with no changes', async function () {
+  //   const newBlock = randomBlock()
+  //   const block = await model.Block.create(newBlock)
 
-    const scannedBlockStatus = await checkBlockScanStatus(dao, block)
-    assert.equal(ScannedBlockStatus.same, scannedBlockStatus)
-  })
+  //   const scannedBlockStatus = await checkBlockScanStatus(dao, block)
+  //   assert.equal(ScannedBlockStatus.same, scannedBlockStatus)
+  // })
 
-  it('can detect when block has  been rescanned with changes', async function () {
-    const newBlock = randomBlock()
-    const block = await model.Block.create(newBlock)
+  // it('can detect when block has  been rescanned with changes', async function () {
+  //   const newBlock = randomBlock()
+  //   const block = await model.Block.create(newBlock)
 
-    const scannedBlockStatus = await checkBlockScanStatus(dao, {index: block.index, hash: 'newHash'})
-    assert.equal(ScannedBlockStatus.replaced, scannedBlockStatus)
-  })
+  //   const scannedBlockStatus = await checkBlockScanStatus(dao, {index: block.index, hash: 'newHash'})
+  //   assert.equal(ScannedBlockStatus.replaced, scannedBlockStatus)
+  // })
 
-  it('can detect when block has never been scanned', async function () {
-    const scannedBlockStatus = await checkBlockScanStatus(dao, {index: 1, hash: 'originalHash'})
-    assert.equal(ScannedBlockStatus._new, scannedBlockStatus)
-  })
+  // it('can detect when block has never been scanned', async function () {
+  //   const scannedBlockStatus = await checkBlockScanStatus(dao, {index: 1, hash: 'originalHash'})
+  //   assert.equal(ScannedBlockStatus._new, scannedBlockStatus)
+  // })
 
   it('can delete one of two saved blocks', async function () {
     const blockOne = randomBlock()
@@ -49,7 +50,7 @@ describe('bitcoin block saving test', function () {
     await model.Block.create(blockOne)
     await model.Block.create(blockTwo)
 
-    await deleteFullBlocks(model.ground, [ blockOne ])
+    await deleteFullBlocks(model.ground, [ blockOne.index ])
     assert(!await model.Block.get(blockOne.index))
     assert(await model.Block.get(blockTwo.index))
   })
@@ -67,7 +68,7 @@ describe('bitcoin block saving test', function () {
     await model.Block.create(blockFour)
     await model.Block.create(blockFive)
 
-    await deleteFullBlocks(model.ground, [ blockOne, blockTwo, blockThree ])
+    await deleteFullBlocks(model.ground, [ blockOne.index, blockTwo.index, blockThree.index ])
 
     assert(!await model.Block.get(blockOne.index))
     assert(!await model.Block.get(blockTwo.index))
@@ -103,7 +104,7 @@ describe('bitcoin block saving test', function () {
     await model.TxIn.create(txInTwo)
     await model.TxOut.create(txOutTwo)
 
-    await deleteFullBlocks(model.ground, [ blockOne ])
+    await deleteFullBlocks(model.ground, [ blockOne.index ])
 
     assert(!await model.Transaction.get(transactionOneOne.id))
     assert(!await model.Transaction.get(transactionOneTwo.id))
@@ -163,7 +164,7 @@ describe('bitcoin block saving test', function () {
     await model.TxIn.create(txInFive)
     await model.TxOut.create(txOutFive)
 
-    await deleteFullBlocks(model.ground, [ blockOne, blockTwo, blockThree ])
+    await deleteFullBlocks(model.ground, [ blockOne.index, blockTwo.index, blockThree.index ])
 
     assert(!await model.Transaction.get(transactionOne.id))
     assert(!await model.Transaction.get(transactionOne.id))

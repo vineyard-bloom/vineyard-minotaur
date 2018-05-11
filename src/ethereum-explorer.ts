@@ -76,13 +76,18 @@ export function createEthereumExplorerDao(model: EthereumModel): EthereumMonitor
   }
 }
 
-export interface MonitorConfig {
+export interface OptionalMonitorConfig {
   queue: {
-    maxSize: number,
+    maxSize: number
     minSize: number
   }
-  maxMilliseconds?: number,
+  minConfirmations?: number
+  maxMilliseconds?: number
   maxBlocksPerScan?: number
+}
+
+export interface MonitorConfig extends OptionalMonitorConfig {
+  minConfirmations: number
 }
 
 function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[], tokenTransfers: TokenTransferBundle[]) {
@@ -275,9 +280,8 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  client: SingleTransactionBlockClient,
                                                  decodeTokenTransfer: blockchain.EventDecoder,
                                                  config: MonitorConfig,
-                                                 profiler: Profiler = new EmptyProfiler(),
-                                                 minConfirmations: number): Promise<any> {
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, minConfirmations)
+                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, decodeTokenTransfer, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }
