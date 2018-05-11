@@ -139,13 +139,10 @@ function saveSingleTransactions(ground, transactions, addresses) {
     return ground.querySingle(sql);
 }
 exports.saveSingleTransactions = saveSingleTransactions;
-function deleteFullBlocks(ground, blocks) {
+function deleteFullBlocks(ground, indexes) {
     return __awaiter(this, void 0, void 0, function* () {
         const header = 'DELETE FROM blocks WHERE index IN ';
-        const indexesClause = blocks.map(block => {
-            return block.index;
-        }).join(', ');
-        const sql = header + '(' + indexesClause + ');';
+        const sql = header + '(' + indexes.join(', ') + ');';
         yield ground.querySingle(sql);
     });
 }

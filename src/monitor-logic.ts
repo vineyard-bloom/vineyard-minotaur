@@ -1,4 +1,4 @@
-import { getNextBlock } from "./database-functions";
+import { getNextBlock, deleteFullBlocks } from "./database-functions";
 import { EmptyProfiler, Profiler } from "./utility";
 import { BlockQueueConfig, ExternalBlockQueue, IndexedBlock } from "./block-queue";
 import { LastBlockDao } from "./types";
@@ -115,6 +115,9 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
       .map(blockMapper)
 
     // TODO: Delete the replaced blocks
+    profiler.start('deleteBlocks')
+    await deleteFullBlocks(ground, replacedBlocks.map(block => block.index))
+    profiler.stop('deleteBlocks')
 
     profiler.start('saveBlocks')
     await saveFullBlocks(newBlocks.concat(replacedBlocks))
