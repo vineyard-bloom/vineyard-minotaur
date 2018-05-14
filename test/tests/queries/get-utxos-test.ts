@@ -20,8 +20,7 @@ describe('get-utxos', function () {
   let model: BitcoinModel
 
   before(async function(){
-    const bitcoinConfig = bitcoinConfig.bitcoin
-    village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
+    village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig.bitcoin))
     model = village.model
   })
 
