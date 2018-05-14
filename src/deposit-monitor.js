@@ -85,7 +85,7 @@ class DepositMonitor {
             do {
                 const offsetAmount = lastBlock && lastBlock.blockIndex !== undefined ? lastBlock.blockIndex - this.minimumConfirmations : 0;
                 const offsetBlock = offsetAmount > 0 ? offsetAmount : 0;
-                yield this.gatherTransactions({ blockIndex: lastBlock.index });
+                yield this.gatherTransactions({ blockIndex: lastBlock.blockIndex });
                 lastBlock = yield this.gatherTransactions(lastBlock);
             } while (lastBlock);
         });

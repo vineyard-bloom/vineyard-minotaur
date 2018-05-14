@@ -92,7 +92,7 @@ export class DepositMonitor {
     do {
       const offsetAmount = lastBlock && lastBlock.blockIndex !== undefined ? lastBlock.blockIndex - this.minimumConfirmations : 0
       const offsetBlock = offsetAmount > 0 ? offsetAmount : 0
-      await this.gatherTransactions({ blockIndex: lastBlock.index})
+      await this.gatherTransactions({ blockIndex: lastBlock!.blockIndex} as any)
       lastBlock = await this.gatherTransactions(lastBlock)
     } while (lastBlock)
   }
