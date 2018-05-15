@@ -1,8 +1,10 @@
 .idea
+.vscode
 node_modules
 npm-*
 test/**/*.js
 test/**/*.d.ts
+test/config/config.*
 config-btc.*
 config-eth.*
 config.*

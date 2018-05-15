@@ -132,3 +132,9 @@ export function saveSingleTransactions(ground: any, transactions: blockchain.Sin
   const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
   return ground.querySingle(sql)
 }
+
+export async function deleteFullBlocks(ground: any, indexes: number[]): Promise<void> {
+  const header = 'DELETE FROM blocks WHERE index IN '
+  const sql = header + '(' + indexes.join(', ') + ');'
+  await ground.querySingle(sql)
+}

@@ -17,7 +17,7 @@ export interface IndexedBlock {
 export class ExternalBlockQueue<Block extends IndexedBlock> {
   private blocks: Block[] = []
   private blockIndex: number
-  private highestBlockIndex: number
+  private highestBlockIndex: number | undefined
   private client: blockchain.BlockReader<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []

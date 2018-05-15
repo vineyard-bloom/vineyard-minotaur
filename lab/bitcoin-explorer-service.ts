@@ -1,5 +1,5 @@
 import { createVillage, MinotaurVillage } from "./village";
-import { MonitorConfig, scanBitcoinExplorerBlocks } from "../src"
+import { OptionalMonitorConfig, scanBitcoinExplorerBlocks } from "../src"
 import { SimpleProfiler } from "../src/utility"
 import { BitcoinConfig, FullConfig } from "./config-types";
 import { getBitcoinExplorerSchema } from "../src/schema";
@@ -8,14 +8,19 @@ import { MultiTransactionBlockClient } from "../src/bitcoin-explorer/bitcoin-exp
 
 export type BitcoinVillage = MinotaurVillage<BitcoinModel, BitcoinConfig> & { client: MultiTransactionBlockClient }
 
-export async function startBitcoinMonitor(village: BitcoinVillage, config: MonitorConfig) {
+export async function startBitcoinMonitor(village: BitcoinVillage, config: OptionalMonitorConfig) {
   try {
+    const defaults = {
+      minConfirmations: 7
+    }
+    const appliedConfig = Object.assign({}, defaults, config)
+    
     const { model, client } = village
 
     const dao = createBitcoinExplorerDao(model)
     console.log('Starting cron')
     const profiler = new SimpleProfiler()
-    await scanBitcoinExplorerBlocks(dao, client, config, profiler)
+    await scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler)
     profiler.logFlat()
   }
   catch (error) {

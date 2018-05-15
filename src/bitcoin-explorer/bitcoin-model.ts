@@ -12,6 +12,7 @@ export interface BitcoinMonitorDao extends MonitorDao {
 export function createBitcoinExplorerDao(model: BitcoinModel): BitcoinMonitorDao {
   return {
     blockDao: {
+      // getBlockByIndex: (index: number) => model.Block.get(index).exec(),
       saveBlock: (block: BaseBlock) => saveSingleCurrencyBlock(model.Block, block)
     },
     lastBlockDao: createIndexedLastBlockDao(model.ground, 1),

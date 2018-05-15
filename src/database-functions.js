@@ -139,4 +139,12 @@ function saveSingleTransactions(ground, transactions, addresses) {
     return ground.querySingle(sql);
 }
 exports.saveSingleTransactions = saveSingleTransactions;
+function deleteFullBlocks(ground, indexes) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const header = 'DELETE FROM blocks WHERE index IN ';
+        const sql = header + '(' + indexes.join(', ') + ');';
+        yield ground.querySingle(sql);
+    });
+}
+exports.deleteFullBlocks = deleteFullBlocks;
 //# sourceMappingURL=database-functions.js.map

@@ -63,6 +63,7 @@ function gatherAddresses(outputs) {
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
+        // Can save to sortedBlocks var and set lasBlockIndex
         const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
@@ -72,6 +73,7 @@ function saveFullBlocks(dao, blocks) {
         yield saveTransactions(ground, transactions);
         yield Promise.all([
             database_functions_1.saveBlocks(ground, blocks),
+            // Add param for oldest block being saved
             dao.lastBlockDao.setLastBlock(lastBlockIndex),
             saveTransactionInputs(ground, inputs),
             saveTransactionOutputs(ground, outputs, addressesFromDb)
@@ -81,9 +83,9 @@ function saveFullBlocks(dao, blocks) {
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
-        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue);
+        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
         const saver = (blocks) => saveFullBlocks(dao, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, config, profiler);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
     });
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;

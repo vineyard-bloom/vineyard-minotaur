@@ -16,11 +16,15 @@ const bitcoin_model_1 = require("../src/bitcoin-explorer/bitcoin-model");
 function startBitcoinMonitor(village, config) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const defaults = {
+                minConfirmations: 7
+            };
+            const appliedConfig = Object.assign({}, defaults, config);
             const { model, client } = village;
             const dao = bitcoin_model_1.createBitcoinExplorerDao(model);
             console.log('Starting cron');
             const profiler = new utility_1.SimpleProfiler();
-            yield src_1.scanBitcoinExplorerBlocks(dao, client, config, profiler);
+            yield src_1.scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler);
             profiler.logFlat();
         }
         catch (error) {

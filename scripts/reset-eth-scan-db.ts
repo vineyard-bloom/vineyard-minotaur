@@ -2,7 +2,7 @@ import { createEthereumVillage } from "../lab/ethereum-explorer-service"
 import { Modeler } from "vineyard-data/legacy"
 import { DevModeler } from "vineyard-ground/source/modeler"
 import { EthereumConfig, FullConfig } from "../lab/config-types"
-import { ethereumConfig } from "../config/config-eth"
+import { ethereumConfig } from "../config/config"
 
 export async function resetEthScanDb(config: EthereumConfig): Promise<void> {
   if(!config.database.devMode) throw new Error('Can only reset db in devMode.')

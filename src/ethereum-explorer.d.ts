@@ -33,12 +33,16 @@ export interface EthereumMonitorDao extends MonitorDao {
 export declare function getOrCreateAddressReturningId(addressCollection: Collection<Address>, externalAddress: string): Promise<number>;
 export declare function createSingleCurrencyTransactionDao(model: EthereumModel): TransactionDao<EthereumTransaction>;
 export declare function createEthereumExplorerDao(model: EthereumModel): EthereumMonitorDao;
-export interface MonitorConfig {
+export interface OptionalMonitorConfig {
     queue: {
         maxSize: number;
         minSize: number;
     };
+    minConfirmations?: number;
     maxMilliseconds?: number;
     maxBlocksPerScan?: number;
+}
+export interface MonitorConfig extends OptionalMonitorConfig {
+    minConfirmations: number;
 }
 export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;

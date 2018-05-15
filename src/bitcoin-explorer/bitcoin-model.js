@@ -5,6 +5,7 @@ const explorer_helpers_1 = require("../explorer-helpers");
 function createBitcoinExplorerDao(model) {
     return {
         blockDao: {
+            // getBlockByIndex: (index: number) => model.Block.get(index).exec(),
             saveBlock: (block) => explorer_helpers_1.saveSingleCurrencyBlock(model.Block, block)
         },
         lastBlockDao: monitor_dao_1.createIndexedLastBlockDao(model.ground, 1),

@@ -81,6 +81,7 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 
+  // Can save to sortedBlocks var and set lasBlockIndex
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
   const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)
@@ -92,6 +93,7 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
 
   await Promise.all([
       saveBlocks(ground, blocks),
+      // Add param for oldest block being saved
       dao.lastBlockDao.setLastBlock(lastBlockIndex),
       saveTransactionInputs(ground, inputs),
       saveTransactionOutputs(ground, outputs, addressesFromDb)
@@ -106,7 +108,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, config, profiler)
+  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }

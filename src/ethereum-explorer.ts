@@ -6,10 +6,7 @@ import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
 import {
-  AddressMap,
-  getOrCreateAddresses,
-  saveBlocks,
-  saveCurrencies,
+  AddressMap, getOrCreateAddresses, saveBlocks, saveCurrencies,
   saveSingleTransactions
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
@@ -79,13 +76,18 @@ export function createEthereumExplorerDao(model: EthereumModel): EthereumMonitor
   }
 }
 
-export interface MonitorConfig {
+export interface OptionalMonitorConfig {
   queue: {
-    maxSize: number,
+    maxSize: number
     minSize: number
   }
-  maxMilliseconds?: number,
+  minConfirmations?: number
+  maxMilliseconds?: number
   maxBlocksPerScan?: number
+}
+
+export interface MonitorConfig extends OptionalMonitorConfig {
+  minConfirmations: number
 }
 
 function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[], tokenTransfers: TokenTransferBundle[]) {
@@ -279,7 +281,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  decodeTokenTransfer: blockchain.EventDecoder,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, decodeTokenTransfer, blocks)
-  return scanBlocks(blockQueue, saver, config, profiler)
+  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }

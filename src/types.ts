@@ -1,5 +1,6 @@
 import { blockchain, BlockInfo } from "vineyard-blockchain"
 import { BigNumber } from 'bignumber.js'
+import { MonitorConfig } from ".";
 
 export interface BaseAddress<Identity> {
   id: Identity
@@ -42,6 +43,7 @@ export type BlockCurrencyDelegate = (block: BaseBlock) => Promise<void>
 export type AddressIdentityDelegate<Identity> = (externalAddress: string) => Promise<Identity>
 
 export interface BlockDao {
+  // getBlockByIndex: (index: number) => Promise<blockchain.Block | undefined>
   saveBlock: BlockCurrencyDelegate
 }
 

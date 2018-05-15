@@ -1,4 +1,4 @@
-import { localConfig } from "../config/config"
+import { bitcoinConfig } from "../config/config"
 import { assert } from 'chai'
 import { BitcoinVillage, createBitcoinVillage, startBitcoinMonitor } from "../../lab"
 import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
@@ -19,10 +19,10 @@ describe('btc-scan', function () {
   let rpcClient: any
 
   before(async function(){
-    const bitcoinConfig = localConfig.bitcoin
-    village = await createBitcoinVillage(localConfig, BitcoinBlockReader.createFromConfig(bitcoinConfig))
+    const configOptions = bitcoinConfig.bitcoin
+    village = await createBitcoinVillage(bitcoinConfig, BitcoinBlockReader.createFromConfig(configOptions))
     model = village.model
-    const { username: user, password: pass, ...common } = bitcoinConfig
+    const { username: user, password: pass, ...common } = configOptions
     const classicalBitcoinConfig = { user, pass, ...common }
   })
 

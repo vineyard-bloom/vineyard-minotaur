@@ -41,10 +41,10 @@ async function saveFullBlocks(dao: EthereumMonitorDao, blocks: FullBlock[]): Pro
 }
 
 export async function scanMiniBlocks(dao: EthereumMonitorDao,
-                                                 client: SingleTransactionBlockClient,
-                                                 config: MonitorConfig,
-                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue)
+                                     client: SingleTransactionBlockClient,
+                                     config: MonitorConfig,
+                                     profiler: Profiler = new EmptyProfiler()): Promise<any> {
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, config, profiler)
+  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }
