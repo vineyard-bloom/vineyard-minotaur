@@ -2,7 +2,7 @@ import { assert } from 'chai'
 import { deleteFullBlocks } from "../../src";
 import { BitcoinModel, createBitcoinExplorerDao, BitcoinMonitorDao } from '../../src/bitcoin-explorer/bitcoin-model';
 import { createBitcoinVillage } from "../../lab/bitcoin-explorer-service"
-import { bitcoinConfig } from "../../config/config-btc"
+import { bitcoinConfig } from "../../config/config"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { DevModeler } from "vineyard-ground/source/modeler"
 import { randomBlock, randomBitcoinTransaction, randomBitcoinTxIn, randomBitcoinTxOut } from './random-type-helpers';

@@ -1,4 +1,4 @@
-import { localConfig } from "../config/config"
+import { ethereumConfig } from "../config/config"
 
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
@@ -74,7 +74,7 @@ describe('eth-scan', function () {
   let model: EthereumModel
 
   beforeEach(async function () {
-    village = await createEthereumVillage(localConfig)
+    village = await createEthereumVillage(ethereumConfig)
     model = village.model
     await (model.ground as any).regenerate()
     await model.Currency.create({ name: 'Bitcoin' })

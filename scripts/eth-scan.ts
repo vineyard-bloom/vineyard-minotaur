@@ -1,6 +1,6 @@
 require('source-map-support').install()
 import { createEthereumVillage, startEthereumMonitor } from "../lab"
-import { ethereumConfig } from '../config/config-eth'
+import { ethereumConfig } from '../config/config'
 import {Cron} from 'vineyard-cron'
 
 async function main(): Promise<void> {
@@ -17,6 +17,6 @@ const ethereumCron = new Cron([
     name: 'Ethereum Scanner',
     action: () => main()
   }
-], ethereumConfig.cronInterval)
+], ethereumConfig.interval)
 
 ethereumCron.start()

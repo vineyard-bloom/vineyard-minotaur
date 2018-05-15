@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
-const config_btc_1 = require("../config/config-btc");
+const config_1 = require("../config/config");
 const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
 function resetBtcScanDb(village) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,7 +25,7 @@ function resetBtcScanDb(village) {
 }
 exports.resetBtcScanDb = resetBtcScanDb;
 if (require.main === module) {
-    bitcoin_explorer_service_1.createBitcoinVillage(config_btc_1.bitcoinConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(config_btc_1.bitcoinConfig.bitcoin))
+    bitcoin_explorer_service_1.createBitcoinVillage(config_1.bitcoinConfig, bitcoin_block_reader_1.BitcoinBlockReader.createFromConfig(config_1.bitcoinConfig.bitcoin))
         .then(resetBtcScanDb)
         .then(() => process.exit(0));
 }

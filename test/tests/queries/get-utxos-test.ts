@@ -1,6 +1,6 @@
 import { BitcoinVillage, createBitcoinVillage } from "../../../lab/bitcoin-explorer-service"
 import { BitcoinModel, BitcoinTransaction, TxOut, TxIn } from "../../../src/bitcoin-explorer/bitcoin-model"
-import { bitcoinConfig } from "../../../config/config-btc"
+import { bitcoinConfig } from "../../../config/config"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { resetBtcScanDb } from "../../../scripts/reset-btc-scan-db"
 import { Omit } from "vineyard-bitcoin/src/types"

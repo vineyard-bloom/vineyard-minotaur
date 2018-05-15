@@ -1,7 +1,7 @@
 import { Modeler } from "vineyard-data/legacy"
 import { DevModeler } from "vineyard-ground/source/modeler"
 import { BitcoinVillage, createBitcoinVillage } from "../lab/bitcoin-explorer-service"
-import { bitcoinConfig } from "../config/config-btc"
+import { bitcoinConfig } from "../config/config"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 
 export async function resetBtcScanDb(village: BitcoinVillage): Promise<void> {

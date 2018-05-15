@@ -1,5 +1,5 @@
 import { createBitcoinVillage, startBitcoinMonitor } from "../lab/bitcoin-explorer-service"
-import { bitcoinConfig } from '../config/config-btc'
+import { bitcoinConfig } from '../config/config'
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { resetBtcScanDb } from "./reset-btc-scan-db"
 import {Cron} from 'vineyard-cron'
@@ -19,12 +19,11 @@ async function main(resetDb?: string) {
   })
 }
 
-// main(process.argv[2])
 const bitcoinCron = new Cron([
   {
     name: 'Bitcoin Scanner',
     action: () => main(process.argv[2])
   }
-], bitcoinConfig.cronInterval)
+], bitcoinConfig.interval)
 
 bitcoinCron.start()

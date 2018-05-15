@@ -9,7 +9,7 @@ export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
 
 export type CommonConfig = {
   database: VillageDatabaseConfig,
-  cronInterval: number
+  interval: number
 }
 
 export type BitcoinConfig = CommonConfig & {
