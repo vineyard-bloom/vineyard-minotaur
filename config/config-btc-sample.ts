@@ -16,5 +16,6 @@ export const bitcoinConfig: BitcoinConfig = {
     "password": "password",
     "port": 18332,
     "network": networks.testnet
-  }
+  },
+  cronInterval: 15000
 }

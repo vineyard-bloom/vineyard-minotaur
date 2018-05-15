@@ -20,11 +20,11 @@ async function main(resetDb?: string) {
 }
 
 // main(process.argv[2])
-const btcCron = new Cron([
+const bitcoinCron = new Cron([
   {
     name: 'Bitcoin Scanner',
     action: () => main(process.argv[2])
   }
-], 15000)
+], bitcoinConfig.cronInterval)
 
-btcCron.start()
+bitcoinCron.start()

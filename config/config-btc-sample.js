@@ -16,6 +16,7 @@ exports.bitcoinConfig = {
         "password": "password",
         "port": 18332,
         "network": bitcoinjs_lib_1.networks.testnet
-    }
+    },
+    cronInterval: 15000
 };
 //# sourceMappingURL=config-btc-sample.js.map

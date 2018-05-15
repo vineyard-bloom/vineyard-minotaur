@@ -12,6 +12,7 @@ const bitcoin_explorer_service_1 = require("../lab/bitcoin-explorer-service");
 const config_btc_1 = require("../config/config-btc");
 const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
 const reset_btc_scan_db_1 = require("./reset-btc-scan-db");
+const vineyard_cron_1 = require("vineyard-cron");
 require('source-map-support').install();
 function main(resetDb) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,5 +26,12 @@ function main(resetDb) {
         });
     });
 }
-main(process.argv[2]);
+// main(process.argv[2])
+const bitcoinCron = new vineyard_cron_1.Cron([
+    {
+        name: 'Bitcoin Scanner',
+        action: () => main(process.argv[2])
+    }
+], config_btc_1.bitcoinConfig.cronInterval);
+bitcoinCron.start();
 //# sourceMappingURL=btc-scan.js.map

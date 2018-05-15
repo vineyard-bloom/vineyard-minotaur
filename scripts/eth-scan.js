@@ -10,16 +10,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 require('source-map-support').install();
 const lab_1 = require("../lab");
-const config_1 = require("../config/config");
+const config_eth_1 = require("../config/config-eth");
+const vineyard_cron_1 = require("vineyard-cron");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const village = yield lab_1.createEthereumVillage(config_1.localConfig);
+        const village = yield lab_1.createEthereumVillage(config_eth_1.ethereumConfig);
         console.log('Initialized village');
-        // Pass minConfirmations in with config?
         yield lab_1.startEthereumMonitor(village, {
-            queue: { maxSize: 10, minSize: 5 },
+            queue: { maxSize: 10, minSize: 5 }
         });
     });
 }
-main();
+const ethereumCron = new vineyard_cron_1.Cron([
+    {
+        name: 'Ethereum Scanner',
+        action: () => main()
+    }
+], config_eth_1.ethereumConfig.cronInterval);
+ethereumCron.start();
 //# sourceMappingURL=eth-scan.js.map

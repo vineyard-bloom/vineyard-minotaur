@@ -13,5 +13,6 @@ export const ethereumConfig: EthereumConfig = {
     client: {
       http: "http://35.160.177.94:8545"
     }
-  }
+  },
+  cronInterval: 15000
 }

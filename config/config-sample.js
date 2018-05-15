@@ -13,6 +13,7 @@ exports.ethereumConfig = {
         client: {
             http: "http://35.160.177.94:8545"
         }
-    }
+    },
+    cronInterval: 15000
 };
 //# sourceMappingURL=config-sample.js.map
