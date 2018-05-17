@@ -50,13 +50,7 @@ export interface BlockSource {
 //   }
 // }
 
-export interface BlockComparison {
-  hash: string
-  index: number
-  status: ScannedBlockStatus
-}
-
-export function compareBlockHashes(ground: Modeler, blocks: IndexedHashedBlock[]): PromiseLike<BlockComparison[]> {
+export function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & {status: ScannedBlockStatus})[]> {
   const values: any = blocks.map(block => `(${block.index}, '${block.hash}')`)
 
   const sql = `
@@ -67,7 +61,8 @@ SELECT
     WHEN blocks.hash IS NULL THEN 0
     WHEN temp.hash = blocks.hash THEN 1
     ELSE 2
-   AS status   
+  END
+  AS status   
 FROM (VALUES ${values}) AS temp ("index", "hash")
 LEFT JOIN blocks
 ON temp."index" = blocks."index" 
@@ -77,7 +72,7 @@ ON temp."index" = blocks."index"
 }
 
 
-export function mapBlocks<Block extends IndexedHashedBlock>(fullBlocks: Block[]) {
+export function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T {
   return (simple: IndexedBlock) => fullBlocks.filter(b => b.index == simple.index)[0]
 }
 

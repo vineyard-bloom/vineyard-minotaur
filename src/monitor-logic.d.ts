@@ -18,11 +18,8 @@ export interface BlockSource {
     getHighestBlockIndex(): Promise<number>;
     getBlock(index: number): Promise<blockchain.Block>;
 }
-export interface BlockComparison {
-    hash: string;
-    index: number;
+export declare function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & {
     status: ScannedBlockStatus;
-}
-export declare function compareBlockHashes(ground: Modeler, blocks: IndexedHashedBlock[]): PromiseLike<BlockComparison[]>;
-export declare function mapBlocks<Block extends IndexedHashedBlock>(fullBlocks: Block[]): (simple: IndexedBlock) => Block;
+})[]>;
+export declare function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T;
 export declare function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, ground: Modeler, config: MonitorConfig, profiler?: Profiler): Promise<any>;

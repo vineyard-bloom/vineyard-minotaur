@@ -24,6 +24,23 @@ function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations) {
     });
 }
 exports.createBlockQueue = createBlockQueue;
+// export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
+//   let highestBlockIndex = await localSource.getHighestBlockIndex()
+//   let localBlock = await localSource.getBlock(highestBlockIndex)
+//   let foundInvalidBlocks = false
+//
+//   while (true) {
+//     const remoteBlock = await remoteSource.getBlock(localBlock.index)
+//     if (localBlock.hash == remoteBlock.hash) {
+//       return foundInvalidBlocks
+//         ? localBlock.index + 1
+//         : undefined
+//     }
+//
+//     foundInvalidBlocks = true
+//     localBlock = await localSource.getBlock(localBlock.index - 1)
+//   }
+// }
 function compareBlockHashes(ground, blocks) {
     const values = blocks.map(block => `(${block.index}, '${block.hash}')`);
     const sql = `
@@ -34,7 +51,8 @@ SELECT
     WHEN blocks.hash IS NULL THEN 0
     WHEN temp.hash = blocks.hash THEN 1
     ELSE 2
-   AS status   
+  END
+  AS status   
 FROM (VALUES ${values}) AS temp ("index", "hash")
 LEFT JOIN blocks
 ON temp."index" = blocks."index" 
