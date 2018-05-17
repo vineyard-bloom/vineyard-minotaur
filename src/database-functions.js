@@ -141,6 +141,9 @@ function saveSingleTransactions(ground, transactions, addresses) {
 exports.saveSingleTransactions = saveSingleTransactions;
 function deleteFullBlocks(ground, indexes) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (indexes.length === 0) {
+            return;
+        }
         const header = 'DELETE FROM blocks WHERE index IN ';
         const sql = header + '(' + indexes.join(', ') + ');';
         yield ground.querySingle(sql);

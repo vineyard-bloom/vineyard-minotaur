@@ -55,6 +55,11 @@ describe('bitcoin block saving test', function () {
     assert(await model.Block.get(blockTwo.index))
   })
 
+  it('can delete no blocks at all', async function () {
+    await deleteFullBlocks(model.ground, [])
+  })
+
+
   it('can delete three of five saved blocks', async function () {
     const blockOne = randomBlock()
     const blockTwo = randomBlock()
