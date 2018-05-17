@@ -21,9 +21,10 @@ export interface IndexedHashedBlock extends IndexedBlock {
 export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao,
                                                                    client: blockchain.BlockReader<Block>,
                                                                    queueConfig: BlockQueueConfig,
-                                                                   minConfirmations: number) {
+                                                                   minConfirmations: number,
+                                                                   startingBlockIndex: number) {
   let blockIndex = await getNextBlock(lastBlockDao)
-  return new ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig)
+  return new ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), queueConfig)
 }
 
 export interface BlockSource {

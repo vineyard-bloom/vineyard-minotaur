@@ -108,7 +108,7 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 config: MonitorConfig,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 1)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }

@@ -281,7 +281,7 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  decodeTokenTransfer: blockchain.EventDecoder,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
-  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations)
+  const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 0)
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, decodeTokenTransfer, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
 }
