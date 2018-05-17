@@ -91,10 +91,9 @@ export class DepositMonitor {
   async scanBlocks(): Promise<void> {
     let lastBlock: LastBlock | undefined = await this.model.getLastBlock()
     do {
-      const offsetAmount = !!lastBlock ? lastBlock.blockIndex - this.minimumConfirmations : 0
+      const offsetAmount = lastBlock && !!(lastBlock.blockIndex + 1) ? lastBlock.blockIndex - this.minimumConfirmations : 0
       const offsetBlockIndex = offsetAmount > 0 ? offsetAmount : 0
-      const offsetBlock = await this.client.getNextBlockInfo(offsetBlockIndex)
-      await this.gatherTransactions(lastBlock)
+      await this.gatherTransactions({ blockIndex: offsetBlockIndex})
       lastBlock = await this.gatherTransactions(lastBlock)
     } while (lastBlock)
   }
