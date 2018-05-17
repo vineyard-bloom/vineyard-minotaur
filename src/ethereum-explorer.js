@@ -86,6 +86,7 @@ function saveContracts(ground, contracts, addresses) {
         const tokenContracts = contracts.filter(c => c.contractType == vineyard_blockchain_1.blockchain.ContractType.token);
         if (tokenContracts.length == 0)
             return;
+        // tokenContracts must be passed in as type TokenContracts, must have 'name'
         const currencyContracts = yield database_functions_1.saveCurrencies(ground, tokenContracts);
         for (const bundle of currencyContracts) {
             const token = bundle.tokenContract;

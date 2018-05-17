@@ -119,7 +119,7 @@ async function setAddress(getOrCreateAddress: AddressDelegate, addresses: Addres
   addresses[key] = id
 }
 
-async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], addresses: AddressMap): Promise<void> {
+async function saveContracts(ground: Modeler, contracts: blockchain.TokenContract[], addresses: AddressMap): Promise<void> {
   if (contracts.length == 0)
     return Promise.resolve()
 
@@ -139,6 +139,7 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   if (tokenContracts.length == 0)
     return
 
+  // tokenContracts must be passed in as type TokenContracts, must have 'name'
   const currencyContracts = await saveCurrencies(ground, tokenContracts)
 
   for (const bundle of currencyContracts) {
@@ -161,13 +162,13 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   }
 }
 
-function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
-  let result: blockchain.Contract[] = []
+function gatherNewContracts(blocks: FullBlock[]): blockchain.TokenContract[] {
+  let result: blockchain.TokenContract[] = []
   for (let block of blocks) {
     result = result.concat(
       block.transactions
         .filter(t => t.newContract)
-        .map(t => t.newContract as blockchain.AnyContract)
+        .map(t => t.newContract as blockchain.TokenContract)
     )
   }
   return result

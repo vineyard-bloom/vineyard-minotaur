@@ -106,13 +106,12 @@ function saveCurrencies(ground, tokenContracts) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = [];
         for (let contract of tokenContracts) {
-            const token = contract;
             const record = yield ground.collections.Currency.create({
-                name: token.name
+                name: contract.name
             });
             result.push({
                 currency: record,
-                tokenContract: token
+                tokenContract: contract
             });
         }
         return result;
