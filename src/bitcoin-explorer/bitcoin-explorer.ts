@@ -81,6 +81,11 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
   const { ground } = dao
 
+  if (blocks.length == 0) {
+    await dao.lastBlockDao.setLastBlock(lastBlockIndex)
+    return
+  }
+
   // Can save to sortedBlocks var and set lasBlockIndex
   const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
   const transactions = flatMap(blocks, b => b.transactions)

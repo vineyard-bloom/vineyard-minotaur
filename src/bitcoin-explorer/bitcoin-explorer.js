@@ -63,6 +63,10 @@ function gatherAddresses(outputs) {
 function saveFullBlocks(dao, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const { ground } = dao;
+        if (blocks.length == 0) {
+            yield dao.lastBlockDao.setLastBlock(lastBlockIndex);
+            return;
+        }
         // Can save to sortedBlocks var and set lasBlockIndex
         const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
         const transactions = index_1.flatMap(blocks, b => b.transactions);

@@ -110,12 +110,18 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
       .map(blockMapper)
 
+    const blocksToDelete = replacedBlocks.map(block => block.index)
+    console.log('Deleting blocks', blocksToDelete)
+
     profiler.start('deleteBlocks')
-    await deleteFullBlocks(ground, replacedBlocks.map(block => block.index))
+    await deleteFullBlocks(ground, blocksToDelete)
     profiler.stop('deleteBlocks')
 
+    const blocksToSave = newBlocks.concat(replacedBlocks)
+    console.log('Saving blocks', blocksToSave)
+
     profiler.start('saveBlocks')
-    await saveFullBlocks(newBlocks.concat(replacedBlocks))
+    await saveFullBlocks(blocksToSave)
     profiler.stop('saveBlocks')
   }
   while (true)

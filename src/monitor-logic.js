@@ -88,11 +88,15 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new u
                 .map(blockMapper);
             const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
                 .map(blockMapper);
+            const blocksToDelete = replacedBlocks.map(block => block.index);
+            console.log('Deleting blocks', blocksToDelete);
             profiler.start('deleteBlocks');
-            yield database_functions_1.deleteFullBlocks(ground, replacedBlocks.map(block => block.index));
+            yield database_functions_1.deleteFullBlocks(ground, blocksToDelete);
             profiler.stop('deleteBlocks');
+            const blocksToSave = newBlocks.concat(replacedBlocks);
+            console.log('Saving blocks', blocksToSave);
             profiler.start('saveBlocks');
-            yield saveFullBlocks(newBlocks.concat(replacedBlocks));
+            yield saveFullBlocks(blocksToSave);
             profiler.stop('saveBlocks');
         } while (true);
     });

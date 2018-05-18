@@ -21,10 +21,34 @@ describe('queue test', function () {
 
     const underTest = new ExternalBlockQueue(
       getMockBlockReader(highestBlock),
-      -3,
+      0,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
+      }
+    )
+
+    const firstBlocks = await underTest.getBlocks()
+    assert.equal(firstBlocks.length, 5)
+    const secondBlocks = await underTest.getBlocks()
+    assert.equal(secondBlocks.length, 5)
+    const thirdBlocks = await underTest.getBlocks()
+    assert.equal(thirdBlocks.length, 0)
+  })
+
+  it('test 00 : will work if no blocks received', async function () {
+    this.timeout(25000)
+
+    const highestBlock = 10
+    const getBlocksResponseSize = 10
+    const numberToProcessPerGetBlocksCall = 5
+
+    const underTest = new ExternalBlockQueue(
+      getMockBlockReader(highestBlock),
+      0,
+      {
+        maxSize: 1,
+        minSize: 20
       }
     )
 
