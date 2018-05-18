@@ -91,7 +91,7 @@ function saveContracts(ground, contracts, addresses) {
             const token = bundle.tokenContract;
             const address = addresses[token.address];
             const contractRecord = contractRecords.filter((c) => c.address === address)[0];
-            if (!contractRecord)
+            if (!contractRecord) // Must be rescanning a block and already have a contract record
                 continue;
             const currency = bundle.currency;
             yield ground.collections.Token.create({
@@ -173,31 +173,27 @@ function saveTokenTransfers(ground, tokenTransfers, addresses) {
         return ground.querySingle(sql);
     });
 }
-function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
+function saveFullBlocks(ground, decodeTokenTransfer, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
-        const ground = dao.ground;
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const events = index_1.flatMap(transactions, t => t.events || []);
         const tokenTranfers = yield gatherTokenTransfers(ground, decodeTokenTransfer, events);
         const contracts = gatherNewContracts(blocks);
         const addresses = gatherAddresses(blocks, contracts, tokenTranfers);
-        const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
         yield Promise.all([
             database_functions_1.saveBlocks(ground, blocks),
-            dao.lastBlockDao.setLastBlock(lastBlockIndex),
-            database_functions_1.getOrCreateAddresses(dao.ground, addresses)
+            database_functions_1.getOrCreateAddresses(ground, addresses)
                 .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
                 .then(() => saveContracts(ground, contracts, addresses))
                 .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
         ]);
-        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
 function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 0);
-        const saver = (blocks) => saveFullBlocks(dao, decodeTokenTransfer, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
+        const saver = (blocks) => saveFullBlocks(dao.ground, decodeTokenTransfer, blocks);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler);
     });
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;

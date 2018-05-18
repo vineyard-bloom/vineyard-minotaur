@@ -253,27 +253,22 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
   return ground.querySingle(sql)
 }
 
-async function saveFullBlocks(dao: EthereumMonitorDao, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
-  const ground = dao.ground
+async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
   const transactions = flatMap(blocks, b => b.transactions)
   const events = flatMap(transactions, t => t.events || [])
 
   const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events)
   const contracts = gatherNewContracts(blocks)
   const addresses = gatherAddresses(blocks, contracts, tokenTranfers)
-  const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
 
   await Promise.all([
       saveBlocks(ground, blocks),
-      dao.lastBlockDao.setLastBlock(lastBlockIndex),
-      getOrCreateAddresses(dao.ground, addresses)
+      getOrCreateAddresses(ground, addresses)
         .then(() => saveSingleTransactions(ground, transactions, addresses))
         .then(() => saveContracts(ground, contracts, addresses))
         .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
     ]
   )
-
-  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
 }
 
 export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
@@ -282,6 +277,6 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 0)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, decodeTokenTransfer, blocks)
-  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao.ground, decodeTokenTransfer, blocks)
+  return scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler)
 }

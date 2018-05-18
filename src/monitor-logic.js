@@ -64,7 +64,7 @@ function mapBlocks(fullBlocks) {
     return (simple) => fullBlocks.filter(b => b.index == simple.index)[0];
 }
 exports.mapBlocks = mapBlocks;
-function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new utility_1.EmptyProfiler()) {
+function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();
         do {
@@ -98,6 +98,9 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new u
             profiler.start('saveBlocks');
             yield saveFullBlocks(blocksToSave);
             profiler.stop('saveBlocks');
+            const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
+            yield lastBlockDao.setLastBlock(lastBlockIndex);
+            console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
         } while (true);
     });
 }

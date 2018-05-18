@@ -60,15 +60,11 @@ function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
-function saveFullBlocks(dao, blocks) {
+function saveFullBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { ground } = dao;
-        if (blocks.length == 0) {
-            yield dao.lastBlockDao.setLastBlock(lastBlockIndex);
+        if (blocks.length === 0)
             return;
-        }
         // Can save to sortedBlocks var and set lasBlockIndex
-        const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
@@ -78,18 +74,16 @@ function saveFullBlocks(dao, blocks) {
         yield Promise.all([
             database_functions_1.saveBlocks(ground, blocks),
             // Add param for oldest block being saved
-            dao.lastBlockDao.setLastBlock(lastBlockIndex),
             saveTransactionInputs(ground, inputs),
             saveTransactionOutputs(ground, outputs, addressesFromDb)
         ]);
-        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     });
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 1);
-        const saver = (blocks) => saveFullBlocks(dao, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
+        const saver = (blocks) => saveFullBlocks(dao.ground, blocks);
+        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler);
     });
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;

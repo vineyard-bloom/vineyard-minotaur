@@ -22,4 +22,4 @@ export declare function compareBlockHashes<T extends IndexedHashedBlock>(ground:
     status: ScannedBlockStatus;
 })[]>;
 export declare function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T;
-export declare function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, ground: Modeler, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+export declare function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, ground: Modeler, lastBlockDao: LastBlockDao, config: MonitorConfig, profiler?: Profiler): Promise<any>;
