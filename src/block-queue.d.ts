@@ -5,6 +5,7 @@ export interface BlockRequest {
 }
 export interface BlockQueueConfig {
     maxSize: number;
+    maxBlockRequests: number;
     minSize: number;
 }
 export interface IndexedBlock {

@@ -91,7 +91,7 @@ function saveContracts(ground, contracts, addresses) {
             const token = bundle.tokenContract;
             const address = addresses[token.address];
             const contractRecord = contractRecords.filter((c) => c.address === address)[0];
-            if (!contractRecord)
+            if (!contractRecord) // Must be rescanning a block and already have a contract record
                 continue;
             const currency = bundle.currency;
             yield ground.collections.Token.create({
