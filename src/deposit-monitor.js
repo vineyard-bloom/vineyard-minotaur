@@ -27,6 +27,7 @@ class DepositMonitor {
             try {
                 const existing = yield this.model.getTransactionByTxid(source.txid);
                 if (existing) {
+                    // handle uncle block stuff here
                     return existing;
                 }
             }
@@ -83,9 +84,9 @@ class DepositMonitor {
         return __awaiter(this, void 0, void 0, function* () {
             let lastBlock = yield this.model.getLastBlock();
             do {
-                const offsetAmount = lastBlock && lastBlock.blockIndex !== undefined ? lastBlock.blockIndex - this.minimumConfirmations : 0;
-                const offsetBlock = offsetAmount > 0 ? offsetAmount : 0;
-                yield this.gatherTransactions({ blockIndex: lastBlock.blockIndex });
+                const offsetAmount = lastBlock && !!(lastBlock.blockIndex + 1) ? lastBlock.blockIndex - this.minimumConfirmations : 0;
+                const offsetBlockIndex = offsetAmount > 0 ? offsetAmount : 0;
+                yield this.gatherTransactions({ blockIndex: offsetBlockIndex });
                 lastBlock = yield this.gatherTransactions(lastBlock);
             } while (lastBlock);
         });
@@ -95,7 +96,7 @@ class DepositMonitor {
             const blockInfo = yield this.client.getNextBlockInfo(lastBlock ? lastBlock.blockIndex : 0);
             if (!blockInfo)
                 return undefined;
-            const fullBlock = yield this.client.getFullBlock(blockInfo.index);
+            const fullBlock = yield this.client.getFullBlock(blockInfo);
             if (!fullBlock) {
                 console.error('Invalid block', blockInfo);
                 return undefined;

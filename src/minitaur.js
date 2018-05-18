@@ -41,7 +41,7 @@ function saveFullBlocks(dao, blocks) {
 }
 function scanMiniBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
-        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
+        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, -1); // TODO: Set this to something that works
         const saver = (blocks) => saveFullBlocks(dao, blocks);
         return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
     });

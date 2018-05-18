@@ -17,10 +17,10 @@ var ScannedBlockStatus;
     ScannedBlockStatus[ScannedBlockStatus["same"] = 1] = "same";
     ScannedBlockStatus[ScannedBlockStatus["replaced"] = 2] = "replaced";
 })(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
-function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations) {
+function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations, startingBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
-        return new block_queue_1.ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, 0), queueConfig);
+        return new block_queue_1.ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), queueConfig);
     });
 }
 exports.createBlockQueue = createBlockQueue;
