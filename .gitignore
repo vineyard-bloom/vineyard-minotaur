@@ -8,5 +8,5 @@ test/config/config.*
 config-btc.*
 config-eth.*
 config.*
-yarn*
+yarn-*
 .node*
