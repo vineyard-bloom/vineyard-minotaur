@@ -7,6 +7,7 @@ import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
 import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
 import { isNullOrUndefined } from "util"
+import { Modeler } from "vineyard-data/legacy";
 
 type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
 export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
@@ -78,16 +79,12 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
   return [...new Set(outputs.map(o => o.output.address))]
 }
 
-async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Promise<void> {
-  const { ground } = dao
+async function saveFullBlocks(ground: Modeler, blocks: FullBlock[]): Promise<void> {
 
-  if (blocks.length == 0) {
-    await dao.lastBlockDao.setLastBlock(lastBlockIndex)
+  if (blocks.length === 0)
     return
-  }
 
   // Can save to sortedBlocks var and set lasBlockIndex
-  const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
   const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)
   const outputs = flatMap(transactions, mapTransactionOutputs)
@@ -99,13 +96,10 @@ async function saveFullBlocks(dao: BitcoinMonitorDao, blocks: FullBlock[]): Prom
   await Promise.all([
       saveBlocks(ground, blocks),
       // Add param for oldest block being saved
-      dao.lastBlockDao.setLastBlock(lastBlockIndex),
       saveTransactionInputs(ground, inputs),
       saveTransactionOutputs(ground, outputs, addressesFromDb)
     ]
   )
-
-  console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
 }
 
 export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
@@ -114,6 +108,6 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 1)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
+  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao.ground, blocks)
+  return scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler)
 }

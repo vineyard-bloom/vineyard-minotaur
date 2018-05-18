@@ -80,6 +80,7 @@ export function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: In
 export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>,
                                                                    saveFullBlocks: BlockSaver<Block>,
                                                                    ground: Modeler,
+                                                                   lastBlockDao: LastBlockDao,
                                                                    config: MonitorConfig,
                                                                    profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const startTime: number = Date.now()
@@ -123,6 +124,11 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     profiler.start('saveBlocks')
     await saveFullBlocks(blocksToSave)
     profiler.stop('saveBlocks')
+
+    const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
+    await lastBlockDao.setLastBlock(lastBlockIndex)
+    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
+
   }
   while (true)
 
