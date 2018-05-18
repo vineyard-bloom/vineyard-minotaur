@@ -12,6 +12,30 @@ describe('queue test', function () {
 
   })
 
+  it('test 0 : will not attempt blocks indexed before the beginning of the chain', async function () {
+    this.timeout(25000)
+
+    const highestBlock = 10
+    const getBlocksResponseSize = 5
+    const numberToProcessPerGetBlocksCall = 5
+
+    const underTest = new ExternalBlockQueue(
+      getMockBlockReader(highestBlock),
+      -3,
+      {
+        maxSize: numberToProcessPerGetBlocksCall,
+        minSize: getBlocksResponseSize
+      }
+    )
+
+    const firstBlocks = await underTest.getBlocks()
+    assert.equal(firstBlocks.length, 5)
+    const secondBlocks = await underTest.getBlocks()
+    assert.equal(secondBlocks.length, 5)
+    const thirdBlocks = await underTest.getBlocks()
+    assert.equal(thirdBlocks.length, 0)
+  })
+
   it('test 1', async function () {
     this.timeout(25000)
 

@@ -1,5 +1,6 @@
 import { GeneralDatabaseConfig } from "vineyard-ground";
 import { Network } from "bitcoinjs-lib";
+import { BlockQueueConfig } from '../src/block-queue';
 export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
     devMode?: boolean;
 }
@@ -15,6 +16,7 @@ export declare type BitcoinConfig = CommonConfig & {
         port: number;
         network?: Network;
     };
+    blockQueue: BlockQueueConfig;
 };
 export declare type EthereumConfig = CommonConfig & {
     ethereum: {

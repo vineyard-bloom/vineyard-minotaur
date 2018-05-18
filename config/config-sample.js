@@ -33,6 +33,10 @@ exports.bitcoinConfig = {
         "port": 18332,
         "network": bitcoinjs_lib_1.networks.testnet
     },
+    blockQueue: {
+        minSize: 5,
+        maxSize: 10
+    },
     interval: 15000
 };
 //# sourceMappingURL=config-sample.js.map

@@ -20,7 +20,7 @@ var ScannedBlockStatus;
 function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations) {
     return __awaiter(this, void 0, void 0, function* () {
         let blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
-        return new block_queue_1.ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig);
+        return new block_queue_1.ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, 0), queueConfig);
     });
 }
 exports.createBlockQueue = createBlockQueue;

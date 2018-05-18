@@ -1,4 +1,5 @@
 import { generateDiagrams, generateDocs } from 'vineyard-docs'
+import { DocGenerationConfig } from 'vineyard-docs/src/types'
 
 generateDiagrams('src/doc/diagrams', 'doc/diagrams')
 
@@ -12,4 +13,4 @@ generateDocs({
     output: 'doc',
     tsconfig: './tsconfig.json',
   }
-})
+} as DocGenerationConfig)
