@@ -19,7 +19,7 @@ export declare class ExternalBlockQueue<Block extends IndexedBlock> {
     private config;
     requests: BlockRequest[];
     private listeners;
-    constructor(client: blockchain.BlockReader<Block>, blockIndex: number, config: BlockQueueConfig);
+    constructor(client: blockchain.BlockReader<Block>, blockIndex: number, config: Partial<BlockQueueConfig>);
     getBlockIndex(): number;
     private removeRequest(blockIndex);
     private removeBlocks(blocks);

@@ -46,5 +46,5 @@ export async function scanMiniBlocks(dao: EthereumMonitorDao,
                                      profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, -1) // TODO: Set this to something that works
   const saver = (blocks: FullBlock[]) => saveFullBlocks(dao, blocks)
-  return scanBlocks(blockQueue, saver, dao.ground, config, profiler)
+  return scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler)
 }

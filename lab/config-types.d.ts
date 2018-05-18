@@ -16,7 +16,7 @@ export declare type BitcoinConfig = CommonConfig & {
         port: number;
         network?: Network;
     };
-    blockQueue: BlockQueueConfig;
+    blockQueue: Partial<BlockQueueConfig>;
 };
 export declare type EthereumConfig = CommonConfig & {
     ethereum: {

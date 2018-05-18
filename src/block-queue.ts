@@ -34,7 +34,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }[] = []
 
   constructor(client: blockchain.BlockReader<Block>, blockIndex: number,
-              config: BlockQueueConfig) {
+              config: Partial<BlockQueueConfig>) {
     this.client = client
     this.blockIndex = blockIndex
     this.config = Object.assign({}, blockQueueConfigDefaults, config)
