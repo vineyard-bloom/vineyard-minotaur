@@ -1,17 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const blockQueueConfigDefaults = {
+    maxSize: 10,
+    maxBlockRequests: 5,
+    minSize: 1
+};
 class ExternalBlockQueue {
-    // p = new Profiler()
     constructor(client, blockIndex, config) {
         this.blocks = [];
         this.requests = [];
         this.listeners = [];
         this.client = client;
         this.blockIndex = blockIndex;
-        this.config = {
-            maxSize: config.maxSize || 10,
-            minSize: config.minSize || 1,
-        };
+        this.config = Object.assign({}, blockQueueConfigDefaults, config);
     }
     getBlockIndex() {
         return this.blockIndex;
@@ -23,8 +24,6 @@ class ExternalBlockQueue {
         this.blocks = this.blocks.filter(b => blocks.every(b2 => b2.index != b.index));
     }
     onResponse(blockIndex, block) {
-        // this.p.stop(blockIndex + '-blockQueue')
-        // console.log('onResponse block', blockIndex, block != undefined)
         this.removeRequest(blockIndex);
         if (!block) {
             if (this.listeners.length > 0) {
@@ -77,7 +76,7 @@ class ExternalBlockQueue {
             this.highestBlockIndex = await this.client.getHeighestBlockIndex();
         }
         const remaining = this.highestBlockIndex - this.blockIndex;
-        let count = Math.min(remaining, this.config.maxSize) - this.requests.length;
+        let count = Math.min(remaining, this.config.maxBlockRequests - this.requests.length, this.config.maxSize - this.requests.length - this.blocks.length);
         if (count < 0)
             count = 0;
         console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '));
@@ -93,7 +92,6 @@ class ExternalBlockQueue {
         const oldestRequest = this.requests.map(r => r.blockIndex).sort()[0];
         const oldestResult = results[0].index;
         if (oldestRequest && oldestResult > oldestRequest) {
-            // console.log('oldestRequest', oldestRequest, 'oldestResult', oldestResult)
             return [];
         }
         const blocks = [];

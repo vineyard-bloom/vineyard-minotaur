@@ -13,16 +13,13 @@ export declare type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) =
 export interface IndexedHashedBlock extends IndexedBlock {
     hash: string;
 }
-export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: BlockQueueConfig, minConfirmations: number): Promise<ExternalBlockQueue<Block>>;
+export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: Partial<BlockQueueConfig>, minConfirmations: number, startingBlockIndex: number): Promise<ExternalBlockQueue<Block>>;
 export interface BlockSource {
     getHighestBlockIndex(): Promise<number>;
     getBlock(index: number): Promise<blockchain.Block>;
 }
-export interface BlockComparison {
-    hash: string;
-    index: number;
+export declare function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & {
     status: ScannedBlockStatus;
-}
-export declare function compareBlockHashes(ground: Modeler, blocks: IndexedHashedBlock[]): PromiseLike<BlockComparison[]>;
-export declare function mapBlocks<Block extends IndexedHashedBlock>(fullBlocks: Block[]): (simple: IndexedBlock) => Block;
-export declare function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, ground: Modeler, config: MonitorConfig, profiler?: Profiler): Promise<any>;
+})[]>;
+export declare function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T;
+export declare function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>, saveFullBlocks: BlockSaver<Block>, ground: Modeler, lastBlockDao: LastBlockDao, config: MonitorConfig, profiler?: Profiler): Promise<any>;

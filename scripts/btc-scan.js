@@ -12,9 +12,7 @@ async function main(resetDb) {
     if (resetDb && resetDb === '-r') {
         await reset_btc_scan_db_1.resetBtcScanDb(village);
     }
-    await bitcoin_explorer_service_1.startBitcoinMonitor(village, {
-        queue: { maxSize: 10, minSize: 5 }
-    });
+    await bitcoin_explorer_service_1.startBitcoinMonitor(village, { queue: config_1.bitcoinConfig.blockQueue });
 }
 const bitcoinCron = new vineyard_cron_1.Cron([
     {

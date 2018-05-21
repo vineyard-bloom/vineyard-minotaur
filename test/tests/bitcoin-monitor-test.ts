@@ -5,6 +5,9 @@ import { BitcoinModel } from "../../src/bitcoin-explorer/bitcoin-model"
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { MultiTransactionBlockClient } from "../../src/bitcoin-explorer/bitcoin-explorer"
 import { resetBtcScanDb } from "../../scripts/reset-btc-scan-db"
+import { randomBlock } from './random-type-helpers'
+import { getRandomIntInclusive, getRandomString } from './random-utilities'
+import { compareBlockHashes, ScannedBlockStatus } from '../../src/monitor-logic'
 
 require('source-map-support').install()
 
@@ -28,6 +31,36 @@ describe('btc-scan', function () {
 
   beforeEach(async function () {
     await resetBtcScanDb(village)
+  })
+
+  it('compares blockhashes', async function() {
+    const blockCollection = model.Block
+
+    const block1 = randomBlock()
+    const block2 = randomBlock()
+
+    await blockCollection.create(block1)
+    await blockCollection.create(block2)
+
+    const blockQueries = [
+      {
+        hash: block1.hash,
+        index: block1.index
+      },
+      {
+        hash: getRandomString(16),
+        index: block2.index
+      },
+      {
+        hash: getRandomString(16),
+        index: getRandomIntInclusive(Math.max(block1.index, block2.index) + 1 , 2000)
+      }
+    ]
+
+    const results = await compareBlockHashes(model.ground, blockQueries)
+    assert.equal(results[0].status, ScannedBlockStatus.same)
+    assert.equal(results[1].status, ScannedBlockStatus.replaced)
+    assert.equal(results[2].status, ScannedBlockStatus._new)
   })
 
   it('from start', async function () {

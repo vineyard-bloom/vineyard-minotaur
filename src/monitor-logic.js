@@ -9,11 +9,28 @@ var ScannedBlockStatus;
     ScannedBlockStatus[ScannedBlockStatus["same"] = 1] = "same";
     ScannedBlockStatus[ScannedBlockStatus["replaced"] = 2] = "replaced";
 })(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
-async function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations) {
+async function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations, startingBlockIndex) {
     let blockIndex = await database_functions_1.getNextBlock(lastBlockDao);
-    return new block_queue_1.ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig);
+    return new block_queue_1.ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), queueConfig);
 }
 exports.createBlockQueue = createBlockQueue;
+// export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
+//   let highestBlockIndex = await localSource.getHighestBlockIndex()
+//   let localBlock = await localSource.getBlock(highestBlockIndex)
+//   let foundInvalidBlocks = false
+//
+//   while (true) {
+//     const remoteBlock = await remoteSource.getBlock(localBlock.index)
+//     if (localBlock.hash == remoteBlock.hash) {
+//       return foundInvalidBlocks
+//         ? localBlock.index + 1
+//         : undefined
+//     }
+//
+//     foundInvalidBlocks = true
+//     localBlock = await localSource.getBlock(localBlock.index - 1)
+//   }
+// }
 function compareBlockHashes(ground, blocks) {
     const values = blocks.map(block => `(${block.index}, '${block.hash}')`);
     const sql = `
@@ -24,7 +41,8 @@ SELECT
     WHEN blocks.hash IS NULL THEN 0
     WHEN temp.hash = blocks.hash THEN 1
     ELSE 2
-   AS status   
+  END
+  AS status   
 FROM (VALUES ${values}) AS temp ("index", "hash")
 LEFT JOIN blocks
 ON temp."index" = blocks."index" 
@@ -36,7 +54,7 @@ function mapBlocks(fullBlocks) {
     return (simple) => fullBlocks.filter(b => b.index == simple.index)[0];
 }
 exports.mapBlocks = mapBlocks;
-async function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler = new utility_1.EmptyProfiler()) {
+async function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler = new utility_1.EmptyProfiler()) {
     const startTime = Date.now();
     do {
         const elapsed = Date.now() - startTime;
@@ -59,12 +77,19 @@ async function scanBlocks(blockQueue, saveFullBlocks, ground, config, profiler =
             .map(blockMapper);
         const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
             .map(blockMapper);
+        const blocksToDelete = replacedBlocks.map(block => block.index);
+        console.log('Deleting blocks', blocksToDelete);
         profiler.start('deleteBlocks');
-        await database_functions_1.deleteFullBlocks(ground, replacedBlocks.map(block => block.index));
+        await database_functions_1.deleteFullBlocks(ground, blocksToDelete);
         profiler.stop('deleteBlocks');
+        const blocksToSave = newBlocks.concat(replacedBlocks);
+        console.log('Saving blocks', blocksToSave);
         profiler.start('saveBlocks');
-        await saveFullBlocks(newBlocks.concat(replacedBlocks));
+        await saveFullBlocks(blocksToSave);
         profiler.stop('saveBlocks');
+        const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
+        await lastBlockDao.setLastBlock(lastBlockIndex);
+        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
     } while (true);
 }
 exports.scanBlocks = scanBlocks;

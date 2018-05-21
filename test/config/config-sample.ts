@@ -34,5 +34,9 @@ export const bitcoinConfig: BitcoinConfig = {
     "port": 18332,
     "network": networks.testnet
   },
+  blockQueue: {
+    minSize: 5,
+    maxSize: 10
+  },
   interval: 15000
 }

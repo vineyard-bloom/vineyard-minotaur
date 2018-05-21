@@ -20,10 +20,11 @@ export interface IndexedHashedBlock extends IndexedBlock {
 
 export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao,
                                                                    client: blockchain.BlockReader<Block>,
-                                                                   queueConfig: BlockQueueConfig,
-                                                                   minConfirmations: number) {
+                                                                   queueConfig: Partial<BlockQueueConfig>,
+                                                                   minConfirmations: number,
+                                                                   startingBlockIndex: number) {
   let blockIndex = await getNextBlock(lastBlockDao)
-  return new ExternalBlockQueue(client, blockIndex - minConfirmations, queueConfig)
+  return new ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), queueConfig)
 }
 
 export interface BlockSource {
@@ -50,13 +51,7 @@ export interface BlockSource {
 //   }
 // }
 
-export interface BlockComparison {
-  hash: string
-  index: number
-  status: ScannedBlockStatus
-}
-
-export function compareBlockHashes(ground: Modeler, blocks: IndexedHashedBlock[]): PromiseLike<BlockComparison[]> {
+export function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & {status: ScannedBlockStatus})[]> {
   const values: any = blocks.map(block => `(${block.index}, '${block.hash}')`)
 
   const sql = `
@@ -67,7 +62,8 @@ SELECT
     WHEN blocks.hash IS NULL THEN 0
     WHEN temp.hash = blocks.hash THEN 1
     ELSE 2
-   AS status   
+  END
+  AS status   
 FROM (VALUES ${values}) AS temp ("index", "hash")
 LEFT JOIN blocks
 ON temp."index" = blocks."index" 
@@ -77,13 +73,14 @@ ON temp."index" = blocks."index"
 }
 
 
-export function mapBlocks<Block extends IndexedHashedBlock>(fullBlocks: Block[]) {
+export function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T {
   return (simple: IndexedBlock) => fullBlocks.filter(b => b.index == simple.index)[0]
 }
 
 export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>,
                                                                    saveFullBlocks: BlockSaver<Block>,
                                                                    ground: Modeler,
+                                                                   lastBlockDao: LastBlockDao,
                                                                    config: MonitorConfig,
                                                                    profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const startTime: number = Date.now()
@@ -114,13 +111,24 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
       .map(blockMapper)
 
+    const blocksToDelete = replacedBlocks.map(block => block.index)
+    console.log('Deleting blocks', blocksToDelete)
+
     profiler.start('deleteBlocks')
-    await deleteFullBlocks(ground, replacedBlocks.map(block => block.index))
+    await deleteFullBlocks(ground, blocksToDelete)
     profiler.stop('deleteBlocks')
 
+    const blocksToSave = newBlocks.concat(replacedBlocks)
+    console.log('Saving blocks', blocksToSave)
+
     profiler.start('saveBlocks')
-    await saveFullBlocks(newBlocks.concat(replacedBlocks))
+    await saveFullBlocks(blocksToSave)
     profiler.stop('saveBlocks')
+
+    const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
+    await lastBlockDao.setLastBlock(lastBlockIndex)
+    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
+
   }
   while (true)
 

@@ -117,6 +117,9 @@ function saveSingleTransactions(ground, transactions, addresses) {
 }
 exports.saveSingleTransactions = saveSingleTransactions;
 async function deleteFullBlocks(ground, indexes) {
+    if (indexes.length === 0) {
+        return;
+    }
     const header = 'DELETE FROM blocks WHERE index IN ';
     const sql = header + '(' + indexes.join(', ') + ');';
     await ground.querySingle(sql);

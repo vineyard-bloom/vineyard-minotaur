@@ -46,10 +46,10 @@ async function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
-async function saveFullBlocks(dao, blocks) {
-    const { ground } = dao;
+async function saveFullBlocks(ground, blocks) {
+    if (blocks.length === 0)
+        return;
     // Can save to sortedBlocks var and set lasBlockIndex
-    const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
     const transactions = index_1.flatMap(blocks, b => b.transactions);
     const inputs = index_1.flatMap(transactions, mapTransactionInputs);
     const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
@@ -59,16 +59,14 @@ async function saveFullBlocks(dao, blocks) {
     await Promise.all([
         database_functions_1.saveBlocks(ground, blocks),
         // Add param for oldest block being saved
-        dao.lastBlockDao.setLastBlock(lastBlockIndex),
         saveTransactionInputs(ground, inputs),
         saveTransactionOutputs(ground, outputs, addressesFromDb)
     ]);
-    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
 }
 async function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
-    const blockQueue = await monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
-    const saver = (blocks) => saveFullBlocks(dao, blocks);
-    return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
+    const blockQueue = await monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 1);
+    const saver = (blocks) => saveFullBlocks(dao.ground, blocks);
+    return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler);
 }
 exports.scanBitcoinExplorerBlocks = scanBitcoinExplorerBlocks;
 //# sourceMappingURL=bitcoin-explorer.js.map

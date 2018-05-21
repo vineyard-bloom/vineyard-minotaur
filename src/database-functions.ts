@@ -133,6 +133,7 @@ export function saveSingleTransactions(ground: any, transactions: blockchain.Sin
 }
 
 export async function deleteFullBlocks(ground: any, indexes: number[]): Promise<void> {
+  if(indexes.length === 0 ) { return }
   const header = 'DELETE FROM blocks WHERE index IN '
   const sql = header + '(' + indexes.join(', ') + ');'
   await ground.querySingle(sql)

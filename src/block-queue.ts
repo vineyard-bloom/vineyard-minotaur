@@ -7,7 +7,14 @@ export interface BlockRequest {
 
 export interface BlockQueueConfig {
   maxSize: number
+  maxBlockRequests: number
   minSize: number
+}
+
+const blockQueueConfigDefaults = {
+  maxSize: 10,
+  maxBlockRequests: 5,
+  minSize: 1
 }
 
 export interface IndexedBlock {
@@ -28,16 +35,11 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     reject: (error: Error) => void
   }[] = []
 
-  // p = new Profiler()
-
   constructor(client: blockchain.BlockReader<Block>, blockIndex: number,
-              config: BlockQueueConfig) {
+              config: Partial<BlockQueueConfig>) {
     this.client = client
     this.blockIndex = blockIndex
-    this.config = {
-      maxSize: config.maxSize || 10,
-      minSize: config.minSize || 1,
-    }
+    this.config = Object.assign({}, blockQueueConfigDefaults, config)
   }
 
   getBlockIndex(): number {
@@ -53,8 +55,6 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   private onResponse(blockIndex: number, block: Block | undefined) {
-    // this.p.stop(blockIndex + '-blockQueue')
-    // console.log('onResponse block', blockIndex, block != undefined)
     this.removeRequest(blockIndex)
 
     if (!block) {
@@ -112,8 +112,12 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     }
 
     const remaining = this.highestBlockIndex - this.blockIndex
-    let count = Math.min(remaining, this.config.maxSize) - this.requests.length
-    if(count < 0 ) count = 0
+    let count = Math.min(
+      remaining,
+      this.config.maxBlockRequests - this.requests.length,
+      this.config.maxSize - this.requests.length - this.blocks.length
+    )
+    if (count < 0) count = 0
     console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '))
     for (let i = 0; i < count; ++i) {
       this.addRequest(this.blockIndex++)
@@ -129,7 +133,6 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     const oldestRequest = this.requests.map(r => r.blockIndex).sort()[0]
     const oldestResult = results[0].index
     if (oldestRequest && oldestResult > oldestRequest) {
-      // console.log('oldestRequest', oldestRequest, 'oldestResult', oldestResult)
       return []
     }
 
@@ -157,7 +160,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       return Promise.resolve(readyBlocks)
     }
     else if (this.requests.length == 0) {
-        return Promise.resolve([])
+      return Promise.resolve([])
     }
     else {
       return new Promise<Block[]>((resolve, reject) => {

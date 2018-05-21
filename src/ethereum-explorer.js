@@ -154,28 +154,24 @@ async function saveTokenTransfers(ground, tokenTransfers, addresses) {
     const sql = header + transactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
     return ground.querySingle(sql);
 }
-async function saveFullBlocks(dao, decodeTokenTransfer, blocks) {
-    const ground = dao.ground;
+async function saveFullBlocks(ground, decodeTokenTransfer, blocks) {
     const transactions = index_1.flatMap(blocks, b => b.transactions);
     const events = index_1.flatMap(transactions, t => t.events || []);
     const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events);
     const contracts = gatherNewContracts(blocks);
     const addresses = gatherAddresses(blocks, contracts, tokenTranfers);
-    const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
     await Promise.all([
         database_functions_1.saveBlocks(ground, blocks),
-        dao.lastBlockDao.setLastBlock(lastBlockIndex),
-        database_functions_1.getOrCreateAddresses(dao.ground, addresses)
+        database_functions_1.getOrCreateAddresses(ground, addresses)
             .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
             .then(() => saveContracts(ground, contracts, addresses))
             .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
     ]);
-    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
 }
 async function scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, config, profiler = new utility_1.EmptyProfiler()) {
-    const blockQueue = await monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
-    const saver = (blocks) => saveFullBlocks(dao, decodeTokenTransfer, blocks);
-    return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
+    const blockQueue = await monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 0);
+    const saver = (blocks) => saveFullBlocks(dao.ground, decodeTokenTransfer, blocks);
+    return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler);
 }
 exports.scanEthereumExplorerBlocks = scanEthereumExplorerBlocks;
 //# sourceMappingURL=ethereum-explorer.js.map

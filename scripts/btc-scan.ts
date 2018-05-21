@@ -14,9 +14,9 @@ async function main(resetDb?: string) {
     await resetBtcScanDb(village)
   }
 
-  await startBitcoinMonitor(village, {
-    queue: { maxSize: 10, minSize: 5 }
-  })
+  await startBitcoinMonitor(village,
+    {queue: bitcoinConfig.blockQueue}
+  )
 }
 
 const bitcoinCron = new Cron([

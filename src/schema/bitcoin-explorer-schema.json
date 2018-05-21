@@ -5,8 +5,7 @@
         "type": "long"
       },
       "address": {
-        "type": "char",
-        "length": 42,
+        "type": "string",
         "unique": true
       },
       "balance": {
