@@ -17,7 +17,6 @@ describe('database functions test', function () {
   before(async function() {
     const village = await createEthereumVillage(ethereumConfig)
     model = village.model
-    dao = createEthereumExplorerDao(model)
   })
 
   it('throws an error when trying to save an incorrect currency', async function () {
@@ -33,6 +32,7 @@ describe('database functions test', function () {
       symbol: 'zyxwvu'
     }]
 
+    // Example error test:
     // expect(manager.test.bind(manager)).to.throw('Oh no')
     expect(saveCurrencies.bind(saveCurrencies, model.ground, contract)).to.throw('Oh no')
   })

@@ -14,6 +14,8 @@ export interface IndexedBlock {
   index: number
 }
 
+type SimpleFunction = () => Promise<any>
+
 export class ExternalBlockQueue<Block extends IndexedBlock> {
   private blocks: Block[] = []
   private blockIndex: number
@@ -85,14 +87,17 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
 
   private addRequest(index: number) {
     // console.log('add block', index)
-    const tryRequest: () => any = () =>
-      this.client.getFullBlock(index)
-        .then(block => this.onResponse(index, block))
-        .catch((error) => {
-          console.error('Error reading block', index, error)
-          return tryRequest()
-          // this.onResponse(index, undefined)
-        })
+    const tryRequest: SimpleFunction = async () => {
+      try {
+        const block = await this.client.getFullBlock(index)
+        await this.onResponse(index, block)
+      }
+      catch(error) {
+        console.error('Error reading block', index, error)
+        await tryRequest()
+        // this.onResponse(index, undefined)
+      }
+    }
 
     const promise = tryRequest()
     this.requests.push({

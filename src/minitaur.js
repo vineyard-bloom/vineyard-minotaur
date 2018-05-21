@@ -1,12 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const monitor_logic_1 = require("./monitor-logic");
 const utility_1 = require("./utility");
@@ -24,27 +16,23 @@ function gatherAddresses(blocks) {
     }
     return addresses;
 }
-function saveFullBlocks(dao, blocks) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ground = dao.ground;
-        const transactions = index_1.flatMap(blocks, b => b.transactions);
-        const addresses = gatherAddresses(blocks);
-        const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
-        yield Promise.all([
-            database_functions_1.saveBlocks(ground, blocks),
-            dao.lastBlockDao.setLastBlock(lastBlockIndex),
-            database_functions_1.getOrCreateAddresses(dao.ground, addresses)
-                .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
-        ]);
-        console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
-    });
+async function saveFullBlocks(dao, blocks) {
+    const ground = dao.ground;
+    const transactions = index_1.flatMap(blocks, b => b.transactions);
+    const addresses = gatherAddresses(blocks);
+    const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
+    await Promise.all([
+        database_functions_1.saveBlocks(ground, blocks),
+        dao.lastBlockDao.setLastBlock(lastBlockIndex),
+        database_functions_1.getOrCreateAddresses(dao.ground, addresses)
+            .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
+    ]);
+    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
 }
-function scanMiniBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const blockQueue = yield monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
-        const saver = (blocks) => saveFullBlocks(dao, blocks);
-        return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
-    });
+async function scanMiniBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
+    const blockQueue = await monitor_logic_1.createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations);
+    const saver = (blocks) => saveFullBlocks(dao, blocks);
+    return monitor_logic_1.scanBlocks(blockQueue, saver, dao.ground, config, profiler);
 }
 exports.scanMiniBlocks = scanMiniBlocks;
 //# sourceMappingURL=minitaur.js.map
