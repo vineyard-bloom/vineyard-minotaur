@@ -83,14 +83,18 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
 }
 
 export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
-  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
-  let inserts: string[] = []
-  for (let block of blocks) {
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
-  }
+  if (blocks.length === 0) {
+    throw new Error('block values must not be empty')
+  } else {
+    const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
+    let inserts: string[] = []
+    for (let block of blocks) {
+      inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
+    }
 
-  const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
-  return ground.querySingle(sql)
+    const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
+    return ground.querySingle(sql)
+  }
 }
 
 export interface CurrencyResult {

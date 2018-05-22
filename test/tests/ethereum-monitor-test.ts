@@ -2,9 +2,9 @@ import { ethereumConfig } from "../config/config"
 
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
-import { EthereumModel } from "../../src";
+import { EthereumModel, saveBlocks } from "../../src";
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import { blockchain } from "vineyard-blockchain"
 
 const second = 1000
@@ -145,9 +145,14 @@ describe('eth-scan', function () {
     assert.isAtLeast(tokens.length, 1)
   })
 
+  it('throws an error when passed an empty blocks array', function() {
+    expect(saveBlocks.bind(saveBlocks, model.ground, [])).to.throw(Error('block values must not be empty'))
+  })
+
   it('detects successful token transfers', async function () {
     await createSaltContract(village)
 
+    // Need a relevant blockIndex
     await model.LastBlock.create({ currency: 2, blockIndex: 5146973 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },

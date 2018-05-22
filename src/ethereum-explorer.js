@@ -102,7 +102,8 @@ function gatherNewContracts(blocks) {
     }
     return result;
 }
-async function gatherTokenTranferInfo(ground, pairs) {
+async function gatherTokenTransferInfo(ground, pairs) {
+    // Add error handling pairs.length == 0? Currently returning empty [] which seems intentional
     if (pairs.length == 0)
         return Promise.resolve([]);
     const addressClause = pairs.map(c => `('${c.address}', '${c.txid}')`).join(',\n');
@@ -130,7 +131,7 @@ ON infos.column1 = addresses.address`;
 }
 async function gatherTokenTransfers(ground, decodeEvent, events) {
     let contractTransactions = events.map(e => ({ address: e.address, txid: e.transactionHash }));
-    const infos = await gatherTokenTranferInfo(ground, contractTransactions);
+    const infos = await gatherTokenTransferInfo(ground, contractTransactions);
     return infos.map(info => {
         const event = events.filter(event => event.transactionHash == info.txid)[0];
         const decoded = decodeEvent(event);
