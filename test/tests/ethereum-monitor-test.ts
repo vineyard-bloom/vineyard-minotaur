@@ -138,7 +138,7 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 10 * minute
+      maxMilliseconds: 1 * minute
     })
 
     const tokens = await model.Token.all()
