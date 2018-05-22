@@ -84,7 +84,7 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
 
 export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   if (blocks.length === 0) {
-    throw new Error('block values must not be empty')
+    throw new Error('blocks array must not be empty')
   } else {
     const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
     let inserts: string[] = []

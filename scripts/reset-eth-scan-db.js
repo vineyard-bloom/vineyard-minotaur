@@ -1,17 +1,27 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const ethereum_explorer_service_1 = require("../lab/ethereum-explorer-service");
 const config_1 = require("../config/config");
-async function resetEthScanDb(config) {
-    if (!config.database.devMode)
-        throw new Error('Can only reset db in devMode.');
-    const dbModel = (await ethereum_explorer_service_1.createEthereumVillage(config)).model;
-    dbModel.ground.regenerate();
-    await dbModel.LastBlock.create({ currency: 1 });
-    await dbModel.LastBlock.create({ currency: 2 });
-    await dbModel.Currency.create({ name: 'Bitcoin' });
-    await dbModel.Currency.create({ name: 'Ethereum' });
-    process.exit(0);
+function resetEthScanDb(config) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!config.database.devMode)
+            throw new Error('Can only reset db in devMode.');
+        const dbModel = (yield ethereum_explorer_service_1.createEthereumVillage(config)).model;
+        dbModel.ground.regenerate();
+        yield dbModel.LastBlock.create({ currency: 1 });
+        yield dbModel.LastBlock.create({ currency: 2 });
+        yield dbModel.Currency.create({ name: 'Bitcoin' });
+        yield dbModel.Currency.create({ name: 'Ethereum' });
+        process.exit(0);
+    });
 }
 exports.resetEthScanDb = resetEthScanDb;
 resetEthScanDb(config_1.ethereumConfig);

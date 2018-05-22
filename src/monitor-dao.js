@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // export async function getTransactionByTxidAndCurrency(transactionCollection: Collection<Transaction>, txid: string,
 //                                                       currency: number): Promise<Transaction | undefined> {
@@ -13,9 +21,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 //                                       transaction: TransactionToSave): Promise<Transaction> {
 //   return await transactionCollection.create(transaction)
 // }
-async function setStatus(transactionCollection, transaction, status) {
-    return await transactionCollection.update(transaction, {
-        status: status
+function setStatus(transactionCollection, transaction, status) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield transactionCollection.update(transaction, {
+            status: status
+        });
     });
 }
 exports.setStatus = setStatus;
@@ -61,11 +71,13 @@ function getLastBlockIndex(ground, currency) {
         .then((value) => (value && typeof value.blockIndex == 'string') ? parseInt(value.blockIndex) : undefined);
 }
 exports.getLastBlockIndex = getLastBlockIndex;
-async function setLastBlockIndex(ground, currency, block) {
-    const sql = `UPDATE last_blocks SET "blockIndex" = :block WHERE currency = :currency`;
-    return await ground.query(sql, {
-        block: block,
-        currency: currency,
+function setLastBlockIndex(ground, currency, block) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const sql = `UPDATE last_blocks SET "blockIndex" = :block WHERE currency = :currency`;
+        return yield ground.query(sql, {
+            block: block,
+            currency: currency,
+        });
     });
 }
 exports.setLastBlockIndex = setLastBlockIndex;

@@ -146,7 +146,7 @@ describe('eth-scan', function () {
   })
 
   it('throws an error when passed an empty blocks array', function() {
-    expect(saveBlocks.bind(saveBlocks, model.ground, [])).to.throw(Error('block values must not be empty'))
+    expect(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
   })
 
   it('detects successful token transfers', async function () {

@@ -182,7 +182,6 @@ interface ContractInfoNew {
 }
 
 async function gatherTokenTransferInfo(ground: Modeler, pairs: { address: string, txid: string }[]): Promise<ContractInfoNew[]> {
-  // Add error handling pairs.length == 0? Currently returning empty [] which seems intentional
   if (pairs.length == 0)
     return Promise.resolve([])
 
