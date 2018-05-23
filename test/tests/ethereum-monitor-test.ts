@@ -145,48 +145,23 @@ describe('eth-scan', function () {
     assert.isAtLeast(tokens.length, 1)
   })
 
-  it('from 196704', async function () {
-    await model.LastBlock.create({ currency: 2, blockIndex: 196704 })
-    console.log('Initialized village')
+  it('detects successful token transfers', async function () {
+    await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
     await startEthereumMonitor(village, {
-      queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 10 * second
+      queue: { maxSize: 10, minSize: 10 },
+      maxMilliseconds: 1 * minute
     })
 
-    assert(true)
+    const transfers = await model.TokenTransfer.all()
+    assert.isAtLeast(transfers.length, 1)
   })
 
-  // it('detects successful token transfers', async function () {
+  it('saveBlocks throws an error when passed an empty blocks array', function () {
+    expect(() => saveBlocks(model.ground, [])).to.throw('blocks array must not be empty')
+  })
 
-  //   // Need a relevant blockIndex
-  //   await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
-  //   await startEthereumMonitor(village, {
-  //     queue: { maxSize: 10, minSize: 10 },
-  //     maxMilliseconds: 1 * minute
-  //   })
-
-  //   const transfers = await model.TokenTransfer.all()
-  //   assert.isAtLeast(transfers.length, 1)
-  // })
-
-  // it('throws an error when passed an empty blocks array', async function() {
-  //   expect(() => saveBlocks(model.ground, [])).to.throw('blocks array must not be empty')
-  // })
-
-  // it('throws an error when there is a currency data failure', async function () {
-
-  //   const contract = [{
-  //     address: 'abcdefg',
-  //     contractType: 1,
-  //     txid: 'hijklmn',
-  //     name: 'opqrst',
-  //     totalSupply: 6,
-  //     decimals: new BigNumber(6),
-  //     version: 'uvwxyz',
-  //     symbol: 'zyxwvu'
-  //   }]
-
-  //   expect(() => saveCurrencies(model.ground, contract)).to.throw('Oh no')
-  // })
+  it('saveCurrencies throws an error when there is a currency data failure', function () {
+    expect(() => saveCurrencies(model.ground, [ 'incorrect contract type' ])).to.throw('Oh no')
+  })
 
 })

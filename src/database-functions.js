@@ -95,15 +95,13 @@ function saveBlocks(ground, blocks) {
         if (blocks.length === 0) {
             throw new Error('blocks array must not be empty');
         }
-        else {
-            const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
-            let inserts = [];
-            for (let block of blocks) {
-                inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`);
-            }
-            const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
-            return ground.querySingle(sql);
+        const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
+        let inserts = [];
+        for (let block of blocks) {
+            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`);
         }
+        const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
+        return ground.querySingle(sql);
     });
 }
 exports.saveBlocks = saveBlocks;
@@ -111,6 +109,9 @@ function saveCurrencies(ground, tokenContracts) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = [];
         for (let contract of tokenContracts) {
+            if (!contract.name) {
+                throw new Error('Contract is missing name property');
+            }
             const record = yield ground.collections.Currency.create({
                 name: contract.name
             });
