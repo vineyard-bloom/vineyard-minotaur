@@ -84,7 +84,7 @@ class DepositMonitor {
         return __awaiter(this, void 0, void 0, function* () {
             let lastBlock = yield this.model.getLastBlock();
             do {
-                const offsetAmount = lastBlock && !!(lastBlock.blockIndex + 1) ? lastBlock.blockIndex - this.minimumConfirmations : 0;
+                const offsetAmount = lastBlock && !!(lastBlock.blockIndex) ? lastBlock.blockIndex - this.minimumConfirmations : 0;
                 const offsetBlockIndex = offsetAmount > 0 ? offsetAmount : 0;
                 yield this.gatherTransactions({ blockIndex: offsetBlockIndex });
                 lastBlock = yield this.gatherTransactions(lastBlock);
@@ -93,7 +93,7 @@ class DepositMonitor {
     }
     gatherTransactions(lastBlock) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blockInfo = yield this.client.getNextBlockInfo(lastBlock ? lastBlock.blockIndex : 0);
+            const blockInfo = yield this.client.getNextBlockInfo(!!lastBlock ? lastBlock.blockIndex : 0);
             if (!blockInfo)
                 return undefined;
             const fullBlock = yield this.client.getFullBlock(blockInfo);

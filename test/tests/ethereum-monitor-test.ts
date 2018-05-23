@@ -2,7 +2,7 @@ import { ethereumConfig } from "../config/config"
 
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
-import { EthereumModel, saveBlocks } from "../../src";
+import { EthereumModel, saveBlocks, saveCurrencies } from "../../src";
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
 import { assert, expect } from 'chai'
 import { blockchain } from "vineyard-blockchain"
@@ -145,22 +145,48 @@ describe('eth-scan', function () {
     assert.isAtLeast(tokens.length, 1)
   })
 
-  it('throws an error when passed an empty blocks array', function() {
-    expect(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
-  })
-
-  it('detects successful token transfers', async function () {
-    await createSaltContract(village)
-
-    // Need a relevant blockIndex
-    await model.LastBlock.create({ currency: 2, blockIndex: 5146973 })
+  it('from 196704', async function () {
+    await model.LastBlock.create({ currency: 2, blockIndex: 196704 })
+    console.log('Initialized village')
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 2 * second
+      maxMilliseconds: 10 * second
     })
 
-    const transfers = await model.TokenTransfer.all()
-    assert.isAtLeast(transfers.length, 1)
+    assert(true)
   })
+
+  // it('detects successful token transfers', async function () {
+
+  //   // Need a relevant blockIndex
+  //   await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
+  //   await startEthereumMonitor(village, {
+  //     queue: { maxSize: 10, minSize: 10 },
+  //     maxMilliseconds: 1 * minute
+  //   })
+
+  //   const transfers = await model.TokenTransfer.all()
+  //   assert.isAtLeast(transfers.length, 1)
+  // })
+
+  // it('throws an error when passed an empty blocks array', async function() {
+  //   expect(() => saveBlocks(model.ground, [])).to.throw('blocks array must not be empty')
+  // })
+
+  // it('throws an error when there is a currency data failure', async function () {
+
+  //   const contract = [{
+  //     address: 'abcdefg',
+  //     contractType: 1,
+  //     txid: 'hijklmn',
+  //     name: 'opqrst',
+  //     totalSupply: 6,
+  //     decimals: new BigNumber(6),
+  //     version: 'uvwxyz',
+  //     symbol: 'zyxwvu'
+  //   }]
+
+  //   expect(() => saveCurrencies(model.ground, contract)).to.throw('Oh no')
+  // })
 
 })
