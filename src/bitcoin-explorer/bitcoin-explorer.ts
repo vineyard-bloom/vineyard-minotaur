@@ -81,9 +81,6 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
 
 async function saveFullBlocks(ground: Modeler, blocks: FullBlock[]): Promise<void> {
 
-  if (blocks.length === 0)
-    return
-
   // Can save to sortedBlocks var and set lasBlockIndex
   const transactions = flatMap(blocks, b => b.transactions)
   const inputs = flatMap(transactions, mapTransactionInputs)

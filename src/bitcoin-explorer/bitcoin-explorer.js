@@ -62,8 +62,6 @@ function gatherAddresses(outputs) {
 }
 function saveFullBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (blocks.length === 0)
-            return;
         // Can save to sortedBlocks var and set lasBlockIndex
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
