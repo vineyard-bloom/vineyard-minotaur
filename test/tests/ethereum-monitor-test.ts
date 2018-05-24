@@ -1,14 +1,24 @@
-import { ethereumConfig } from "../config/config"
+import { ethereumConfig } from '../config/config'
 
 require('source-map-support').install()
-import BigNumber from "bignumber.js";
-import { EthereumModel, saveBlocks, saveCurrencies } from "../../src";
-import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
+import BigNumber from 'bignumber.js';
+import { EthereumModel, saveBlocks, saveCurrencies } from '../../src';
+import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from '../../lab'
 import { assert, expect } from 'chai'
-import { blockchain } from "vineyard-blockchain"
+import { blockchain } from 'vineyard-blockchain'
 
 const second = 1000
 const minute = 60 * second
+
+async function assertThrowsErrorMessage(codeToRun: () => any, message: string): Promise<void> {
+  try {
+    await codeToRun();
+    assert(false);
+  } catch (e) {
+    console.error(e)
+    assert.equal(e.message, message);
+  }
+}
 
 async function createTokenContract(village: EthereumVillage, token: blockchain.TokenContract & { from: string }) {
   const from = await village.model.Address.create({
@@ -156,12 +166,12 @@ describe('eth-scan', function () {
     assert.isAtLeast(transfers.length, 1)
   })
 
-  it('saveBlocks throws an error when passed an empty blocks array', function () {
-    expect(() => saveBlocks(model.ground, [])).to.throw('blocks array must not be empty')
+  it('saveBlocks throws an error when passed an empty blocks array', async function () {
+    await assertThrowsErrorMessage(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
   })
 
-  it('saveCurrencies throws an error when there is a currency data failure', function () {
-    expect(() => saveCurrencies(model.ground, [ 'incorrect contract type' ])).to.throw('Oh no')
+  it('saveCurrencies throws an error when there is a currency data failure', async function () {
+    await assertThrowsErrorMessage(() => saveCurrencies(model.ground, [ 'incorrect contract type' ]), 'Contract is missing name property')
   })
 
 })
