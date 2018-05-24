@@ -28,7 +28,7 @@ export async function startEthereumMonitor(village: EthereumVillage, config: Opt
     profiler.logFlat()
   }
   catch (error) {
-    console.error(error)
+    console.error('Ethereum scanning error:', error)
   }
 }
 

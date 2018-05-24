@@ -62,11 +62,16 @@ class ExternalBlockQueue {
     }
     addRequest(index) {
         // console.log('add block', index)
-        const tryRequest = () => this.client.getFullBlock(index)
-            .then(block => this.onResponse(index, block))
-            .catch((error) => {
-            console.error('Error reading block', index, error);
-            return tryRequest();
+        const tryRequest = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const block = yield this.client.getFullBlock(index);
+                yield this.onResponse(index, block);
+            }
+            catch (error) {
+                console.error('Error reading block', index, error);
+                yield tryRequest();
+                // this.onResponse(index, undefined)
+            }
         });
         const promise = tryRequest();
         this.requests.push({

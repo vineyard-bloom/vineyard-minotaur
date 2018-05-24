@@ -94,10 +94,12 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, pr
             yield database_functions_1.deleteFullBlocks(ground, blocksToDelete);
             profiler.stop('deleteBlocks');
             const blocksToSave = newBlocks.concat(replacedBlocks);
-            console.log('Saving blocks', blocksToSave);
-            profiler.start('saveBlocks');
-            yield saveFullBlocks(blocksToSave);
-            profiler.stop('saveBlocks');
+            if (blocksToSave.length > 0) {
+                console.log('Saving blocks', blocksToSave);
+                profiler.start('saveBlocks');
+                yield saveFullBlocks(blocksToSave);
+                profiler.stop('saveBlocks');
+            }
             const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
             yield lastBlockDao.setLastBlock(lastBlockIndex);
             console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);

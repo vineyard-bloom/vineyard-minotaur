@@ -4,9 +4,6 @@ import { DocGenerationConfig } from 'vineyard-docs/src/types'
 generateDiagrams('src/doc/diagrams', 'doc/diagrams')
 
 generateDocs({
-  project: {
-    name: 'Vineyard Minotaur Documentation'
-  },
   paths: {
     src: ['src'],
     content: 'src/doc/content',

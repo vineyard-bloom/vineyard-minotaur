@@ -92,6 +92,9 @@ function arrayDiff(a1, a2) {
 exports.arrayDiff = arrayDiff;
 function saveBlocks(ground, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (blocks.length === 0) {
+            throw new Error('blocks array must not be empty');
+        }
         const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n';
         let inserts = [];
         for (let block of blocks) {
@@ -106,13 +109,15 @@ function saveCurrencies(ground, tokenContracts) {
     return __awaiter(this, void 0, void 0, function* () {
         const result = [];
         for (let contract of tokenContracts) {
-            const token = contract;
+            if (!contract.name) {
+                throw new Error('Contract is missing name property');
+            }
             const record = yield ground.collections.Currency.create({
-                name: token.name
+                name: contract.name
             });
             result.push({
                 currency: record,
-                tokenContract: token
+                tokenContract: contract
             });
         }
         return result;

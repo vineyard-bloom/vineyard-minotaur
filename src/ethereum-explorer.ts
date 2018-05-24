@@ -119,7 +119,7 @@ async function setAddress(getOrCreateAddress: AddressDelegate, addresses: Addres
   addresses[key] = id
 }
 
-async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], addresses: AddressMap): Promise<void> {
+async function saveContracts(ground: Modeler, contracts: blockchain.TokenContract[], addresses: AddressMap): Promise<void> {
   if (contracts.length == 0)
     return Promise.resolve()
 
@@ -139,6 +139,7 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   if (tokenContracts.length == 0)
     return
 
+  // tokenContracts must be passed in as type TokenContracts, must have 'name'
   const currencyContracts = await saveCurrencies(ground, tokenContracts)
 
   for (const bundle of currencyContracts) {
@@ -161,13 +162,13 @@ async function saveContracts(ground: Modeler, contracts: blockchain.Contract[], 
   }
 }
 
-function gatherNewContracts(blocks: FullBlock[]): blockchain.AnyContract[] {
-  let result: blockchain.Contract[] = []
+function gatherNewContracts(blocks: FullBlock[]): blockchain.TokenContract[] {
+  let result: blockchain.TokenContract[] = []
   for (let block of blocks) {
     result = result.concat(
       block.transactions
         .filter(t => t.newContract)
-        .map(t => t.newContract as blockchain.AnyContract)
+        .map(t => t.newContract as blockchain.TokenContract)
     )
   }
   return result
@@ -180,7 +181,7 @@ interface ContractInfoNew {
   txid: string
 }
 
-async function gatherTokenTranferInfo(ground: Modeler, pairs: { address: string, txid: string }[]): Promise<ContractInfoNew[]> {
+async function gatherTokenTransferInfo(ground: Modeler, pairs: { address: string, txid: string }[]): Promise<ContractInfoNew[]> {
   if (pairs.length == 0)
     return Promise.resolve([])
 
@@ -224,7 +225,7 @@ interface TokenTransferBundle {
 
 async function gatherTokenTransfers(ground: Modeler, decodeEvent: blockchain.EventDecoder, events: blockchain.BaseEvent[]): Promise<TokenTransferBundle[]> {
   let contractTransactions = events.map(e => ({ address: e.address, txid: e.transactionHash }))
-  const infos = await gatherTokenTranferInfo(ground, contractTransactions)
+  const infos = await gatherTokenTransferInfo(ground, contractTransactions)
   return infos.map(info => {
     const event = events.filter(event => event.transactionHash == info.txid)[0]
     const decoded = decodeEvent(event)

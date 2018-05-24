@@ -83,6 +83,9 @@ export function arrayDiff<T> (a1: T[], a2: T[]): T[] {
 }
 
 export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
+  if (blocks.length === 0) {
+    throw new Error('blocks array must not be empty')
+  }
   const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
@@ -98,18 +101,21 @@ export interface CurrencyResult {
   tokenContract: blockchain.TokenContract
 }
 
-export async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.Contract[]): Promise<CurrencyResult[]> {
+export async function saveCurrencies(ground: Modeler, tokenContracts: blockchain.TokenContract[]): Promise<CurrencyResult[]> {
   const result: CurrencyResult[] = []
   for (let contract of tokenContracts) {
-    const token = contract as blockchain.TokenContract
+    if (!contract.name) {
+      throw new Error('Contract is missing name property')
+    }
     const record = await ground.collections.Currency.create({
-      name: token.name
+      name: contract.name
     })
     result.push({
       currency: record,
-      tokenContract: token
+      tokenContract: contract
     })
   }
+  
   return result
 }
 

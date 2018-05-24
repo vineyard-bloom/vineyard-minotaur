@@ -2,9 +2,9 @@ import { ethereumConfig } from "../config/config"
 
 require('source-map-support').install()
 import BigNumber from "bignumber.js";
-import { EthereumModel } from "../../src";
+import { EthereumModel, saveBlocks, saveCurrencies } from "../../src";
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from "../../lab"
-import { assert } from 'chai'
+import { assert, expect } from 'chai'
 import { blockchain } from "vineyard-blockchain"
 
 const second = 1000
@@ -146,16 +146,22 @@ describe('eth-scan', function () {
   })
 
   it('detects successful token transfers', async function () {
-    await createSaltContract(village)
-
-    await model.LastBlock.create({ currency: 2, blockIndex: 5146973 })
+    await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
     await startEthereumMonitor(village, {
-      queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 2 * second
+      queue: { maxSize: 10, minSize: 10 },
+      maxMilliseconds: 1 * minute
     })
 
     const transfers = await model.TokenTransfer.all()
     assert.isAtLeast(transfers.length, 1)
+  })
+
+  it('saveBlocks throws an error when passed an empty blocks array', function () {
+    expect(() => saveBlocks(model.ground, [])).to.throw('blocks array must not be empty')
+  })
+
+  it('saveCurrencies throws an error when there is a currency data failure', function () {
+    expect(() => saveCurrencies(model.ground, [ 'incorrect contract type' ])).to.throw('Oh no')
   })
 
 })

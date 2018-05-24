@@ -31,7 +31,7 @@ function startEthereumMonitor(village, config) {
             profiler.logFlat();
         }
         catch (error) {
-            console.error(error);
+            console.error('Ethereum scanning error:', error);
         }
     });
 }

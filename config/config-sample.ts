@@ -36,7 +36,8 @@ export const bitcoinConfig: BitcoinConfig = {
   },
   blockQueue: {
     minSize: 5,
-    maxSize: 10
+    maxSize: 10,
+    maxBlockRequests: 10
   },
   interval: 15000
 }

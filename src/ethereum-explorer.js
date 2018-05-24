@@ -86,6 +86,7 @@ function saveContracts(ground, contracts, addresses) {
         const tokenContracts = contracts.filter(c => c.contractType == vineyard_blockchain_1.blockchain.ContractType.token);
         if (tokenContracts.length == 0)
             return;
+        // tokenContracts must be passed in as type TokenContracts, must have 'name'
         const currencyContracts = yield database_functions_1.saveCurrencies(ground, tokenContracts);
         for (const bundle of currencyContracts) {
             const token = bundle.tokenContract;
@@ -115,7 +116,7 @@ function gatherNewContracts(blocks) {
     }
     return result;
 }
-function gatherTokenTranferInfo(ground, pairs) {
+function gatherTokenTransferInfo(ground, pairs) {
     return __awaiter(this, void 0, void 0, function* () {
         if (pairs.length == 0)
             return Promise.resolve([]);
@@ -146,7 +147,7 @@ ON infos.column1 = addresses.address`;
 function gatherTokenTransfers(ground, decodeEvent, events) {
     return __awaiter(this, void 0, void 0, function* () {
         let contractTransactions = events.map(e => ({ address: e.address, txid: e.transactionHash }));
-        const infos = yield gatherTokenTranferInfo(ground, contractTransactions);
+        const infos = yield gatherTokenTransferInfo(ground, contractTransactions);
         return infos.map(info => {
             const event = events.filter(event => event.transactionHash == info.txid)[0];
             const decoded = decodeEvent(event);
