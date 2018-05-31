@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const bitcoinjs_lib_1 = require("bitcoinjs-lib");
 exports.ethereumConfig = {
     database: {
         host: "localhost",
@@ -12,10 +11,10 @@ exports.ethereumConfig = {
     },
     ethereum: {
         client: {
-            http: "http://35.160.177.94:8545"
+            http: "http://"
         }
     },
-    interval: 15000
+    interval: 5000
 };
 exports.bitcoinConfig = {
     database: {
@@ -30,8 +29,7 @@ exports.bitcoinConfig = {
         "host": "localhost",
         "username": "user",
         "password": "password",
-        "port": 18332,
-        "network": bitcoinjs_lib_1.networks.testnet
+        "port": 8332
     },
     blockQueue: {
         minSize: 5,

@@ -1,5 +1,4 @@
 import { BitcoinConfig, EthereumConfig } from "../lab/config-types"
-import { networks } from "bitcoinjs-lib"
 
 export const ethereumConfig: EthereumConfig = {
   database: {
@@ -12,10 +11,10 @@ export const ethereumConfig: EthereumConfig = {
   },
   ethereum: {
     client: {
-      http: "http://35.160.177.94:8545"
+      http: "http://"
     }
   },
-  interval: 15000
+  interval: 5000
 }
 
 export const bitcoinConfig: BitcoinConfig = {
@@ -31,8 +30,7 @@ export const bitcoinConfig: BitcoinConfig = {
     "host": "localhost",
     "username": "user",
     "password": "password",
-    "port": 18332,
-    "network": networks.testnet
+    "port": 8332
   },
   blockQueue: {
     minSize: 5,
