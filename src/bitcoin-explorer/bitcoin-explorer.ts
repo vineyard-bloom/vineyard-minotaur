@@ -88,15 +88,11 @@ async function saveFullBlocks(ground: Modeler, blocks: FullBlock[]): Promise<voi
   const addresses = gatherAddresses(outputs)
 
   const addressesFromDb = await getOrCreateAddresses2(ground, addresses)
-  await saveTransactions(ground, transactions)
 
-  await Promise.all([
-      saveBlocks(ground, blocks),
-      // Add param for oldest block being saved
-      saveTransactionInputs(ground, inputs),
-      saveTransactionOutputs(ground, outputs, addressesFromDb)
-    ]
-  )
+  await saveBlocks(ground, blocks)
+  await saveTransactions(ground, transactions)
+  await saveTransactionInputs(ground, inputs)
+  await saveTransactionOutputs(ground, outputs, addressesFromDb)
 }
 
 export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,

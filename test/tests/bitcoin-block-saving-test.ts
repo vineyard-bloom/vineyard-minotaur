@@ -22,28 +22,6 @@ describe('bitcoin block saving test', function () {
     await (model.ground as DevModeler).regenerate()
   })
 
-  // scannedBlockStatus is now set in scanBlocks()
-  // it('can detect when block has been rescanned with no changes', async function () {
-  //   const newBlock = randomBlock()
-  //   const block = await model.Block.create(newBlock)
-
-  //   const scannedBlockStatus = await checkBlockScanStatus(dao, block)
-  //   assert.equal(ScannedBlockStatus.same, scannedBlockStatus)
-  // })
-
-  // it('can detect when block has  been rescanned with changes', async function () {
-  //   const newBlock = randomBlock()
-  //   const block = await model.Block.create(newBlock)
-
-  //   const scannedBlockStatus = await checkBlockScanStatus(dao, {index: block.index, hash: 'newHash'})
-  //   assert.equal(ScannedBlockStatus.replaced, scannedBlockStatus)
-  // })
-
-  // it('can detect when block has never been scanned', async function () {
-  //   const scannedBlockStatus = await checkBlockScanStatus(dao, {index: 1, hash: 'originalHash'})
-  //   assert.equal(ScannedBlockStatus._new, scannedBlockStatus)
-  // })
-
   it('can delete one of two saved blocks', async function () {
     const blockOne = randomBlock()
     const blockTwo = randomBlock()
