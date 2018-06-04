@@ -68,13 +68,10 @@ function saveFullBlocks(ground, blocks) {
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
         const addresses = gatherAddresses(outputs);
         const addressesFromDb = yield database_functions_1.getOrCreateAddresses2(ground, addresses);
+        yield database_functions_1.saveBlocks(ground, blocks);
         yield saveTransactions(ground, transactions);
-        yield Promise.all([
-            database_functions_1.saveBlocks(ground, blocks),
-            // Add param for oldest block being saved
-            saveTransactionInputs(ground, inputs),
-            saveTransactionOutputs(ground, outputs, addressesFromDb)
-        ]);
+        yield saveTransactionInputs(ground, inputs);
+        yield saveTransactionOutputs(ground, outputs, addressesFromDb);
     });
 }
 function scanBitcoinExplorerBlocks(dao, client, config, profiler = new utility_1.EmptyProfiler()) {
