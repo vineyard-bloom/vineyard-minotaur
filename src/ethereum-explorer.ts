@@ -11,6 +11,7 @@ import {
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 import { getTransactionByTxid, saveSingleCurrencyBlock } from "./explorer-helpers"
+import { Transaction } from "bitcoinjs-lib";
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
 
@@ -254,9 +255,25 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
   return ground.querySingle(sql)
 }
 
+// function gatherInternalTransactions?
+
+async function saveInternalTransactions(ground: Modeler, internalTransactions: blockchain.InternalTransaction[]) {
+  if (internalTransactions.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n'
+  const internalTransactionClauses = internalTransactions.map(internalTransaction => {
+    return `${internalTransaction.transaction.getId}, ${internalTransaction.to.address}, ${internalTransaction.from.address}, ${internalTransaction.amount}, NOW(), NOW())`
+  })
+
+  const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  return ground.querySingle(sql)
+}
+
 async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
   const transactions = flatMap(blocks, b => b.transactions)
   const events = flatMap(transactions, t => t.events || [])
+  const internalTransactions = flatMap(transactions, transaction => transaction.internalTransactions || [])
 
   const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events)
   const contracts = gatherNewContracts(blocks)
@@ -268,6 +285,7 @@ async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.E
         .then(() => saveSingleTransactions(ground, transactions, addresses))
         .then(() => saveContracts(ground, contracts, addresses))
         .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
+        .then(() => saveInternalTransactions(ground, internalTransactions))
     ]
   )
 }

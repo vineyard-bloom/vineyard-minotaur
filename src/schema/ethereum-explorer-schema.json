@@ -171,8 +171,7 @@
         "type": "Transaction"
       },
       "to": {
-        "type": "Address",
-        "nullable": true
+        "type": "Address"
       },
       "from": {
         "type": "Address"
