@@ -35,8 +35,9 @@ export const bitcoinConfig: BitcoinConfig = {
     "network": networks.testnet
   },
   blockQueue: {
-    minSize: 5,
-    maxSize: 10
+    maxBlockRequests: 5,
+    maxSize: 8,
+    minSize: 8
   },
   interval: 15000
 }
