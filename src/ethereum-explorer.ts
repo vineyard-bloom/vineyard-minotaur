@@ -255,15 +255,32 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
   return ground.querySingle(sql)
 }
 
-// function gatherInternalTransactions?
+interface InternalTransactionBundle {
+  txid: string
+  internalTransaction: blockchain.InternalTransaction
+}
 
-async function saveInternalTransactions(ground: Modeler, internalTransactions: blockchain.InternalTransaction[]) {
+function gatherInternalTransactions(transactions: blockchain.ContractTransaction[]): InternalTransactionBundle[] {
+  const transactionsWithInternal = transactions.filter(transaction => transaction.internalTransactions)
+  if (transactionsWithInternal.length == 0)
+    return []
+
+  return flatMap(transactionsWithInternal, transaction =>
+    transaction.internalTransactions!.map(internalTransaction => {
+      return {
+        txid: transaction.txid,
+        internalTransaction
+      }
+    }))
+}
+
+async function saveInternalTransactions(ground: Modeler, internalTransactions: InternalTransactionBundle[]) {
   if (internalTransactions.length == 0)
     return Promise.resolve()
 
   const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n'
-  const internalTransactionClauses = internalTransactions.map(internalTransaction => {
-    return `${internalTransaction.transaction.getId}, ${internalTransaction.to.address}, ${internalTransaction.from.address}, ${internalTransaction.amount}, NOW(), NOW())`
+  const internalTransactionClauses = internalTransactions.map(bundle => {
+    return `${bundle.txid}, ${bundle.internalTransaction.to.address}, ${bundle.internalTransaction.from.address}, ${bundle.internalTransaction.amount}, NOW(), NOW())`
   })
 
   const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
@@ -273,8 +290,8 @@ async function saveInternalTransactions(ground: Modeler, internalTransactions: b
 async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
   const transactions = flatMap(blocks, b => b.transactions)
   const events = flatMap(transactions, t => t.events || [])
-  const internalTransactions = flatMap(transactions, transaction => transaction.internalTransactions || [])
 
+  const internalTransactions = gatherInternalTransactions(transactions)
   const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events)
   const contracts = gatherNewContracts(blocks)
   const addresses = gatherAddresses(blocks, contracts, tokenTranfers)

@@ -174,14 +174,24 @@ function saveTokenTransfers(ground, tokenTransfers, addresses) {
         return ground.querySingle(sql);
     });
 }
-// function gatherInternalTransactions?
+function gatherInternalTransactions(transactions) {
+    const transactionsWithInternal = transactions.filter(transaction => transaction.internalTransactions);
+    if (transactionsWithInternal.length == 0)
+        return [];
+    return index_1.flatMap(transactionsWithInternal, transaction => transaction.internalTransactions.map(internalTransaction => {
+        return {
+            txid: transaction.txid,
+            internalTransaction
+        };
+    }));
+}
 function saveInternalTransactions(ground, internalTransactions) {
     return __awaiter(this, void 0, void 0, function* () {
         if (internalTransactions.length == 0)
             return Promise.resolve();
         const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n';
-        const internalTransactionClauses = internalTransactions.map(internalTransaction => {
-            return `${internalTransaction.transaction.getId}, ${internalTransaction.to.address}, ${internalTransaction.from.address}, ${internalTransaction.amount}, NOW(), NOW())`;
+        const internalTransactionClauses = internalTransactions.map(bundle => {
+            return `${bundle.txid}, ${bundle.internalTransaction.to.address}, ${bundle.internalTransaction.from.address}, ${bundle.internalTransaction.amount}, NOW(), NOW())`;
         });
         const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);
@@ -191,7 +201,7 @@ function saveFullBlocks(ground, decodeTokenTransfer, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const transactions = index_1.flatMap(blocks, b => b.transactions);
         const events = index_1.flatMap(transactions, t => t.events || []);
-        const internalTransactions = index_1.flatMap(transactions, transaction => transaction.internalTransactions || []);
+        const internalTransactions = gatherInternalTransactions(transactions);
         const tokenTranfers = yield gatherTokenTransfers(ground, decodeTokenTransfer, events);
         const contracts = gatherNewContracts(blocks);
         const addresses = gatherAddresses(blocks, contracts, tokenTranfers);
