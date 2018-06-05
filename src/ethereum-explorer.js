@@ -185,18 +185,20 @@ function gatherInternalTransactions(transactions) {
         };
     }));
 }
+exports.gatherInternalTransactions = gatherInternalTransactions;
 function saveInternalTransactions(ground, internalTransactions) {
     return __awaiter(this, void 0, void 0, function* () {
         if (internalTransactions.length == 0)
             return Promise.resolve();
         const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n';
         const internalTransactionClauses = internalTransactions.map(bundle => {
-            return `${bundle.txid}, ${bundle.internalTransaction.to.address}, ${bundle.internalTransaction.from.address}, ${bundle.internalTransaction.amount}, NOW(), NOW())`;
+            return `("${bundle.txid}", "${bundle.internalTransaction.to}", "${bundle.internalTransaction.from}", "${bundle.internalTransaction.amount}", NOW(), NOW())`;
         });
         const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);
     });
 }
+exports.saveInternalTransactions = saveInternalTransactions;
 function saveFullBlocks(ground, decodeTokenTransfer, blocks) {
     return __awaiter(this, void 0, void 0, function* () {
         const transactions = index_1.flatMap(blocks, b => b.transactions);

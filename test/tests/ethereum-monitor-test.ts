@@ -2,7 +2,7 @@ import { ethereumConfig } from '../config/config'
 
 require('source-map-support').install()
 import BigNumber from 'bignumber.js';
-import { EthereumModel, saveBlocks, saveCurrencies } from '../../src';
+import { gatherInternalTransactions, EthereumModel, saveBlocks, saveCurrencies, saveInternalTransactions, InternalTransactionBundle, saveSingleTransactions } from '../../src';
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from '../../lab'
 import { assert, expect } from 'chai'
 import { blockchain } from 'vineyard-blockchain'
@@ -170,8 +170,101 @@ describe('eth-scan', function () {
     await assertThrowsErrorMessage(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
   })
 
-  // it('saveCurrencies throws an error when there is a currency data failure', async function () {
-  //   await assertThrowsErrorMessage(() => saveCurrencies(model.ground, [ 'incorrect contract type' ]), 'Contract is missing name property')
-  // })
+  it('can save an internal transaction to the DB', async function () {
+    // Must save tx first
+    const internalTransactions: InternalTransactionBundle[] = [{
+      txid: 'one',
+      internalTransaction: {
+        transaction: {
+          txid: 'one',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(1),
+          nonce: 2
+        },
+        to: 'Buddy boy',
+        from: 'Buddy girl',
+        amount: new BigNumber(4)
+      }
+    }]
+    await saveInternalTransactions(model.ground, internalTransactions)
+  })
 
+  it('can save and load internal transactions', async function () {
+    // Make "Transactions" array, with some Tx having internal and some not
+    const transactions: blockchain.ContractTransaction[] = [{
+      txid: 'one',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(1),
+      nonce: 1,
+      blockIndex: 1,
+      amount: new BigNumber(1),
+      gasUsed: 1,
+      gasPrice: new BigNumber(1),
+      internalTransactions: [{
+        transaction: {
+          txid: 'one',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(1),
+          nonce: 1 
+        },
+        to: 'One dude',
+        from: 'Another dude',
+        amount: new BigNumber(1)
+      }]
+    }, {
+      txid: 'two',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(2),
+      nonce: 2,
+      blockIndex: 2,
+      amount: new BigNumber(2),
+      gasUsed: 2,
+      gasPrice: new BigNumber(2),
+      internalTransactions: [{
+        transaction: {
+          txid: 'two',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(2),
+          nonce: 2
+        },
+        to: 'One buddy',
+        from: 'Another buddy',
+        amount: new BigNumber(2)
+      }, {
+        transaction: {
+          txid: 'two',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(2),
+          nonce: 2
+        },
+        to: 'One friend',
+        from: 'Another friend',
+        amount: new BigNumber(20)
+      }]
+    }, {
+      txid: 'three',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(3),
+      nonce: 3,
+      blockIndex: 3,
+      amount: new BigNumber(3),
+      gasUsed: 3,
+      gasPrice: new BigNumber(3)
+    }]
+
+    await saveSingleTransactions(model.ground, transactions, { 'Address': 1 })
+
+    const internalTransactions = gatherInternalTransactions(transactions)
+    await saveInternalTransactions(model.ground, internalTransactions) 
+
+    const data = await model.InternalTransaction.all()
+    assert.equal(data.length, 3)
+  })
 })

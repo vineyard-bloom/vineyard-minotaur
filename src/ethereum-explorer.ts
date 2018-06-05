@@ -38,6 +38,7 @@ export interface EthereumModel {
   TokenTransfer: Collection<TokenTransferRecord>
   Transaction: Collection<EthereumTransaction & { id: number }>
   LastBlock: Collection<LastBlock>
+  InternalTransaction: Collection<blockchain.InternalTransaction>
 
   ground: Modeler
 }
@@ -255,12 +256,12 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
   return ground.querySingle(sql)
 }
 
-interface InternalTransactionBundle {
+export interface InternalTransactionBundle {
   txid: string
   internalTransaction: blockchain.InternalTransaction
 }
 
-function gatherInternalTransactions(transactions: blockchain.ContractTransaction[]): InternalTransactionBundle[] {
+export function gatherInternalTransactions(transactions: blockchain.ContractTransaction[]): InternalTransactionBundle[] {
   const transactionsWithInternal = transactions.filter(transaction => transaction.internalTransactions)
   if (transactionsWithInternal.length == 0)
     return []
@@ -274,13 +275,13 @@ function gatherInternalTransactions(transactions: blockchain.ContractTransaction
     }))
 }
 
-async function saveInternalTransactions(ground: Modeler, internalTransactions: InternalTransactionBundle[]) {
+export async function saveInternalTransactions(ground: Modeler, internalTransactions: InternalTransactionBundle[]) {
   if (internalTransactions.length == 0)
     return Promise.resolve()
 
   const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n'
   const internalTransactionClauses = internalTransactions.map(bundle => {
-    return `${bundle.txid}, ${bundle.internalTransaction.to.address}, ${bundle.internalTransaction.from.address}, ${bundle.internalTransaction.amount}, NOW(), NOW())`
+    return `("${bundle.txid}", "${bundle.internalTransaction.to}", "${bundle.internalTransaction.from}", "${bundle.internalTransaction.amount}", NOW(), NOW())`
   })
 
   const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
