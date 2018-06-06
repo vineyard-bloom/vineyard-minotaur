@@ -171,7 +171,14 @@ describe('eth-scan', function () {
   })
 
   it('can save an internal transaction to the DB', async function () {
-    // Must save tx first
+
+    await model.LastBlock.create({ currency: 2 })
+    console.log('Initialized village')
+    await startEthereumMonitor(village, {
+      queue: { maxSize: 10, minSize: 1 },
+      maxMilliseconds: 30 * second
+    })
+
     const internalTransactions: InternalTransactionBundle[] = [{
       txid: 'one',
       internalTransaction: {
@@ -187,12 +194,13 @@ describe('eth-scan', function () {
         amount: new BigNumber(4)
       }
     }]
+
     await saveInternalTransactions(model.ground, internalTransactions)
   })
 
-  it('can save and load internal transactions', async function () {
-    // Make "Transactions" array, with some Tx having internal and some not
+  it('can convert an internal transaction to the correct format for saving', async function () {
     const transactions: blockchain.ContractTransaction[] = [{
+      from: 'someone nice',
       txid: 'one',
       timeReceived: new Date(),
       status: 3,
@@ -215,6 +223,7 @@ describe('eth-scan', function () {
         amount: new BigNumber(1)
       }]
     }, {
+      from: 'someone mean',
       txid: 'two',
       timeReceived: new Date(),
       status: 3,
@@ -248,6 +257,7 @@ describe('eth-scan', function () {
         amount: new BigNumber(20)
       }]
     }, {
+      from: 'someone in between',
       txid: 'three',
       timeReceived: new Date(),
       status: 3,
@@ -259,12 +269,56 @@ describe('eth-scan', function () {
       gasPrice: new BigNumber(3)
     }]
 
-    await saveSingleTransactions(model.ground, transactions, { 'Address': 1 })
-
     const internalTransactions = gatherInternalTransactions(transactions)
-    await saveInternalTransactions(model.ground, internalTransactions) 
+    const expected = [{
+      txid: 'one',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'one',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(1),
+            nonce: 1 
+          },
+          to: 'One dude',
+          from: 'Another dude',
+          amount: new BigNumber(1)
+        }
+    },
+    {
+      txid: 'two',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'two',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(2),
+            nonce: 2
+          },
+          to: 'One buddy',
+          from: 'Another buddy',
+          amount: new BigNumber(2)
+        }
+    },
+    {
+      txid: 'two',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'two',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(2),
+            nonce: 2
+          },
+          to: 'One friend',
+          from: 'Another friend',
+          amount: new BigNumber(20)
+        }
+    }]
 
-    const data = await model.InternalTransaction.all()
-    assert.equal(data.length, 3)
+    assert.deepEqual(internalTransactions, expected)
   })
 })
