@@ -170,34 +170,6 @@ describe('eth-scan', function () {
     await assertThrowsErrorMessage(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
   })
 
-  it('can save an internal transaction to the DB', async function () {
-
-    await model.LastBlock.create({ currency: 2 })
-    console.log('Initialized village')
-    await startEthereumMonitor(village, {
-      queue: { maxSize: 10, minSize: 1 },
-      maxMilliseconds: 30 * second
-    })
-
-    const internalTransactions: InternalTransactionBundle[] = [{
-      txid: 'one',
-      internalTransaction: {
-        transaction: {
-          txid: 'one',
-          timeReceived: new Date(),
-          status: 3,
-          fee: new BigNumber(1),
-          nonce: 2
-        },
-        to: 'Buddy boy',
-        from: 'Buddy girl',
-        amount: new BigNumber(4)
-      }
-    }]
-
-    await saveInternalTransactions(model.ground, internalTransactions)
-  })
-
   it('can convert an internal transaction to the correct format for saving', async function () {
     const transactions: blockchain.ContractTransaction[] = [{
       from: 'someone nice',
@@ -320,5 +292,32 @@ describe('eth-scan', function () {
     }]
 
     assert.deepEqual(internalTransactions, expected)
+  })
+
+  it('can save an internal transaction to the DB', async function () {
+    await model.LastBlock.create({ currency: 2, blockIndex: 4000000 })
+    console.log('Initialized village')
+    await startEthereumMonitor(village, {
+      queue: { maxSize: 10, minSize: 1 },
+      maxMilliseconds: 10 * second
+    })
+
+    const internalTransactions: InternalTransactionBundle[] = [{
+      txid: '0x7dffbdeecadfb6db737ae0871bf1e41341b9b5f4fcee3e3c7a52433cab208a36',
+      internalTransaction: {
+        transaction: {
+          txid: '0x7dffbdeecadfb6db737ae0871bf1e41341b9b5f4fcee3e3c7a52433cab208a36',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(1),
+          nonce: 2
+        },
+        to: '0xB97048628DB6B661D4C2aA833e95Dbe1A905B280',
+        from: '0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98',
+        amount: new BigNumber(4)
+      }
+    }]
+
+    await saveInternalTransactions(model.ground, internalTransactions)
   })
 })

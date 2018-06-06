@@ -282,7 +282,7 @@ export async function saveInternalTransactions(ground: Modeler, internalTransact
 
   const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n'
   const internalTransactionClauses = internalTransactions.map(bundle => {
-    return `(${bundle.txid}, ${bundle.internalTransaction.to}, ${bundle.internalTransaction.from}, ${bundle.internalTransaction.amount}, NOW(), NOW())`
+    return `((SELECT transactions.id FROM transactions WHERE transactions.txid = '${bundle.txid}'), (SELECT addresses.id FROM addresses WHERE addresses.address = '${bundle.internalTransaction.to}'), (SELECT addresses.id FROM addresses WHERE addresses.address = '${bundle.internalTransaction.from}'), ${bundle.internalTransaction.amount}, NOW(), NOW())`
   })
 
   const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
