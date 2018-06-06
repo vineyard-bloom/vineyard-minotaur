@@ -23,9 +23,8 @@ function startBitcoinMonitor(village, config) {
             const { model, client } = village;
             const dao = bitcoin_model_1.createBitcoinExplorerDao(model);
             console.log('Starting cron');
-            const profiler = new utility_1.SimpleProfiler();
+            const profiler = config.profiling ? new utility_1.SimpleProfiler() : new utility_1.EmptyProfiler();
             yield src_1.scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler);
-            profiler.logFlat();
         }
         catch (error) {
             console.error(error);

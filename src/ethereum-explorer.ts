@@ -86,6 +86,7 @@ export interface OptionalMonitorConfig {
   minConfirmations?: number
   maxMilliseconds?: number
   maxBlocksPerScan?: number
+  profiling?: boolean
 }
 
 export interface MonitorConfig extends OptionalMonitorConfig {

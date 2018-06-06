@@ -15,7 +15,8 @@ export const ethereumConfig: EthereumConfig = {
       http: "http://35.160.177.94:8545"
     }
   },
-  interval: 15000
+  interval: 15000,
+  profiling: true
 }
 
 export const bitcoinConfig: BitcoinConfig = {
@@ -39,5 +40,6 @@ export const bitcoinConfig: BitcoinConfig = {
     maxSize: 8,
     minSize: 8
   },
-  interval: 15000
+  interval: 15000,
+  profiling: true
 }

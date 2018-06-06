@@ -26,9 +26,8 @@ function startEthereumMonitor(village, config) {
             const dao = src_1.createEthereumExplorerDao(model);
             const transactionDao = src_1.createSingleCurrencyTransactionDao(model);
             console.log('Starting cron');
-            const profiler = new utility_1.SimpleProfiler();
+            const profiler = config.profiling ? new utility_1.SimpleProfiler() : new utility_1.EmptyProfiler();
             yield src_1.scanEthereumExplorerBlocks(dao, client, client_functions_1.decodeTokenTransfer, appliedConfig, profiler);
-            profiler.logFlat();
         }
         catch (error) {
             console.error('Ethereum scanning error:', error);

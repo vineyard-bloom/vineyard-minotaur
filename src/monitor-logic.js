@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const database_functions_1 = require("./database-functions");
-const utility_1 = require("./utility");
 const block_queue_1 = require("./block-queue");
 var ScannedBlockStatus;
 (function (ScannedBlockStatus) {
@@ -64,9 +63,10 @@ function mapBlocks(fullBlocks) {
     return (simple) => fullBlocks.filter(b => b.index == simple.index)[0];
 }
 exports.mapBlocks = mapBlocks;
-function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler = new utility_1.EmptyProfiler()) {
+function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();
+        profiler.logFlat();
         do {
             const elapsed = Date.now() - startTime;
             if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {

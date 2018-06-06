@@ -1,5 +1,5 @@
 import { getNextBlock, deleteFullBlocks } from "./database-functions";
-import { EmptyProfiler, Profiler } from "./utility";
+import { EmptyProfiler, Profiler, SimpleProfiler } from "./utility";
 import { BlockQueueConfig, ExternalBlockQueue, IndexedBlock } from "./block-queue";
 import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
@@ -82,8 +82,10 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
                                                                    ground: Modeler,
                                                                    lastBlockDao: LastBlockDao,
                                                                    config: MonitorConfig,
-                                                                   profiler: Profiler = new EmptyProfiler()): Promise<any> {
+                                                                   profiler: Profiler): Promise<any> {
   const startTime: number = Date.now()
+
+  profiler.logFlat()
 
   do {
     const elapsed = Date.now() - startTime
