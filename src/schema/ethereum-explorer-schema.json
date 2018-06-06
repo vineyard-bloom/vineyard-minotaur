@@ -161,5 +161,24 @@
         "type": "bignumber"
       }
     }
+  },
+  "InternalTransaction": {
+    "properties": {
+      "id": {
+        "type": "long"
+      },
+      "transaction": {
+        "type": "Transaction"
+      },
+      "to": {
+        "type": "Address"
+      },
+      "from": {
+        "type": "Address"
+      },
+      "amount": {
+        "type": "bignumber"
+      }
+    }
   }
 }

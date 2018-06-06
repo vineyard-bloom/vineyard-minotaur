@@ -2,7 +2,7 @@ import { ethereumConfig } from '../config/config'
 
 require('source-map-support').install()
 import BigNumber from 'bignumber.js';
-import { EthereumModel, saveBlocks, saveCurrencies } from '../../src';
+import { gatherInternalTransactions, EthereumModel, saveBlocks, saveCurrencies, saveInternalTransactions, InternalTransactionBundle, saveSingleTransactions } from '../../src';
 import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from '../../lab'
 import { assert, expect } from 'chai'
 import { blockchain } from 'vineyard-blockchain'
@@ -170,8 +170,154 @@ describe('eth-scan', function () {
     await assertThrowsErrorMessage(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
   })
 
-  it('saveCurrencies throws an error when there is a currency data failure', async function () {
-    await assertThrowsErrorMessage(() => saveCurrencies(model.ground, [ 'incorrect contract type' ]), 'Contract is missing name property')
+  it('can convert an internal transaction to the correct format for saving', async function () {
+    const transactions: blockchain.ContractTransaction[] = [{
+      from: 'someone nice',
+      txid: 'one',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(1),
+      nonce: 1,
+      blockIndex: 1,
+      amount: new BigNumber(1),
+      gasUsed: 1,
+      gasPrice: new BigNumber(1),
+      internalTransactions: [{
+        transaction: {
+          txid: 'one',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(1),
+          nonce: 1 
+        },
+        to: 'One dude',
+        from: 'Another dude',
+        amount: new BigNumber(1)
+      }]
+    }, {
+      from: 'someone mean',
+      txid: 'two',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(2),
+      nonce: 2,
+      blockIndex: 2,
+      amount: new BigNumber(2),
+      gasUsed: 2,
+      gasPrice: new BigNumber(2),
+      internalTransactions: [{
+        transaction: {
+          txid: 'two',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(2),
+          nonce: 2
+        },
+        to: 'One buddy',
+        from: 'Another buddy',
+        amount: new BigNumber(2)
+      }, {
+        transaction: {
+          txid: 'two',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(2),
+          nonce: 2
+        },
+        to: 'One friend',
+        from: 'Another friend',
+        amount: new BigNumber(20)
+      }]
+    }, {
+      from: 'someone in between',
+      txid: 'three',
+      timeReceived: new Date(),
+      status: 3,
+      fee: new BigNumber(3),
+      nonce: 3,
+      blockIndex: 3,
+      amount: new BigNumber(3),
+      gasUsed: 3,
+      gasPrice: new BigNumber(3)
+    }]
+
+    const internalTransactions = gatherInternalTransactions(transactions)
+    const expected = [{
+      txid: 'one',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'one',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(1),
+            nonce: 1 
+          },
+          to: 'One dude',
+          from: 'Another dude',
+          amount: new BigNumber(1)
+        }
+    },
+    {
+      txid: 'two',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'two',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(2),
+            nonce: 2
+          },
+          to: 'One buddy',
+          from: 'Another buddy',
+          amount: new BigNumber(2)
+        }
+    },
+    {
+      txid: 'two',
+      internalTransaction:
+        {
+          transaction: {
+            txid: 'two',
+            timeReceived: new Date(),
+            status: 3,
+            fee: new BigNumber(2),
+            nonce: 2
+          },
+          to: 'One friend',
+          from: 'Another friend',
+          amount: new BigNumber(20)
+        }
+    }]
+
+    assert.deepEqual(internalTransactions, expected)
   })
 
+  it('can save an internal transaction to the DB', async function () {
+    await model.LastBlock.create({ currency: 2, blockIndex: 4000000 })
+    console.log('Initialized village')
+    await startEthereumMonitor(village, {
+      queue: { maxSize: 10, minSize: 1 },
+      maxMilliseconds: 10 * second
+    })
+
+    const internalTransactions: InternalTransactionBundle[] = [{
+      txid: '0x7dffbdeecadfb6db737ae0871bf1e41341b9b5f4fcee3e3c7a52433cab208a36',
+      internalTransaction: {
+        transaction: {
+          txid: '0x7dffbdeecadfb6db737ae0871bf1e41341b9b5f4fcee3e3c7a52433cab208a36',
+          timeReceived: new Date(),
+          status: 3,
+          fee: new BigNumber(1),
+          nonce: 2
+        },
+        to: '0xB97048628DB6B661D4C2aA833e95Dbe1A905B280',
+        from: '0xFBb1b73C4f0BDa4f67dcA266ce6Ef42f520fBB98',
+        amount: new BigNumber(4)
+      }
+    }]
+
+    await saveInternalTransactions(model.ground, internalTransactions)
+  })
 })
