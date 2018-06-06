@@ -3,7 +3,7 @@ import {
   createEthereumExplorerDao, createSingleCurrencyTransactionDao, EthereumModel, OptionalMonitorConfig,
   scanEthereumExplorerBlocks, getEthereumExplorerSchema
 } from "../src";
-import { SimpleProfiler } from "../src/utility";
+import { SimpleProfiler, EmptyProfiler } from "../src/utility";
 import { EthereumConfig, FullConfig } from "./config-types";
 import { EthereumBlockReader } from "vineyard-ethereum/src/block-reader"
 import { decodeTokenTransfer } from "vineyard-ethereum/src/client-functions"
@@ -23,6 +23,7 @@ export async function startEthereumMonitor(village: EthereumVillage, config: Opt
     const dao = createEthereumExplorerDao(model)
     const transactionDao = createSingleCurrencyTransactionDao(model)
     console.log('Starting cron')
+    const profiler = config.profiling ? new SimpleProfiler() : new EmptyProfiler()
     await scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, appliedConfig, profiler)
   }
   catch (error) {

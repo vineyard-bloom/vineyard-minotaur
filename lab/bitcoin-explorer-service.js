@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const village_1 = require("./village");
 const src_1 = require("../src");
+const utility_1 = require("../src/utility");
 const schema_1 = require("../src/schema");
 const bitcoin_model_1 = require("../src/bitcoin-explorer/bitcoin-model");
 function startBitcoinMonitor(village, config) {
@@ -22,6 +23,7 @@ function startBitcoinMonitor(village, config) {
             const { model, client } = village;
             const dao = bitcoin_model_1.createBitcoinExplorerDao(model);
             console.log('Starting cron');
+            const profiler = config.profiling ? new utility_1.SimpleProfiler() : new utility_1.EmptyProfiler();
             yield src_1.scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler);
         }
         catch (error) {

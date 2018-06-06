@@ -13,6 +13,7 @@ const config_1 = require("../config/config");
 const bitcoin_block_reader_1 = require("vineyard-bitcoin/src/bitcoin-block-reader");
 const reset_btc_scan_db_1 = require("./reset-btc-scan-db");
 const vineyard_cron_1 = require("vineyard-cron");
+const config_2 = require("../test/config/config");
 require('source-map-support').install();
 function main(resetDb) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -21,7 +22,10 @@ function main(resetDb) {
         if (resetDb && resetDb === '-r') {
             yield reset_btc_scan_db_1.resetBtcScanDb(village);
         }
-        yield bitcoin_explorer_service_1.startBitcoinMonitor(village, { queue: config_1.bitcoinConfig.blockQueue });
+        yield bitcoin_explorer_service_1.startBitcoinMonitor(village, {
+            queue: config_1.bitcoinConfig.blockQueue,
+            profiling: config_2.ethereumConfig.profiling ? true : false
+        });
     });
 }
 const bitcoinCron = new vineyard_cron_1.Cron([

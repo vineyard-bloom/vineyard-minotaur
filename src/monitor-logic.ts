@@ -82,11 +82,9 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
                                                                    ground: Modeler,
                                                                    lastBlockDao: LastBlockDao,
                                                                    config: MonitorConfig,
-                                                                   profiler: Profiler = new EmptyProfiler()): Promise<any> {
+                                                                   profiler: Profiler): Promise<any> {
   const startTime: number = Date.now()
 
-  // Pass config var to OptionalMonitorConfig
-  if(config.profiling) profiler = new SimpleProfiler()
   profiler.logFlat()
 
   do {

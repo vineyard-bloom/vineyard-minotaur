@@ -3,6 +3,7 @@ import { bitcoinConfig } from '../config/config'
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { resetBtcScanDb } from "./reset-btc-scan-db"
 import {Cron} from 'vineyard-cron'
+import { ethereumConfig } from "../test/config/config";
 
 require('source-map-support').install()
 
@@ -14,9 +15,10 @@ async function main(resetDb?: string) {
     await resetBtcScanDb(village)
   }
 
-  await startBitcoinMonitor(village,
-    {queue: bitcoinConfig.blockQueue}
-  )
+  await startBitcoinMonitor(village, {
+    queue: bitcoinConfig.blockQueue,
+    profiling: ethereumConfig.profiling ? true : false
+  })
 }
 
 const bitcoinCron = new Cron([

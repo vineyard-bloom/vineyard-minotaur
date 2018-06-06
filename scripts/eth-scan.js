@@ -17,7 +17,8 @@ function main() {
         const village = yield lab_1.createEthereumVillage(config_1.ethereumConfig);
         console.log('Initialized village');
         yield lab_1.startEthereumMonitor(village, {
-            queue: { maxSize: 10, minSize: 5 }
+            queue: { maxSize: 10, minSize: 5 },
+            profiling: config_1.ethereumConfig.profiling ? true : false
         });
     });
 }
