@@ -23,9 +23,7 @@ export async function startEthereumMonitor(village: EthereumVillage, config: Opt
     const dao = createEthereumExplorerDao(model)
     const transactionDao = createSingleCurrencyTransactionDao(model)
     console.log('Starting cron')
-    const profiler = new SimpleProfiler()
     await scanEthereumExplorerBlocks(dao, client, decodeTokenTransfer, appliedConfig, profiler)
-    profiler.logFlat()
   }
   catch (error) {
     console.error('Ethereum scanning error:', error)

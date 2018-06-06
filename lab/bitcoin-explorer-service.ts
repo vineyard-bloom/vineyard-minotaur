@@ -19,9 +19,7 @@ export async function startBitcoinMonitor(village: BitcoinVillage, config: Optio
 
     const dao = createBitcoinExplorerDao(model)
     console.log('Starting cron')
-    const profiler = new SimpleProfiler()
     await scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler)
-    profiler.logFlat()
   }
   catch (error) {
     console.error(error)

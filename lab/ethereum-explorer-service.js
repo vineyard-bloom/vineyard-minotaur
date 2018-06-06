@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const village_1 = require("./village");
 const src_1 = require("../src");
-const utility_1 = require("../src/utility");
 const block_reader_1 = require("vineyard-ethereum/src/block-reader");
 const client_functions_1 = require("vineyard-ethereum/src/client-functions");
 function startEthereumMonitor(village, config) {
@@ -26,9 +25,7 @@ function startEthereumMonitor(village, config) {
             const dao = src_1.createEthereumExplorerDao(model);
             const transactionDao = src_1.createSingleCurrencyTransactionDao(model);
             console.log('Starting cron');
-            const profiler = new utility_1.SimpleProfiler();
             yield src_1.scanEthereumExplorerBlocks(dao, client, client_functions_1.decodeTokenTransfer, appliedConfig, profiler);
-            profiler.logFlat();
         }
         catch (error) {
             console.error('Ethereum scanning error:', error);

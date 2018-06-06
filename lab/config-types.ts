@@ -6,11 +6,10 @@ export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
   devMode?: boolean
 }
 
-
-
 export type CommonConfig = {
   database: VillageDatabaseConfig,
-  interval: number
+  interval: number,
+  profiling?: boolean
 }
 
 export type BitcoinConfig = CommonConfig & {

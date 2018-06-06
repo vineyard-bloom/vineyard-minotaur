@@ -67,6 +67,10 @@ exports.mapBlocks = mapBlocks;
 function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler = new utility_1.EmptyProfiler()) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();
+        // Pass config var to OptionalMonitorConfig
+        if (config.profiling)
+            profiler = new utility_1.SimpleProfiler();
+        profiler.logFlat();
         do {
             const elapsed = Date.now() - startTime;
             if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
