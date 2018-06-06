@@ -7,6 +7,7 @@ export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
 export declare type CommonConfig = {
     database: VillageDatabaseConfig;
     interval: number;
+    profiling?: boolean;
 };
 export declare type BitcoinConfig = CommonConfig & {
     bitcoin: {

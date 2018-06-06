@@ -1,6 +1,6 @@
 import { createVillage, MinotaurVillage } from "./village";
 import { OptionalMonitorConfig, scanBitcoinExplorerBlocks } from "../src"
-import { SimpleProfiler } from "../src/utility"
+import { SimpleProfiler, EmptyProfiler } from "../src/utility"
 import { BitcoinConfig, FullConfig } from "./config-types";
 import { getBitcoinExplorerSchema } from "../src/schema";
 import { BitcoinModel, createBitcoinExplorerDao } from "../src/bitcoin-explorer/bitcoin-model"
@@ -19,9 +19,8 @@ export async function startBitcoinMonitor(village: BitcoinVillage, config: Optio
 
     const dao = createBitcoinExplorerDao(model)
     console.log('Starting cron')
-    const profiler = new SimpleProfiler()
+    const profiler = config.profiling ? new SimpleProfiler() : new EmptyProfiler()
     await scanBitcoinExplorerBlocks(dao, client, appliedConfig, profiler)
-    profiler.logFlat()
   }
   catch (error) {
     console.error(error)

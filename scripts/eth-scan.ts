@@ -8,7 +8,8 @@ async function main(): Promise<void> {
   console.log('Initialized village')
 
   await startEthereumMonitor(village, {
-    queue: { maxSize: 10, minSize: 5 }
+    queue: { maxSize: 10, minSize: 5 },
+    profiling: ethereumConfig.profiling ? true : false
   })
 }
 
