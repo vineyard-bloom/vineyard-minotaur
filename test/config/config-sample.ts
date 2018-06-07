@@ -16,7 +16,7 @@ export const ethereumConfig: EthereumConfig = {
     }
   },
   interval: 15000,
-  profiling: true
+  profiling: false
 }
 
 export const bitcoinConfig: BitcoinConfig = {
@@ -41,5 +41,5 @@ export const bitcoinConfig: BitcoinConfig = {
     maxSize: 10
   },
   interval: 15000,
-  profiling: true
+  profiling: false
 }
