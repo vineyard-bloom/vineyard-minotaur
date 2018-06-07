@@ -66,8 +66,7 @@ exports.mapBlocks = mapBlocks;
 function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler) {
     return __awaiter(this, void 0, void 0, function* () {
         const startTime = Date.now();
-        profiler.logFlat();
-        do {
+        while (true) {
             const elapsed = Date.now() - startTime;
             if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
                 console.log('Reached timeout of ', elapsed, 'milliseconds');
@@ -103,7 +102,8 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, pr
             const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
             yield lastBlockDao.setLastBlock(lastBlockIndex);
             console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
-        } while (true);
+            profiler.logFlat();
+        }
     });
 }
 exports.scanBlocks = scanBlocks;
