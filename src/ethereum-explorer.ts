@@ -11,6 +11,7 @@ import {
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 import { getTransactionByTxid, saveSingleCurrencyBlock } from "./explorer-helpers"
+import { Transaction } from "bitcoinjs-lib";
 
 type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
 
@@ -37,6 +38,7 @@ export interface EthereumModel {
   TokenTransfer: Collection<TokenTransferRecord>
   Transaction: Collection<EthereumTransaction & { id: number }>
   LastBlock: Collection<LastBlock>
+  InternalTransaction: Collection<blockchain.InternalTransaction>
 
   ground: Modeler
 }
@@ -255,10 +257,43 @@ async function saveTokenTransfers(ground: Modeler, tokenTransfers: TokenTransfer
   return ground.querySingle(sql)
 }
 
+export interface InternalTransactionBundle {
+  txid: string
+  internalTransaction: blockchain.InternalTransaction
+}
+
+export function gatherInternalTransactions(transactions: blockchain.ContractTransaction[]): InternalTransactionBundle[] {
+  const transactionsWithInternal = transactions.filter(transaction => transaction.internalTransactions)
+  if (transactionsWithInternal.length == 0)
+    return []
+
+  return flatMap(transactionsWithInternal, transaction =>
+    transaction.internalTransactions!.map(internalTransaction => {
+      return {
+        txid: transaction.txid,
+        internalTransaction
+      }
+    }))
+}
+
+export async function saveInternalTransactions(ground: Modeler, internalTransactions: InternalTransactionBundle[]) {
+  if (internalTransactions.length == 0)
+    return Promise.resolve()
+
+  const header = 'INSERT INTO "internal_transactions" ("transaction", "to", "from", "amount", "created", "modified") VALUES\n'
+  const internalTransactionClauses = internalTransactions.map(bundle => {
+    return `((SELECT transactions.id FROM transactions WHERE transactions.txid = '${bundle.txid}'), (SELECT addresses.id FROM addresses WHERE addresses.address = '${bundle.internalTransaction.to}'), (SELECT addresses.id FROM addresses WHERE addresses.address = '${bundle.internalTransaction.from}'), ${bundle.internalTransaction.amount}, NOW(), NOW())`
+  })
+
+  const sql = header + internalTransactionClauses.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  return ground.querySingle(sql)
+}
+
 async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
   const transactions = flatMap(blocks, b => b.transactions)
   const events = flatMap(transactions, t => t.events || [])
 
+  const internalTransactions = gatherInternalTransactions(transactions)
   const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events)
   const contracts = gatherNewContracts(blocks)
   const addresses = gatherAddresses(blocks, contracts, tokenTranfers)
@@ -269,6 +304,7 @@ async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.E
         .then(() => saveSingleTransactions(ground, transactions, addresses))
         .then(() => saveContracts(ground, contracts, addresses))
         .then(() => saveTokenTransfers(ground, tokenTranfers, addresses))
+        .then(() => saveInternalTransactions(ground, internalTransactions))
     ]
   )
 }

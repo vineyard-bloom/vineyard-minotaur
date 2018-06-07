@@ -86,7 +86,7 @@ class DepositMonitor {
             do {
                 const offsetAmount = lastBlock && !!(lastBlock.blockIndex) ? lastBlock.blockIndex - this.minimumConfirmations : 0;
                 const offsetBlockIndex = offsetAmount > 0 ? offsetAmount : 0;
-                yield this.gatherTransactions({ blockIndex: offsetBlockIndex });
+                yield this.gatherTransactions({ blockIndex: offsetBlockIndex, currency: this.currency.id });
                 lastBlock = yield this.gatherTransactions(lastBlock);
             } while (lastBlock);
         });
@@ -96,7 +96,7 @@ class DepositMonitor {
             const blockInfo = yield this.client.getNextBlockInfo(!!lastBlock ? lastBlock.blockIndex : 0);
             if (!blockInfo)
                 return undefined;
-            const fullBlock = yield this.client.getFullBlock(blockInfo);
+            const fullBlock = yield this.client.getFullBlock(blockInfo.index);
             if (!fullBlock) {
                 console.error('Invalid block', blockInfo);
                 return undefined;

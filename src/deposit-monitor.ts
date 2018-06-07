@@ -93,7 +93,7 @@ export class DepositMonitor {
     do {
       const offsetAmount = lastBlock && !!(lastBlock.blockIndex) ? lastBlock.blockIndex - this.minimumConfirmations : 0
       const offsetBlockIndex = offsetAmount > 0 ? offsetAmount : 0
-      await this.gatherTransactions({ blockIndex: offsetBlockIndex})
+      await this.gatherTransactions({ blockIndex: offsetBlockIndex, currency: this.currency.id })
       lastBlock = await this.gatherTransactions(lastBlock)
     } while (lastBlock)
   }
@@ -103,7 +103,7 @@ export class DepositMonitor {
     if (!blockInfo)
       return undefined
 
-    const fullBlock = await this.client.getFullBlock(blockInfo)
+    const fullBlock = await this.client.getFullBlock(blockInfo.index)
     if (!fullBlock) {
       console.error('Invalid block', blockInfo)
       return undefined

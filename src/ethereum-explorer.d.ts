@@ -24,6 +24,7 @@ export interface EthereumModel {
         id: number;
     }>;
     LastBlock: Collection<LastBlock>;
+    InternalTransaction: Collection<blockchain.InternalTransaction>;
     ground: Modeler;
 }
 export interface EthereumMonitorDao extends MonitorDao {
@@ -46,4 +47,10 @@ export interface OptionalMonitorConfig {
 export interface MonitorConfig extends OptionalMonitorConfig {
     minConfirmations: number;
 }
+export interface InternalTransactionBundle {
+    txid: string;
+    internalTransaction: blockchain.InternalTransaction;
+}
+export declare function gatherInternalTransactions(transactions: blockchain.ContractTransaction[]): InternalTransactionBundle[];
+export declare function saveInternalTransactions(ground: Modeler, internalTransactions: InternalTransactionBundle[]): Promise<any>;
 export declare function scanEthereumExplorerBlocks(dao: EthereumMonitorDao, client: SingleTransactionBlockClient, decodeTokenTransfer: blockchain.EventDecoder, config: MonitorConfig, profiler?: Profiler): Promise<any>;
