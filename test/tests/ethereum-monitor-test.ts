@@ -74,7 +74,8 @@ async function createSaltContractReal(village: EthereumVillage) {
   await village.model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
   await startEthereumMonitor(village, {
     queue: { maxSize: 1, minSize: 1 },
-    maxMilliseconds: 1 * minute
+    maxMilliseconds: 1 * minute,
+    profiling: ethereumConfig.profiling ? true : false
   })
 }
 
@@ -96,7 +97,8 @@ describe('eth-scan', function () {
     console.log('Initialized village')
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 1 },
-      maxMilliseconds: 1 * minute
+      maxMilliseconds: 1 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
     assert(true)
   })
@@ -107,13 +109,15 @@ describe('eth-scan', function () {
     console.log('Initialized village')
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 10 * second
+      maxMilliseconds: 10 * second,
+      profiling: ethereumConfig.profiling ? true : false
     })
 
     await model.LastBlock.update({ currency: 2, blockIndex: 142966 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 10 * second
+      maxMilliseconds: 10 * second,
+      profiling: ethereumConfig.profiling ? true : false
     })
     assert(true)
   })
@@ -123,7 +127,8 @@ describe('eth-scan', function () {
     console.log('Initialized village')
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 1 },
-      maxMilliseconds: 1 * minute
+      maxMilliseconds: 1 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
     assert(true)
   })
@@ -133,13 +138,15 @@ describe('eth-scan', function () {
     console.log('Initialized village')
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 1 },
-      maxMilliseconds: 0.1 * minute
+      maxMilliseconds: 0.1 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
 
     await model.LastBlock.update({ currency: 2, blockIndex: 4000000 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 1 },
-      maxMilliseconds: 0.2 * minute
+      maxMilliseconds: 0.2 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
     assert(true)
   })
@@ -148,7 +155,8 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 4086319 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 1, minSize: 1 },
-      maxMilliseconds: 1 * minute
+      maxMilliseconds: 1 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
 
     const tokens = await model.Token.all()
@@ -159,7 +167,8 @@ describe('eth-scan', function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 10 },
-      maxMilliseconds: 1 * minute
+      maxMilliseconds: 1 * minute,
+      profiling: ethereumConfig.profiling ? true : false
     })
 
     const transfers = await model.TokenTransfer.all()
@@ -168,10 +177,6 @@ describe('eth-scan', function () {
 
   it('saveBlocks throws an error when passed an empty blocks array', async function () {
     await assertThrowsErrorMessage(() => saveBlocks(model.ground, []), 'blocks array must not be empty')
-  })
-
-  it('saveCurrencies throws an error when there is a currency data failure', async function () {
-    await assertThrowsErrorMessage(() => saveCurrencies(model.ground, [ 'incorrect contract type' ]), 'Contract is missing name property')
   })
 
 })
