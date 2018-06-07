@@ -1,5 +1,10 @@
+export interface CumulativeAverage {
+    sum: number;
+    count: number;
+}
 export interface Profile {
-    samples: number[][];
+    seconds: CumulativeAverage;
+    nanoseconds: CumulativeAverage;
     timer: any;
 }
 export declare function getAverage(values: number[]): number;
@@ -19,7 +24,7 @@ export declare class SimpleProfiler implements Profiler {
     start(name: string): void;
     stop(name?: string): void;
     next(name: string): void;
-    private formatAverage(samples, index);
+    private formatAverage(cumulativeAverage);
     log(profiles?: ProfilerMap): void;
     logFlat(): void;
 }

@@ -85,9 +85,7 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
                                                                    profiler: Profiler): Promise<any> {
   const startTime: number = Date.now()
 
-  profiler.logFlat()
-
-  do {
+  while(true) {
     const elapsed = Date.now() - startTime
     if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
       console.log('Reached timeout of ', elapsed, 'milliseconds')
@@ -133,9 +131,8 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     await lastBlockDao.setLastBlock(lastBlockIndex)
     console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
 
+    profiler.logFlat()
   }
-  while (true)
-
 }
 
 // export async function checkBlockScanStatus(dao: BitcoinMonitorDao, block: { index: number, hash: string }): Promise<ScannedBlockStatus> {

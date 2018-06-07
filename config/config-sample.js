@@ -15,7 +15,7 @@ exports.ethereumConfig = {
         }
     },
     interval: 5000,
-    profiling: true
+    profiling: false
 };
 exports.bitcoinConfig = {
     database: {
@@ -38,6 +38,6 @@ exports.bitcoinConfig = {
         maxBlockRequests: 10
     },
     interval: 15000,
-    profiling: true
+    profiling: false
 };
 //# sourceMappingURL=config-sample.js.map

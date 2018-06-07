@@ -67,7 +67,8 @@ describe('btc-scan', function () {
     console.log('Initialized village')
     await startBitcoinMonitor(village, {
       queue: { maxSize: 10, minSize: 5 },
-      maxMilliseconds: minute
+      maxMilliseconds: minute,
+      profiling: bitcoinConfig.profiling
     })
     assert(true)
   })
