@@ -2,9 +2,9 @@ import { ethereumConfig } from '../config/config'
 
 require('source-map-support').install()
 import BigNumber from 'bignumber.js';
-import { gatherInternalTransactions, EthereumModel, saveBlocks, saveCurrencies, saveInternalTransactions, InternalTransactionBundle, saveSingleTransactions } from '../../src';
-import { startEthereumMonitor, createVillage, MinotaurVillage, EthereumVillage, createEthereumVillage } from '../../lab'
-import { assert, expect } from 'chai'
+import { gatherInternalTransactions, EthereumModel, saveBlocks, saveInternalTransactions, InternalTransactionBundle } from '../../src';
+import { startEthereumMonitor, EthereumVillage, createEthereumVillage } from '../../lab'
+import { assert } from 'chai'
 import { blockchain } from 'vineyard-blockchain'
 
 const second = 1000
