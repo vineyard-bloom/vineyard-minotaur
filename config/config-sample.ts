@@ -14,6 +14,11 @@ export const ethereumConfig: EthereumConfig = {
       http: "http://"
     }
   },
+  blockQueue: {
+    minSize: 5,
+    maxSize: 10,
+    maxBlockRequests: 10
+  },
   interval: 5000,
   profiling: false
 }
@@ -28,10 +33,10 @@ export const bitcoinConfig: BitcoinConfig = {
     dialect: "postgres"
   },
   bitcoin: {
-    "host": "localhost",
-    "username": "user",
-    "password": "password",
-    "port": 8332
+    host: "localhost",
+    username: "user",
+    password: "password",
+    port: 8332
   },
   blockQueue: {
     minSize: 5,

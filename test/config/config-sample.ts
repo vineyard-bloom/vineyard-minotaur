@@ -15,6 +15,11 @@ export const ethereumConfig: EthereumConfig = {
       http: ""
     }
   },
+  blockQueue: {
+    minSize: 5,
+    maxSize: 10,
+    maxBlockRequests: 10
+  },
   interval: 15000,
   profiling: false
 }
