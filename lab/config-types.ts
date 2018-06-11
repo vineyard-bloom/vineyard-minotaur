@@ -7,8 +7,9 @@ export interface VillageDatabaseConfig extends GeneralDatabaseConfig {
 }
 
 export type CommonConfig = {
-  database: VillageDatabaseConfig,
-  interval: number,
+  database: VillageDatabaseConfig
+  interval: number
+  blockQueue: BlockQueueConfig
   profiling?: boolean
 }
 
@@ -20,7 +21,6 @@ export type BitcoinConfig = CommonConfig & {
     port: number
     network?: Network
   }
-  blockQueue: BlockQueueConfig
 }
 
 export type EthereumConfig = CommonConfig & {

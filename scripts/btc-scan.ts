@@ -2,7 +2,7 @@ import { createBitcoinVillage, startBitcoinMonitor } from "../lab/bitcoin-explor
 import { bitcoinConfig } from '../config/config'
 import { BitcoinBlockReader } from "vineyard-bitcoin/src/bitcoin-block-reader"
 import { resetBtcScanDb } from "./reset-btc-scan-db"
-import {Cron} from 'vineyard-cron'
+import { Cron } from 'vineyard-cron'
 
 require('source-map-support').install()
 
