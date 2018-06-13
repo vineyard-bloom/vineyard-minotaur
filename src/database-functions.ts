@@ -86,10 +86,10 @@ export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   if (blocks.length === 0) {
     throw new Error('blocks array must not be empty')
   }
-  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "bloom", "coinbase", "difficulty", "extraData", "gasLimit", "parentHash", "receiptTrie", "stateRoot", "transactionsTrie", "rlp", "created",  "modified") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', NOW(), NOW())`)
+    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', '${block.hash}', NOW(), NOW())`)
   }
 
   const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
