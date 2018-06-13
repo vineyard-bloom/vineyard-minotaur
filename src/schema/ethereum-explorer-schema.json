@@ -28,7 +28,43 @@
       },
       "timeMined": {
         "type": "datetime"
-      }
+      },
+      "bloom": {
+        "type": "string"
+      },
+      "coinbase": {
+        "type": "char",
+        "length": 42
+      },
+      "difficulty": {
+        "type": "char",
+        "length": 8
+      },
+      "extraData": {
+        "type": "string"
+      },
+      "gasLimit": {
+        "type": "char",
+        "length": 8
+      },
+      "parentHash": {
+        "type": "char",
+        "length": 66
+      },
+      "receiptTrie": {
+        "type": "char",
+        "length": 66
+      },
+      "stateRoot": {
+        "type": "char",
+        "length": 66
+      },
+      "transactionsTrie": {
+        "type": "char",
+        "length": 66
+      },
+      "rlp": {
+        "type": "string"
     }
   },
   "Contract": {
