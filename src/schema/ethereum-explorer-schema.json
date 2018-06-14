@@ -65,7 +65,7 @@
       },
       "rlp": {
         "type": "string"
-    }
+      }
   },
   "Contract": {
     "properties": {
@@ -217,4 +217,5 @@
       }
     }
   }
+}
 }
