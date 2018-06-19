@@ -37,15 +37,13 @@
         "length": 42
       },
       "difficulty": {
-        "type": "char",
-        "length": 8
+        "type": "long"
       },
       "extraData": {
         "type": "string"
       },
       "gasLimit": {
-        "type": "char",
-        "length": 8
+        "type": "long"
       },
       "parentHash": {
         "type": "char",
