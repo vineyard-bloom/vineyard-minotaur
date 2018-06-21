@@ -26,7 +26,7 @@ type SimpleFunction = () => Promise<any>
 export class ExternalBlockQueue<Block extends IndexedBlock> {
   private blocks: Block[] = []
   private blockIndex: number
-  private highestBlockIndex: number | undefined
+  private highestBlockIndex: number
   private client: blockchain.BlockReader<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
@@ -35,11 +35,12 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     reject: (error: Error) => void
   }[] = []
 
-  constructor(client: blockchain.BlockReader<Block>, blockIndex: number,
+  constructor(client: blockchain.BlockReader<Block>, blockIndex: number, highestBlockIndex: number,
               config: Partial<BlockQueueConfig>) {
     this.client = client
     this.blockIndex = blockIndex
-    this.config = Object.assign({}, blockQueueConfigDefaults, config)
+    this.highestBlockIndex = highestBlockIndex
+    this.config = { ...blockQueueConfigDefaults, ...config }
   }
 
   getBlockIndex(): number {
@@ -71,7 +72,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       const listeners = this.listeners
       if (this.listeners.length > 0) {
         const readyBlocks = this.getConsecutiveBlocks()
-        if (readyBlocks.length > 0) {
+        if (readyBlocks.length >= this.config.minSize || this.requests.length == 0) {
           this.listeners = []
           this.removeBlocks(readyBlocks)
           for (let listener of listeners) {
@@ -79,9 +80,6 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
           }
         }
       }
-      // else {
-      //   console.log('no listeners')
-      // }
     }
   }
 
@@ -92,7 +90,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
         const block = await this.client.getFullBlock(index)
         await this.onResponse(index, block)
       }
-      catch(error) {
+      catch (error) {
         console.error('Error reading block', index, error)
         await tryRequest()
         // this.onResponse(index, undefined)
@@ -106,20 +104,21 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     })
   }
 
-  private async update(): Promise<void> {
-    if (this.highestBlockIndex === undefined) {
-      this.highestBlockIndex = await this.client.getHeighestBlockIndex()
-    }
-
+  private getNextRequestCount(): number {
     const remaining = this.highestBlockIndex - this.blockIndex
-    let count = Math.min(
+    const count = Math.min(
       remaining,
       this.config.maxBlockRequests - this.requests.length,
       this.config.maxSize - this.requests.length - this.blocks.length
     )
-    if (count < 0) count = 0
-    console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '))
-    for (let i = 0; i < count; ++i) {
+    return count < 0
+      ? 0
+      : count
+  }
+
+  private update(requestCount: number) {
+    console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '))
+    for (let i = 0; i < requestCount; ++i) {
       this.addRequest(this.blockIndex++)
     }
   }
@@ -145,30 +144,35 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       blocks.push(r)
     }
 
-    if (blocks.length < this.config.minSize && this.requests.length > 0) {
-      return []
-    }
     return blocks
   }
 
-  async getBlocks(): Promise<Block[]> {
-    await this.update()
+  private async addListener() {
+    return new Promise<Block[]>((resolve, reject) => {
+      this.listeners.push({
+        resolve: resolve,
+        reject: reject
+      })
+    })
+  }
 
+  private releaseBlocks(blocks: Block[]): Promise<Block[]> {
+    this.removeBlocks(blocks)
+    return Promise.resolve(blocks)
+  }
+
+  getBlocks(): Promise<Block[]> {
     const readyBlocks = this.getConsecutiveBlocks()
-    if (readyBlocks.length > 0) {
-      this.removeBlocks(readyBlocks)
-      return Promise.resolve(readyBlocks)
-    }
-    else if (this.requests.length == 0) {
-      return Promise.resolve([])
+    const nextRequestCount = this.getNextRequestCount()
+
+    if (nextRequestCount == 0) {
+      return this.releaseBlocks(readyBlocks)
     }
     else {
-      return new Promise<Block[]>((resolve, reject) => {
-        this.listeners.push({
-          resolve: resolve,
-          reject: reject
-        })
-      })
+      this.update(nextRequestCount)
+      return readyBlocks.length >= this.config.minSize
+        ? this.releaseBlocks(readyBlocks)
+        : this.addListener()
     }
   }
 }

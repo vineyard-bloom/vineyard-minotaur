@@ -1,0 +1,26 @@
+digraph G {
+ordering=out ;
+    innerLoop[label="Inner Loop", level=2]
+    outerLoop[label="Cron Loop", level=1]
+    nodeBlocks[label="Block", shape=plain]
+    queueBlocks[label="Blocks", shape=plain]
+    bulkSave[label="Bulk Save"]
+    db[label="SQL Database", shape=cylinder]
+    getBlocks[label="queue.getBlocks()", shape=plain]
+  "Bitcoin/Geth"
+  "Request" [shape=plain]
+   {rank = same; Request; nodeBlocks;}
+   {rank = same; queueBlocks; getBlocks;}
+   {rank = same; BlockQueue; bulkSave;}
+  "BlockQueue" -> "Request" -> "Bitcoin/Geth"
+  "BlockQueue" -> "Request" -> "Bitcoin/Geth"
+  "BlockQueue" -> "Request" -> "Bitcoin/Geth"
+  "Bitcoin/Geth" -> nodeBlocks -> "BlockQueue"
+   "Bitcoin/Geth" -> nodeBlocks -> "BlockQueue"
+     "Bitcoin/Geth" -> nodeBlocks -> "BlockQueue"
+
+     outerLoop -> innerLoop -> getBlocks -> BlockQueue -> queueBlocks ->
+     innerLoop -> bulkSave -> db -> bulkSave -> innerLoop -> outerLoop
+
+
+}

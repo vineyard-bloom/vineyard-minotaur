@@ -14,12 +14,13 @@ const blockQueueConfigDefaults = {
     minSize: 1
 };
 class ExternalBlockQueue {
-    constructor(client, blockIndex, config) {
+    constructor(client, blockIndex, highestBlockIndex, config) {
         this.blocks = [];
         this.requests = [];
         this.listeners = [];
         this.client = client;
         this.blockIndex = blockIndex;
+        this.highestBlockIndex = highestBlockIndex;
         this.config = Object.assign({}, blockQueueConfigDefaults, config);
     }
     getBlockIndex() {
@@ -47,7 +48,7 @@ class ExternalBlockQueue {
             const listeners = this.listeners;
             if (this.listeners.length > 0) {
                 const readyBlocks = this.getConsecutiveBlocks();
-                if (readyBlocks.length > 0) {
+                if (readyBlocks.length >= this.config.minSize || this.requests.length == 0) {
                     this.listeners = [];
                     this.removeBlocks(readyBlocks);
                     for (let listener of listeners) {
@@ -55,9 +56,6 @@ class ExternalBlockQueue {
                     }
                 }
             }
-            // else {
-            //   console.log('no listeners')
-            // }
         }
     }
     addRequest(index) {
@@ -79,20 +77,18 @@ class ExternalBlockQueue {
             promise: promise
         });
     }
-    update() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.highestBlockIndex === undefined) {
-                this.highestBlockIndex = yield this.client.getHeighestBlockIndex();
-            }
-            const remaining = this.highestBlockIndex - this.blockIndex;
-            let count = Math.min(remaining, this.config.maxBlockRequests - this.requests.length, this.config.maxSize - this.requests.length - this.blocks.length);
-            if (count < 0)
-                count = 0;
-            console.log('Adding blocks', Array.from(new Array(count), (x, i) => i + this.blockIndex).join(', '));
-            for (let i = 0; i < count; ++i) {
-                this.addRequest(this.blockIndex++);
-            }
-        });
+    getNextRequestCount() {
+        const remaining = this.highestBlockIndex - this.blockIndex;
+        const count = Math.min(remaining, this.config.maxBlockRequests - this.requests.length, this.config.maxSize - this.requests.length - this.blocks.length);
+        return count < 0
+            ? 0
+            : count;
+    }
+    update(requestCount) {
+        console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '));
+        for (let i = 0; i < requestCount; ++i) {
+            this.addRequest(this.blockIndex++);
+        }
     }
     // Ensures that batches of blocks are returned in consecutive order
     getConsecutiveBlocks() {
@@ -111,31 +107,34 @@ class ExternalBlockQueue {
                 break;
             blocks.push(r);
         }
-        if (blocks.length < this.config.minSize && this.requests.length > 0) {
-            return [];
-        }
         return blocks;
     }
-    getBlocks() {
+    addListener() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.update();
-            const readyBlocks = this.getConsecutiveBlocks();
-            if (readyBlocks.length > 0) {
-                this.removeBlocks(readyBlocks);
-                return Promise.resolve(readyBlocks);
-            }
-            else if (this.requests.length == 0) {
-                return Promise.resolve([]);
-            }
-            else {
-                return new Promise((resolve, reject) => {
-                    this.listeners.push({
-                        resolve: resolve,
-                        reject: reject
-                    });
+            return new Promise((resolve, reject) => {
+                this.listeners.push({
+                    resolve: resolve,
+                    reject: reject
                 });
-            }
+            });
         });
+    }
+    releaseBlocks(blocks) {
+        this.removeBlocks(blocks);
+        return Promise.resolve(blocks);
+    }
+    getBlocks() {
+        const readyBlocks = this.getConsecutiveBlocks();
+        const nextRequestCount = this.getNextRequestCount();
+        if (nextRequestCount == 0) {
+            return this.releaseBlocks(readyBlocks);
+        }
+        else {
+            this.update(nextRequestCount);
+            return readyBlocks.length >= this.config.minSize
+                ? this.releaseBlocks(readyBlocks)
+                : this.addListener();
+        }
     }
 }
 exports.ExternalBlockQueue = ExternalBlockQueue;
