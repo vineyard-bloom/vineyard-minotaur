@@ -78,6 +78,13 @@
         "type": "Transaction",
         "nullable": true
       }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": ["address", "transaction"]
+        }
+      ]
     }
   },
   "Currency": {
@@ -140,6 +147,13 @@
       "blockIndex": {
         "type": "long"
       }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": ["from", "to"]
+        }
+      ]
     }
   },
   "Token": {
@@ -167,6 +181,13 @@
       "symbol": {
         "type": "string"
       }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": ["transaction"]
+        }
+      ]
     }
   },
   "TokenTransfer": {
@@ -194,6 +215,13 @@
       "amount": {
         "type": "bignumber"
       }
+    },
+    "table": {
+      "indexes": [
+        {
+          "properties": ["from", "to"]
+        }
+      ]
     }
   },
   "InternalTransaction": {
