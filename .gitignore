@@ -10,3 +10,4 @@ config-eth.*
 config.*
 yarn-*
 .node*
+package-*
