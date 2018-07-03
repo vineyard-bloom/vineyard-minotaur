@@ -30,7 +30,7 @@
         "type": "datetime"
       },
       "bloom": {
-        "type": "string"
+        "type": "text"
       },
       "coinbase": {
         "type": "char",
