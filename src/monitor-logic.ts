@@ -24,7 +24,8 @@ export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao:
                                                                    minConfirmations: number,
                                                                    startingBlockIndex: number) {
   let blockIndex = await getNextBlock(lastBlockDao)
-  return new ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), queueConfig)
+  let highestBlock = await client.getHeighestBlockIndex()
+  return new ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig)
 }
 
 export interface BlockSource {
