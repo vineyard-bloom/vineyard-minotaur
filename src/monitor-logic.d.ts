@@ -13,7 +13,7 @@ export declare type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) =
 export interface IndexedHashedBlock extends IndexedBlock {
     hash: string;
 }
-export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: Partial<BlockQueueConfig>, minConfirmations: number, startingBlockIndex: number): Promise<ExternalBlockQueue<Block>>;
+export declare function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao, client: blockchain.BlockReader<Block>, queueConfig: Partial<BlockQueueConfig>, minConfirmations: number, startingBlockIndex: number): Promise<any>;
 export interface BlockSource {
     getHighestBlockIndex(): Promise<number>;
     getBlock(index: number): Promise<blockchain.Block>;
