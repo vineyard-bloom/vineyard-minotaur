@@ -21,14 +21,14 @@ export declare class ExternalBlockQueue<Block extends IndexedBlock> {
     private listeners;
     constructor(client: blockchain.BlockReader<Block>, blockIndex: number, highestBlockIndex: number, config: Partial<BlockQueueConfig>);
     getBlockIndex(): number;
-    private removeRequest(blockIndex);
-    private removeBlocks(blocks);
-    private onResponse(blockIndex, block);
-    private addRequest(index);
-    private getNextRequestCount();
-    private update(requestCount);
-    private getConsecutiveBlocks();
-    private addListener();
-    private releaseBlocks(blocks);
+    private removeRequest;
+    private removeBlocks;
+    private onResponse;
+    private addRequest;
+    private getNextRequestCount;
+    private update;
+    private getConsecutiveBlocks;
+    private addListener;
+    private releaseBlocks;
     getBlocks(): Promise<Block[]>;
 }
