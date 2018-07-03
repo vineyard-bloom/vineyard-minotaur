@@ -117,6 +117,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   private update(requestCount: number) {
+    console.log(requestCount)
     console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '))
     for (let i = 0; i < requestCount; ++i) {
       this.addRequest(this.blockIndex++)
