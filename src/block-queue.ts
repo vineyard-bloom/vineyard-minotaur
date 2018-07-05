@@ -166,7 +166,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     const readyBlocks = this.getConsecutiveBlocks()
     const nextRequestCount = this.getNextRequestCount()
 
-    if (nextRequestCount == 0) {
+    if (nextRequestCount == 0 && readyBlocks.length > 0) {
       return this.releaseBlocks(readyBlocks)
     }
     else {
