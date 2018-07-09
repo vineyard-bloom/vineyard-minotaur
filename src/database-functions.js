@@ -98,7 +98,8 @@ function saveBlocks(ground, blocks) {
         const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "bloom", "coinbase", "difficulty", "extraData", "gasLimit", "parentHash", "receiptTrie", "stateRoot", "transactionsTrie", "rlp", "created",  "modified") VALUES\n';
         let inserts = [];
         for (let block of blocks) {
-            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '${block.coinbase}', '${block.difficulty}', '${block.extraData}', '${block.gasLimit}', '${block.parentHash}', '${block.receiptTrie}', '${block.stateRoot}', '${block.transactionsTrie}', '${block.rlp}', NOW(), NOW())`);
+            //inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '${block.coinbase}', '${block.difficulty}', '${block.extraData}', '${block.gasLimit}', '${block.parentHash}', '${block.receiptTrie}', '${block.stateRoot}', '${block.transactionsTrie}', '${block.rlp}', NOW(), NOW())`)
+            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '0', '0', '0', '0', '0', '0', '0', '0', '0', NOW(), NOW())`);
         }
         const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);

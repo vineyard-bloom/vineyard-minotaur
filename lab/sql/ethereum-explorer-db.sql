@@ -14,6 +14,7 @@ CREATE TABLE "public"."addresses" (
 CREATE TABLE "public"."blocks" (
     "index" integer NOT NULL,
     "hash" character(66) DEFAULT '' NOT NULL,
+    "bloom" character(66) DEFAULT '' NOT NULL,
     "timeMined" timestamptz NOT NULL,
     "created" timestamptz NOT NULL,
     "modified" timestamptz NOT NULL,
