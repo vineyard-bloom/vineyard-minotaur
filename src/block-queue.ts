@@ -23,11 +23,13 @@ export interface IndexedBlock {
 
 type SimpleFunction = () => Promise<any>
 
-export class ExternalBlockQueue<Block extends IndexedBlock> {
+export type BlockSource<T> = (index: number) => Promise<T>
+
+export class BlockQueue<Block> {
   private blocks: Block[] = []
   private blockIndex: number
   private highestBlockIndex: number
-  private client: blockchain.BlockReader<Block>
+  private blockSource: BlockSource<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
   private listeners: {
@@ -35,9 +37,9 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     reject: (error: Error) => void
   }[] = []
 
-  constructor(client: blockchain.BlockReader<Block>, blockIndex: number, highestBlockIndex: number,
+  constructor(blockSource: BlockSource<Block>, blockIndex: number, highestBlockIndex: number,
               config: Partial<BlockQueueConfig>) {
-    this.client = client
+    this.blockSource = blockSource
     this.blockIndex = blockIndex
     this.highestBlockIndex = highestBlockIndex
     this.config = { ...blockQueueConfigDefaults, ...config }
@@ -87,7 +89,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     // console.log('add block', index)
     const tryRequest: SimpleFunction = async () => {
       try {
-        const block = await this.client.getFullBlock(index)
+        const block = await this.blockSource(index)
         await this.onResponse(index, block)
       }
       catch (error) {
@@ -117,7 +119,9 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   private update(requestCount: number) {
-    console.log(requestCount)
+    if (requestCount < 1)
+      return
+
     console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '))
     for (let i = 0; i < requestCount; ++i) {
       this.addRequest(this.blockIndex++)
@@ -166,7 +170,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     const readyBlocks = this.getConsecutiveBlocks()
     const nextRequestCount = this.getNextRequestCount()
 
-    if (nextRequestCount == 0 && readyBlocks.length > 0) {
+    if (nextRequestCount == 0 && this.requests.length == 0) {
       return this.releaseBlocks(readyBlocks)
     }
     else {

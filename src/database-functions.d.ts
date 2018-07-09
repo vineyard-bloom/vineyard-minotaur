@@ -10,6 +10,7 @@ export declare function getExistingAddresses(ground: Modeler, addresses: string[
 export declare function saveNewAddresses(ground: Modeler, addresses: string[]): Promise<AddressMap>;
 export declare function arrayDiff<T>(a1: T[], a2: T[]): T[];
 export declare function saveBlocks(ground: Modeler, blocks: blockchain.Block[]): Promise<any>;
+export declare function saveEthereumBlocks(ground: Modeler, blocks: blockchain.EthereumBlock[]): Promise<any>;
 export interface CurrencyResult {
     currency: any;
     tokenContract: blockchain.TokenContract;

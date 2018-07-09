@@ -87,11 +87,24 @@ export async function saveBlocks(ground: Modeler, blocks: blockchain.Block[]) {
   if (blocks.length === 0) {
     throw new Error('blocks array must not be empty')
   }
+  const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "coinbase", "difficulty", "parentHash", "created", "modified") VALUES\n'
+  let inserts: string[] = []
+  for (let block of blocks) {
+    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.coinbase}', '${block.difficulty}', '${block.parentHash}', NOW(), NOW())`)
+  }
+
+  const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'
+  return ground.querySingle(sql)
+}
+
+export async function saveEthereumBlocks(ground: Modeler, blocks: blockchain.EthereumBlock[]) {
+  if (blocks.length === 0) {
+    throw new Error('blocks array must not be empty')
+  }
   const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "bloom", "coinbase", "difficulty", "extraData", "gasLimit", "parentHash", "receiptTrie", "stateRoot", "transactionsTrie", "rlp", "created",  "modified") VALUES\n'
   let inserts: string[] = []
   for (let block of blocks) {
-    //inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '${block.coinbase}', '${block.difficulty}', '${block.extraData}', '${block.gasLimit}', '${block.parentHash}', '${block.receiptTrie}', '${block.stateRoot}', '${block.transactionsTrie}', '${block.rlp}', NOW(), NOW())`)
-    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '0', '0', '0', '0', '0', '0', '0', '0', '0', NOW(), NOW())`)
+    inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.bloom}', '${block.coinbase}', '${block.difficulty}', '${block.extraData}', '${block.gasLimit}', '${block.parentHash}', '${block.receiptTrie}', '${block.stateRoot}', '${block.transactionsTrie}', '${block.rlp}', NOW(), NOW())`)
   }
 
   const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;'

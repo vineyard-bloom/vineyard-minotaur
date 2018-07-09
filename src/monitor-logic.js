@@ -18,29 +18,13 @@ var ScannedBlockStatus;
 })(ScannedBlockStatus = exports.ScannedBlockStatus || (exports.ScannedBlockStatus = {}));
 function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations, startingBlockIndex) {
     return __awaiter(this, void 0, void 0, function* () {
-        let blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
-        let highestBlock = yield client.getHeighestBlockIndex();
-        return new block_queue_1.ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig);
+        const blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
+        const highestBlock = yield client.getHeighestBlockIndex();
+        const blockSource = (index) => client.getBlockBundle(index);
+        return new block_queue_1.BlockQueue(blockSource, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig);
     });
 }
 exports.createBlockQueue = createBlockQueue;
-// export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
-//   let highestBlockIndex = await localSource.getHighestBlockIndex()
-//   let localBlock = await localSource.getBlock(highestBlockIndex)
-//   let foundInvalidBlocks = false
-//
-//   while (true) {
-//     const remoteBlock = await remoteSource.getBlock(localBlock.index)
-//     if (localBlock.hash == remoteBlock.hash) {
-//       return foundInvalidBlocks
-//         ? localBlock.index + 1
-//         : undefined
-//     }
-//
-//     foundInvalidBlocks = true
-//     localBlock = await localSource.getBlock(localBlock.index - 1)
-//   }
-// }
 function compareBlockHashes(ground, blocks) {
     const values = blocks.map(block => `(${block.index}, '${block.hash}')`);
     const sql = `
@@ -61,7 +45,7 @@ ON temp."index" = blocks."index"
 }
 exports.compareBlockHashes = compareBlockHashes;
 function mapBlocks(fullBlocks) {
-    return (simple) => fullBlocks.filter(b => b.index == simple.index)[0];
+    return (simple) => fullBlocks.filter(b => b.block.index == simple.index)[0];
 }
 exports.mapBlocks = mapBlocks;
 function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, profiler) {
@@ -75,20 +59,21 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, pr
                 break;
             }
             profiler.start('getBlocks');
-            const blocks = yield blockQueue.getBlocks();
+            const bundles = yield blockQueue.getBlocks();
             profiler.stop('getBlocks');
-            if (blocks.length == 0) {
+            if (bundles.length == 0) {
                 console.log('No more blocks found.');
                 break;
             }
-            console.log('Saving blocks', blocks.map((b) => b.index).join(', '));
+            console.log('Saving blocks', bundles.map((b) => b.index).join(', '));
+            const blocks = bundles.map(b => b.block);
             const blockComparisons = yield compareBlockHashes(ground, blocks);
-            const blockMapper = mapBlocks(blocks);
+            const blockMapper = mapBlocks(bundles);
             const newBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus._new)
                 .map(blockMapper);
             const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
                 .map(blockMapper);
-            const blocksToDelete = replacedBlocks.map(block => block.index);
+            const blocksToDelete = replacedBlocks.map(bundle => bundle.block.index);
             console.log('Deleting blocks', blocksToDelete);
             profiler.start('deleteBlocks');
             yield database_functions_1.deleteFullBlocks(ground, blocksToDelete);
@@ -102,7 +87,7 @@ function scanBlocks(blockQueue, saveFullBlocks, ground, lastBlockDao, config, pr
             }
             const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index;
             yield lastBlockDao.setLastBlock(lastBlockIndex);
-            console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex);
+            console.log('Saved blocks; count', bundles.length, 'last', lastBlockIndex);
             profiler.logFlat();
         }
     });

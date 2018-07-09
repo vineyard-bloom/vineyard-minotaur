@@ -1,6 +1,6 @@
-import { getNextBlock, deleteFullBlocks } from "./database-functions";
-import { EmptyProfiler, Profiler, SimpleProfiler } from "./utility";
-import { BlockQueueConfig, ExternalBlockQueue, IndexedBlock } from "./block-queue";
+import { deleteFullBlocks, getNextBlock } from "./database-functions";
+import { Profiler } from "./utility";
+import { BlockQueue, BlockQueueConfig, IndexedBlock } from "./block-queue";
 import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
@@ -12,20 +12,21 @@ export enum ScannedBlockStatus {
   replaced,
 }
 
-export type BlockSaver<Block extends IndexedBlock> = (blocks: Block[]) => Promise<void>
+export type BlockSaver<Block, Transaction> = (bundles: blockchain.BlockBundle<Block, Transaction>[]) => Promise<void>
 
 export interface IndexedHashedBlock extends IndexedBlock {
   hash: string
 }
 
-export async function createBlockQueue<Block extends IndexedBlock>(lastBlockDao: LastBlockDao,
-                                                                   client: blockchain.BlockReader<Block>,
-                                                                   queueConfig: Partial<BlockQueueConfig>,
-                                                                   minConfirmations: number,
-                                                                   startingBlockIndex: number) {
-  let blockIndex = await getNextBlock(lastBlockDao)
-  let highestBlock = await client.getHeighestBlockIndex()
-  return new ExternalBlockQueue(client, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig)
+export async function createBlockQueue<Block, Transaction>(lastBlockDao: LastBlockDao,
+                                                           client: blockchain.BlockReader<Block, Transaction>,
+                                                           queueConfig: Partial<BlockQueueConfig>,
+                                                           minConfirmations: number,
+                                                           startingBlockIndex: number): Promise<BlockQueue<blockchain.BlockBundle<Block, Transaction>>> {
+  const blockIndex = await getNextBlock(lastBlockDao)
+  const highestBlock = await client.getHeighestBlockIndex()
+  const blockSource = (index: number) => client.getBlockBundle(index)
+  return new BlockQueue(blockSource, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig)
 }
 
 export interface BlockSource {
@@ -34,25 +35,7 @@ export interface BlockSource {
   getBlock(index: number): Promise<blockchain.Block>
 }
 
-// export async function findInvalidBlock(localSource: BlockSource, remoteSource: BlockSource): number | undefined {
-//   let highestBlockIndex = await localSource.getHighestBlockIndex()
-//   let localBlock = await localSource.getBlock(highestBlockIndex)
-//   let foundInvalidBlocks = false
-//
-//   while (true) {
-//     const remoteBlock = await remoteSource.getBlock(localBlock.index)
-//     if (localBlock.hash == remoteBlock.hash) {
-//       return foundInvalidBlocks
-//         ? localBlock.index + 1
-//         : undefined
-//     }
-//
-//     foundInvalidBlocks = true
-//     localBlock = await localSource.getBlock(localBlock.index - 1)
-//   }
-// }
-
-export function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & {status: ScannedBlockStatus})[]> {
+export function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & { status: ScannedBlockStatus })[]> {
   const values: any = blocks.map(block => `(${block.index}, '${block.hash}')`)
 
   const sql = `
@@ -73,20 +56,19 @@ ON temp."index" = blocks."index"
   return ground.query(sql)
 }
 
-
-export function mapBlocks<T extends IndexedHashedBlock>(fullBlocks: T[]): (s: IndexedBlock) => T {
-  return (simple: IndexedBlock) => fullBlocks.filter(b => b.index == simple.index)[0]
+export function mapBlocks<Block extends IndexedHashedBlock, Transaction>(fullBlocks: blockchain.BlockBundle<Block, Transaction>[]): (s: IndexedBlock) => blockchain.BlockBundle<Block, Transaction> {
+  return (simple: IndexedBlock) => fullBlocks.filter(b => b.block.index == simple.index)[0]
 }
 
-export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: ExternalBlockQueue<Block>,
-                                                                   saveFullBlocks: BlockSaver<Block>,
-                                                                   ground: Modeler,
-                                                                   lastBlockDao: LastBlockDao,
-                                                                   config: MonitorConfig,
-                                                                   profiler: Profiler): Promise<any> {
+export async function scanBlocks<Block extends IndexedHashedBlock, Transaction>(blockQueue: BlockQueue<blockchain.BlockBundle<Block, Transaction>>,
+                                                     saveFullBlocks: BlockSaver<Block, Transaction>,
+                                                     ground: Modeler,
+                                                     lastBlockDao: LastBlockDao,
+                                                     config: MonitorConfig,
+                                                     profiler: Profiler): Promise<any> {
   const startTime: number = Date.now()
 
-  while(true) {
+  while (true) {
     const elapsed = Date.now() - startTime
     if (config.maxMilliseconds && elapsed > config.maxMilliseconds) {
       console.log('Reached timeout of ', elapsed, 'milliseconds')
@@ -95,24 +77,25 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
     }
 
     profiler.start('getBlocks')
-    const blocks = await blockQueue.getBlocks()
+    const bundles = await blockQueue.getBlocks()
     profiler.stop('getBlocks')
-    if (blocks.length == 0) {
+    if (bundles.length == 0) {
       console.log('No more blocks found.')
       break
     }
 
-    console.log('Saving blocks', blocks.map((b: any) => b.index).join(', '))
+    console.log('Saving blocks', bundles.map((b: any) => b.index).join(', '))
 
+    const blocks = bundles.map(b => b.block)
     const blockComparisons = await compareBlockHashes(ground, blocks)
-    const blockMapper = mapBlocks(blocks)
+    const blockMapper = mapBlocks(bundles)
     const newBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus._new)
       .map(blockMapper)
 
     const replacedBlocks = blockComparisons.filter(b => b.status == ScannedBlockStatus.replaced)
       .map(blockMapper)
 
-    const blocksToDelete = replacedBlocks.map(block => block.index)
+    const blocksToDelete = replacedBlocks.map(bundle => bundle.block.index)
     console.log('Deleting blocks', blocksToDelete)
 
     profiler.start('deleteBlocks')
@@ -130,7 +113,7 @@ export async function scanBlocks<Block extends IndexedHashedBlock>(blockQueue: E
 
     const lastBlockIndex = blocks.sort((a, b) => b.index - a.index)[0].index
     await lastBlockDao.setLastBlock(lastBlockIndex)
-    console.log('Saved blocks; count', blocks.length, 'last', lastBlockIndex)
+    console.log('Saved blocks; count', bundles.length, 'last', lastBlockIndex)
 
     profiler.logFlat()
   }

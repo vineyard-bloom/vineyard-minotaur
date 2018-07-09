@@ -1,12 +1,12 @@
 import { blockchain } from 'vineyard-blockchain/src/blockchain'
 import { assert } from 'chai'
-import { ExternalBlockQueue } from "../../src/block-queue"
+import { BlockQueue } from "../../src/block-queue"
 
 require('source-map-support').install()
 import BlockReader = blockchain.BlockReader
 
 describe('queue test', function () {
-  // let underTest: ExternalBlockQueue<MockBlock>
+  // let underTest: BlockQueue<MockBlock>
 
   beforeEach(async function () {
 
@@ -19,10 +19,9 @@ describe('queue test', function () {
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -44,13 +43,12 @@ describe('queue test', function () {
     const getBlocksResponseSize = 10
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock),
       0,
-      highestBlock,
       {
-        maxSize: numberToProcessPerGetBlocksCall,
-        minSize: getBlocksResponseSize
+        maxSize: 1,
+        minSize: 20
       }
     )
 
@@ -69,11 +67,10 @@ describe('queue test', function () {
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock),
-      0,
-      highestBlock,
-      {
+      0, // INDEX
+      { // ACTS AS THE CONFIG!
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
       }
@@ -92,10 +89,9 @@ describe('queue test', function () {
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -120,10 +116,9 @@ describe('queue test', function () {
     const getBlocksResponseSize = 4
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -143,17 +138,16 @@ describe('queue test', function () {
     // assert.equal(underTest.queuedUp.length, 0)
   })
 
-  it.skip('test 4: undefined', async function () {
+  it('test 4: undefined', async function () {
     this.timeout(25000)
 
     const highestBlock = 10
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock, (index) => index == 2),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -175,17 +169,16 @@ describe('queue test', function () {
     // assert.equal(underTest.queuedUp.length, 0)
   })
 
-  it.skip('test 5: undefined', async function () {
+  it('test 5: undefined', async function () {
     this.timeout(25000)
 
     const highestBlock = 10
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock, (index) => index == 0),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -200,17 +193,16 @@ describe('queue test', function () {
     assert.equal(secondBlocks.length, 5)
   })
 
-  it.skip('test 6: undefined', async function () {
+  it('test 6: undefined', async function () {
     this.timeout(25000)
 
     const highestBlock = 10
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 5
 
-    const underTest = new ExternalBlockQueue(
+    const underTest = new BlockQueue(
       getMockBlockReader(highestBlock, (index) => index == 4),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -225,17 +217,16 @@ describe('queue test', function () {
     assert.equal(secondBlocks.length, 5)
   })
 
-  it.skip('test 7: undefined', async function () {
+  it('test 7: undefined', async function () {
     this.timeout(25000)
 
     const highestBlock = 10
     const getBlocksResponseSize = 5
     const numberToProcessPerGetBlocksCall = 8
-
-    const underTest = new ExternalBlockQueue(
-      getMockBlockReader(highestBlock, never,(index) => index == 7),
+    console.log('TEST 7 NEVER', never)
+    const underTest = new BlockQueue(
+      getMockBlockReader(highestBlock, never, (index) => index == 7),
       0,
-      highestBlock,
       {
         maxSize: numberToProcessPerGetBlocksCall,
         minSize: getBlocksResponseSize
@@ -252,24 +243,26 @@ describe('queue test', function () {
   })
 })
 
-export type MockBlock = { index: number }
+export type MockBlockBundle = { block: {index: number }}
 export const never = (index: number) => false
 
 export function getMockBlockReader(
   highestBlock: number,
   undefinedCondition: (index: number) => boolean = never,
   errorCondition: (index: number) => boolean = never)
-: BlockReader<MockBlock> {
+  : BlockReader<MockBlock> {
+  console.log('----- mo2ckBlockReader-------', highestBlock, undefinedCondition, errorCondition )
   return {
     getHeighestBlockIndex: async () => {
       return highestBlock
     },
 
-    getFullBlock: async (index: number) => {
+    getBlockBundle: async (index: number) => {
+      console.log('getBlockBUndle..........errco2nd.....', errorCondition, index)
       if(errorCondition(index)) throw new Error('Testing an error')
       if(undefinedCondition(index)) return undefined
       await timeout(500)
-      return { index }
+      return { block: {index} }
     }
   }
 }
