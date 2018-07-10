@@ -25,9 +25,9 @@
     "ts-node": "^6.0.0",
     "typescript": "^2.8.1",
     "vineyard-bitcoin": "github:vineyard-bloom/vineyard-bitcoin#1.3.0-beta",
+    "vineyard-cron": "vineyard-bloom/vineyard-cron#1.x",
     "vineyard-docs": "vineyard-bloom/vineyard-docs#1.0.0-beta",
     "vineyard-ethereum": "vineyard-bloom/vineyard-ethereum#1.0.0-beta",
-    "vineyard-cron": "vineyard-bloom/vineyard-cron#1.x",
     "vineyard-ground": "vineyard-bloom/vineyard-ground#1.x"
   }
 }
