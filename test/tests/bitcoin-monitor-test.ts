@@ -70,10 +70,11 @@ describe('btc-scan', function () {
       maxMilliseconds: minute,
       profiling: bitcoinConfig.profiling
     })
-    assert(true)
+    const blocks = await model.Block.all()
+    assert.isAtLeast(blocks.length, 1)
   })
 
-  it('retrieves coinbase txs', async function () {
-    console.log('Initialized village')
-  })
+  // it('retrieves coinbase txs', async function () {
+  //   console.log('Initialized village')
+  // })
 })
