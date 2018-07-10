@@ -1,8 +1,11 @@
-import { blockchain } from "vineyard-blockchain"
-
 export interface BlockRequest {
   blockIndex: number
   promise: any
+}
+
+interface BlockWrapper<Block> {
+  index: number
+  block: Block
 }
 
 export interface BlockQueueConfig {
@@ -17,16 +20,12 @@ const blockQueueConfigDefaults = {
   minSize: 1
 }
 
-export interface IndexedBlock {
-  index: number
-}
-
 type SimpleFunction = () => Promise<any>
 
 export type BlockSource<T> = (index: number) => Promise<T>
 
 export class BlockQueue<Block> {
-  private blocks: Block[] = []
+  private blocks: BlockWrapper<Block>[] = []
   private blockIndex: number
   private highestBlockIndex: number
   private blockSource: BlockSource<Block>
@@ -53,7 +52,7 @@ export class BlockQueue<Block> {
     this.requests = this.requests.filter(r => r.blockIndex != blockIndex)
   }
 
-  private removeBlocks(blocks: Block[]) {
+  private removeBlocks(blocks: BlockWrapper<Block>[]) {
     this.blocks = this.blocks.filter(b => blocks.every(b2 => b2.index != b.index))
   }
 
@@ -70,7 +69,7 @@ export class BlockQueue<Block> {
       }
     }
     else {
-      this.blocks.push(block)
+      this.blocks.push({ index: blockIndex, block })
       const listeners = this.listeners
       if (this.listeners.length > 0) {
         const readyBlocks = this.getConsecutiveBlocks()
@@ -78,7 +77,7 @@ export class BlockQueue<Block> {
           this.listeners = []
           this.removeBlocks(readyBlocks)
           for (let listener of listeners) {
-            listener.resolve(readyBlocks)
+            listener.resolve(readyBlocks.map(w => w.block))
           }
         }
       }
@@ -129,7 +128,7 @@ export class BlockQueue<Block> {
   }
 
   // Ensures that batches of blocks are returned in consecutive order
-  private getConsecutiveBlocks(): Block[] {
+  private getConsecutiveBlocks(): BlockWrapper<Block>[] {
     if (this.blocks.length == 0)
       return []
 
@@ -140,7 +139,7 @@ export class BlockQueue<Block> {
       return []
     }
 
-    const blocks: Block[] = []
+    const blocks: BlockWrapper<Block>[] = []
     let i = oldestResult
     for (let r of results) {
       if (r.index != i++)
@@ -161,9 +160,9 @@ export class BlockQueue<Block> {
     })
   }
 
-  private releaseBlocks(blocks: Block[]): Promise<Block[]> {
+  private releaseBlocks(blocks: BlockWrapper<Block>[]): Promise<Block[]> {
     this.removeBlocks(blocks)
-    return Promise.resolve(blocks)
+    return Promise.resolve(blocks.map(w => w.block))
   }
 
   getBlocks(): Promise<Block[]> {
@@ -172,6 +171,7 @@ export class BlockQueue<Block> {
 
     if (nextRequestCount == 0 && this.requests.length == 0) {
       return this.releaseBlocks(readyBlocks)
+
     }
     else {
       this.update(nextRequestCount)

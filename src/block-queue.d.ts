@@ -7,9 +7,6 @@ export interface BlockQueueConfig {
     maxBlockRequests: number;
     minSize: number;
 }
-export interface IndexedBlock {
-    index: number;
-}
 export declare type BlockSource<T> = (index: number) => Promise<T>;
 export declare class BlockQueue<Block> {
     private blocks;

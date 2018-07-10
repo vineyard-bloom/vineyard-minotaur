@@ -44,7 +44,7 @@ class BlockQueue {
             }
         }
         else {
-            this.blocks.push(block);
+            this.blocks.push({ index: blockIndex, block });
             const listeners = this.listeners;
             if (this.listeners.length > 0) {
                 const readyBlocks = this.getConsecutiveBlocks();
@@ -52,7 +52,7 @@ class BlockQueue {
                     this.listeners = [];
                     this.removeBlocks(readyBlocks);
                     for (let listener of listeners) {
-                        listener.resolve(readyBlocks);
+                        listener.resolve(readyBlocks.map(w => w.block));
                     }
                 }
             }
@@ -123,7 +123,7 @@ class BlockQueue {
     }
     releaseBlocks(blocks) {
         this.removeBlocks(blocks);
-        return Promise.resolve(blocks);
+        return Promise.resolve(blocks.map(w => w.block));
     }
     getBlocks() {
         const readyBlocks = this.getConsecutiveBlocks();
