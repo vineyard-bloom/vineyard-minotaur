@@ -1,6 +1,6 @@
 import { deleteFullBlocks, getNextBlock } from "./database-functions";
 import { Profiler } from "./utility";
-import { BlockQueue, BlockQueueConfig, IndexedBlock } from "./block-queue";
+import { BlockQueue, BlockQueueConfig, BlockSource } from "./block-queue";
 import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
@@ -14,8 +14,9 @@ export enum ScannedBlockStatus {
 
 export type BlockSaver<Block, Transaction> = (bundles: blockchain.BlockBundle<Block, Transaction>[]) => Promise<void>
 
-export interface IndexedHashedBlock extends IndexedBlock {
+export interface IndexedHashedBlock {
   hash: string
+  index: number
 }
 
 export async function createBlockQueue<Block, Transaction>(lastBlockDao: LastBlockDao,
@@ -25,14 +26,8 @@ export async function createBlockQueue<Block, Transaction>(lastBlockDao: LastBlo
                                                            startingBlockIndex: number): Promise<BlockQueue<blockchain.BlockBundle<Block, Transaction>>> {
   const blockIndex = await getNextBlock(lastBlockDao)
   const highestBlock = await client.getHeighestBlockIndex()
-  const blockSource = (index: number) => client.getBlockBundle(index)
+  const blockSource: BlockSource<blockchain.BlockBundle<Block, Transaction>> = (index: number) => client.getBlockBundle(index)
   return new BlockQueue(blockSource, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig)
-}
-
-export interface BlockSource {
-  getHighestBlockIndex(): Promise<number>
-
-  getBlock(index: number): Promise<blockchain.Block>
 }
 
 export function compareBlockHashes<T extends IndexedHashedBlock>(ground: Modeler, blocks: T[]): PromiseLike<(IndexedHashedBlock & { status: ScannedBlockStatus })[]> {
@@ -56,8 +51,8 @@ ON temp."index" = blocks."index"
   return ground.query(sql)
 }
 
-export function mapBlocks<Block extends IndexedHashedBlock, Transaction>(fullBlocks: blockchain.BlockBundle<Block, Transaction>[]): (s: IndexedBlock) => blockchain.BlockBundle<Block, Transaction> {
-  return (simple: IndexedBlock) => fullBlocks.filter(b => b.block.index == simple.index)[0]
+export function mapBlocks<Block extends IndexedHashedBlock, Transaction>(fullBlocks: blockchain.BlockBundle<Block, Transaction>[]): (s: IndexedHashedBlock) => blockchain.BlockBundle<Block, Transaction> {
+  return (simple: IndexedHashedBlock) => fullBlocks.filter(b => b.block.index == simple.index)[0]
 }
 
 export async function scanBlocks<Block extends IndexedHashedBlock, Transaction>(blockQueue: BlockQueue<blockchain.BlockBundle<Block, Transaction>>,
