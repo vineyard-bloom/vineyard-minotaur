@@ -255,29 +255,25 @@ describe('queue test', function () {
 export type MockBlockBundle = { block: {index: number }}
 export const never = (index: number) => false
 
-export function getMockBlockReader(highestBlock: number) {
+export function getMockBlockReader(
+  highestBlock: number,
+  undefinedCondition: (index: number) => boolean = never,
+  errorCondition: (index: number) => boolean = never)
+  : BlockReader<MockBlock> {
+  console.log('----- mo2ckBlockReader-------', highestBlock, undefinedCondition, errorCondition )
+  return {
+    getHeighestBlockIndex: async () => {
+      return highestBlock
+    },
 
-}
-
-// export function getMockBlockReader(
-//   highestBlock: number,
-//   undefinedCondition: (index: number) => boolean = never,
-//   errorCondition: (index: number) => boolean = never)
-//   : BlockReader<MockBlock> {
-//   console.log('----- mo2ckBlockReader-------', highestBlock, undefinedCondition, errorCondition )
-//   return {
-//     getHeighestBlockIndex: async () => {
-//       return highestBlock
-//     },
-
-//     getBlockBundle: async (index: number) => {
-//       console.log('getBlockBUndle..........errco2nd.....', errorCondition, index)
-//       if(errorCondition(index)) throw new Error('Testing an error')
-//       if(undefinedCondition(index)) return undefined
-//       await timeout(500)
-//       return { block: {index} }
-//     }
-//   }
+    getBlockBundle: async (index: number) => {
+      console.log('getBlockBUndle..........errco2nd.....', errorCondition, index)
+      if(errorCondition(index)) throw new Error('Testing an error')
+      if(undefinedCondition(index)) return undefined
+      await timeout(500)
+      return { block: {index} }
+    }
+  }
 }
 
 const timeout = (ms: number) => new Promise(res => setTimeout(res, ms))
