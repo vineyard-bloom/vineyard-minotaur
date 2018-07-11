@@ -13,3 +13,4 @@ yarn-*
 .node*
 package-*
 *.swp
+yarn.lock
