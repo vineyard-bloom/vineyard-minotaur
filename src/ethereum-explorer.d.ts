@@ -2,7 +2,7 @@ import { Address, LastBlock, MonitorDao, TransactionDao } from "./types";
 import { blockchain } from "vineyard-blockchain";
 import { Profiler } from "./utility";
 import { Collection, Modeler } from 'vineyard-data/legacy';
-export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.ContractTransaction>>;
+export declare type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.EthereumBlock, blockchain.ContractTransaction>;
 export interface EthereumTransaction extends blockchain.BlockTransaction {
     to?: number;
     from?: number;

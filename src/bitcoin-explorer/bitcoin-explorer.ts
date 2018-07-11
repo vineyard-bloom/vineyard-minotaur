@@ -5,12 +5,12 @@ import { blockchain } from "vineyard-blockchain"
 import { MonitorConfig } from "../ethereum-explorer";
 import { createBlockQueue, scanBlocks } from "../monitor-logic";
 import { CREATE_TX, CREATE_TX_IN, CREATE_TX_OUT } from "./sql-helpers"
-import { BitcoinMonitorDao, TxIn } from "./bitcoin-model"
-import { isNullOrUndefined } from "util"
+import { BitcoinMonitorDao } from "./bitcoin-model"
 import { Modeler } from "vineyard-data/legacy";
 
-type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
-export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.MultiTransaction>>
+// type FullBlock = blockchain.FullBlock<blockchain.MultiTransaction>
+export type MultiTransactionBlockClient = blockchain.BlockReader<blockchain.Block, blockchain.MultiTransaction>
+export type BlockBundle = blockchain.BlockBundle<blockchain.Block, blockchain.MultiTransaction>
 
 export interface AssociatedInput {
   txid: string
@@ -79,10 +79,11 @@ function gatherAddresses(outputs: AssociatedOutput[]): string[] {
   return [...new Set(outputs.map(o => o.output.address))]
 }
 
-async function saveFullBlocks(ground: Modeler, blocks: FullBlock[]): Promise<void> {
+async function saveFullBlocks(ground: Modeler, bundles: BlockBundle[]): Promise<void> {
 
   // Can save to sortedBlocks var and set lasBlockIndex
-  const transactions = flatMap(blocks, b => b.transactions)
+  const transactions = flatMap(bundles, b => b.transactions)
+  const blocks = bundles.map(b => b.block)
   const inputs = flatMap(transactions, mapTransactionInputs)
   const outputs = flatMap(transactions, mapTransactionOutputs)
   const addresses = gatherAddresses(outputs)
@@ -101,6 +102,6 @@ export async function scanBitcoinExplorerBlocks(dao: BitcoinMonitorDao,
                                                 profiler: Profiler = new EmptyProfiler()): Promise<any> {
 
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 1)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao.ground, blocks)
+  const saver = (blocks: BlockBundle[]) => saveFullBlocks(dao.ground, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler)
 }

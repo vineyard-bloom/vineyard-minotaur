@@ -46,10 +46,10 @@ function createEthereumExplorerDao(model) {
     };
 }
 exports.createEthereumExplorerDao = createEthereumExplorerDao;
-function gatherAddresses(blocks, contracts, tokenTransfers) {
+function gatherAddresses(bundles, contracts, tokenTransfers) {
     const addresses = {};
-    for (let block of blocks) {
-        for (let transaction of block.transactions) {
+    for (let bundle of bundles) {
+        for (let transaction of bundle.transactions) {
             if (transaction.to)
                 addresses[transaction.to] = -1;
             if (transaction.from)
@@ -199,16 +199,16 @@ function saveInternalTransactions(ground, internalTransactions) {
     });
 }
 exports.saveInternalTransactions = saveInternalTransactions;
-function saveFullBlocks(ground, decodeTokenTransfer, blocks) {
+function saveFullBlocks(ground, decodeTokenTransfer, bundles) {
     return __awaiter(this, void 0, void 0, function* () {
-        const transactions = index_1.flatMap(blocks, b => b.transactions);
+        const transactions = index_1.flatMap(bundles, b => b.transactions);
         const events = index_1.flatMap(transactions, t => t.events || []);
         const internalTransactions = gatherInternalTransactions(transactions);
         const tokenTranfers = yield gatherTokenTransfers(ground, decodeTokenTransfer, events);
-        const contracts = gatherNewContracts(blocks);
-        const addresses = gatherAddresses(blocks, contracts, tokenTranfers);
+        const contracts = gatherNewContracts(bundles);
+        const addresses = gatherAddresses(bundles, contracts, tokenTranfers);
         yield Promise.all([
-            database_functions_1.saveBlocks(ground, blocks),
+            database_functions_1.saveEthereumBlocks(ground, bundles.map(b => b.block)),
             database_functions_1.getOrCreateAddresses(ground, addresses)
                 .then(() => database_functions_1.saveSingleTransactions(ground, transactions, addresses))
                 .then(() => saveContracts(ground, contracts, addresses))

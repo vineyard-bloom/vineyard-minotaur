@@ -13,12 +13,12 @@ const blockQueueConfigDefaults = {
     maxBlockRequests: 5,
     minSize: 1
 };
-class ExternalBlockQueue {
-    constructor(client, blockIndex, highestBlockIndex, config) {
+class BlockQueue {
+    constructor(blockSource, blockIndex, highestBlockIndex, config) {
         this.blocks = [];
         this.requests = [];
         this.listeners = [];
-        this.client = client;
+        this.blockSource = blockSource;
         this.blockIndex = blockIndex;
         this.highestBlockIndex = highestBlockIndex;
         this.config = Object.assign({}, blockQueueConfigDefaults, config);
@@ -44,7 +44,7 @@ class ExternalBlockQueue {
             }
         }
         else {
-            this.blocks.push(block);
+            this.blocks.push({ index: blockIndex, block });
             const listeners = this.listeners;
             if (this.listeners.length > 0) {
                 const readyBlocks = this.getConsecutiveBlocks();
@@ -52,7 +52,7 @@ class ExternalBlockQueue {
                     this.listeners = [];
                     this.removeBlocks(readyBlocks);
                     for (let listener of listeners) {
-                        listener.resolve(readyBlocks);
+                        listener.resolve(readyBlocks.map(w => w.block));
                     }
                 }
             }
@@ -62,7 +62,7 @@ class ExternalBlockQueue {
         // console.log('add block', index)
         const tryRequest = () => __awaiter(this, void 0, void 0, function* () {
             try {
-                const block = yield this.client.getFullBlock(index);
+                const block = yield this.blockSource(index);
                 yield this.onResponse(index, block);
             }
             catch (error) {
@@ -85,7 +85,8 @@ class ExternalBlockQueue {
             : count;
     }
     update(requestCount) {
-        console.log(requestCount);
+        if (requestCount < 1)
+            return;
         console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '));
         for (let i = 0; i < requestCount; ++i) {
             this.addRequest(this.blockIndex++);
@@ -122,12 +123,12 @@ class ExternalBlockQueue {
     }
     releaseBlocks(blocks) {
         this.removeBlocks(blocks);
-        return Promise.resolve(blocks);
+        return Promise.resolve(blocks.map(w => w.block));
     }
     getBlocks() {
         const readyBlocks = this.getConsecutiveBlocks();
         const nextRequestCount = this.getNextRequestCount();
-        if (nextRequestCount == 0 && readyBlocks.length > 0) {
+        if (nextRequestCount == 0 && this.requests.length == 0) {
             return this.releaseBlocks(readyBlocks);
         }
         else {
@@ -138,5 +139,5 @@ class ExternalBlockQueue {
         }
     }
 }
-exports.ExternalBlockQueue = ExternalBlockQueue;
+exports.BlockQueue = BlockQueue;
 //# sourceMappingURL=block-queue.js.map

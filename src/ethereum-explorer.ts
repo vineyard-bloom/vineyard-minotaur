@@ -6,16 +6,18 @@ import { EmptyProfiler, Profiler } from "./utility"
 import { Collection, Modeler } from 'vineyard-data/legacy'
 import { flatMap } from "./utility/index";
 import {
-  AddressMap, getOrCreateAddresses, saveBlocks, saveCurrencies,
+  AddressMap,
+  getOrCreateAddresses,
+  saveCurrencies,
+  saveEthereumBlocks,
   saveSingleTransactions
 } from "./database-functions"
 import { createBlockQueue, scanBlocks } from "./monitor-logic";
 import { getTransactionByTxid, saveSingleCurrencyBlock } from "./explorer-helpers"
-import { Transaction } from "bitcoinjs-lib";
 
-type FullBlock = blockchain.FullBlock<blockchain.ContractTransaction>
+type BlockBundle = blockchain.BlockBundle<blockchain.EthereumBlock, blockchain.ContractTransaction>
 
-export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.FullBlock<blockchain.ContractTransaction>>
+export type SingleTransactionBlockClient = blockchain.BlockReader<blockchain.EthereumBlock, blockchain.ContractTransaction>
 
 export interface EthereumTransaction extends blockchain.BlockTransaction {
   to?: number
@@ -69,7 +71,7 @@ export function createSingleCurrencyTransactionDao(model: EthereumModel): Transa
 export function createEthereumExplorerDao(model: EthereumModel): EthereumMonitorDao {
   return {
     blockDao: {
-      saveBlock: (block: BaseBlock) => saveSingleCurrencyBlock(model.Block, block)
+      saveBlock: (block: any) => saveSingleCurrencyBlock(model.Block, block)
     },
     lastBlockDao: createIndexedLastBlockDao(model.ground, 2),
     // transactionDao: createSingleCurrencyTransactionDao(model),
@@ -93,10 +95,10 @@ export interface MonitorConfig extends OptionalMonitorConfig {
   minConfirmations: number
 }
 
-function gatherAddresses(blocks: FullBlock[], contracts: blockchain.Contract[], tokenTransfers: TokenTransferBundle[]) {
+function gatherAddresses(bundles: BlockBundle[], contracts: blockchain.Contract[], tokenTransfers: TokenTransferBundle[]) {
   const addresses: AddressMap = {}
-  for (let block of blocks) {
-    for (let transaction of block.transactions) {
+  for (let bundle of bundles) {
+    for (let transaction of bundle.transactions) {
       if (transaction.to)
         addresses [transaction.to] = -1
 
@@ -165,7 +167,7 @@ async function saveContracts(ground: Modeler, contracts: blockchain.TokenContrac
   }
 }
 
-function gatherNewContracts(blocks: FullBlock[]): blockchain.TokenContract[] {
+function gatherNewContracts(blocks: BlockBundle[]): blockchain.TokenContract[] {
   let result: blockchain.TokenContract[] = []
   for (let block of blocks) {
     result = result.concat(
@@ -289,17 +291,17 @@ export async function saveInternalTransactions(ground: Modeler, internalTransact
   return ground.querySingle(sql)
 }
 
-async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, blocks: FullBlock[]): Promise<void> {
-  const transactions = flatMap(blocks, b => b.transactions)
+async function saveFullBlocks(ground: Modeler, decodeTokenTransfer: blockchain.EventDecoder, bundles: BlockBundle[]): Promise<void> {
+  const transactions = flatMap(bundles, b => b.transactions)
   const events = flatMap(transactions, t => t.events || [])
 
   const internalTransactions = gatherInternalTransactions(transactions)
   const tokenTranfers = await gatherTokenTransfers(ground, decodeTokenTransfer, events)
-  const contracts = gatherNewContracts(blocks)
-  const addresses = gatherAddresses(blocks, contracts, tokenTranfers)
+  const contracts = gatherNewContracts(bundles)
+  const addresses = gatherAddresses(bundles, contracts, tokenTranfers)
 
   await Promise.all([
-      saveBlocks(ground, blocks),
+      saveEthereumBlocks(ground, bundles.map(b => b.block)),
       getOrCreateAddresses(ground, addresses)
         .then(() => saveSingleTransactions(ground, transactions, addresses))
         .then(() => saveContracts(ground, contracts, addresses))
@@ -315,6 +317,6 @@ export async function scanEthereumExplorerBlocks(dao: EthereumMonitorDao,
                                                  config: MonitorConfig,
                                                  profiler: Profiler = new EmptyProfiler()): Promise<any> {
   const blockQueue = await createBlockQueue(dao.lastBlockDao, client, config.queue, config.minConfirmations, 0)
-  const saver = (blocks: FullBlock[]) => saveFullBlocks(dao.ground, decodeTokenTransfer, blocks)
+  const saver = (blocks: BlockBundle[]) => saveFullBlocks(dao.ground, decodeTokenTransfer, blocks)
   return scanBlocks(blockQueue, saver, dao.ground, dao.lastBlockDao, config, profiler)
 }

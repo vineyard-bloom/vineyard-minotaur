@@ -60,10 +60,11 @@ function saveTransactions(ground, transactions) {
 function gatherAddresses(outputs) {
     return [...new Set(outputs.map(o => o.output.address))];
 }
-function saveFullBlocks(ground, blocks) {
+function saveFullBlocks(ground, bundles) {
     return __awaiter(this, void 0, void 0, function* () {
         // Can save to sortedBlocks var and set lasBlockIndex
-        const transactions = index_1.flatMap(blocks, b => b.transactions);
+        const transactions = index_1.flatMap(bundles, b => b.transactions);
+        const blocks = bundles.map(b => b.block);
         const inputs = index_1.flatMap(transactions, mapTransactionInputs);
         const outputs = index_1.flatMap(transactions, mapTransactionOutputs);
         const addresses = gatherAddresses(outputs);

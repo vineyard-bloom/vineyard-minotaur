@@ -1,8 +1,11 @@
-import { blockchain } from "vineyard-blockchain"
-
 export interface BlockRequest {
   blockIndex: number
   promise: any
+}
+
+interface BlockWrapper<Block> {
+  index: number
+  block: Block
 }
 
 export interface BlockQueueConfig {
@@ -17,17 +20,15 @@ const blockQueueConfigDefaults = {
   minSize: 1
 }
 
-export interface IndexedBlock {
-  index: number
-}
-
 type SimpleFunction = () => Promise<any>
 
-export class ExternalBlockQueue<Block extends IndexedBlock> {
-  private blocks: Block[] = []
+export type BlockSource<T> = (index: number) => Promise<T>
+
+export class BlockQueue<Block> {
+  private blocks: BlockWrapper<Block>[] = []
   private blockIndex: number
   private highestBlockIndex: number
-  private client: blockchain.BlockReader<Block>
+  private blockSource: BlockSource<Block>
   private config: BlockQueueConfig
   requests: BlockRequest[] = []
   private listeners: {
@@ -35,9 +36,9 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     reject: (error: Error) => void
   }[] = []
 
-  constructor(client: blockchain.BlockReader<Block>, blockIndex: number, highestBlockIndex: number,
+  constructor(blockSource: BlockSource<Block>, blockIndex: number, highestBlockIndex: number,
               config: Partial<BlockQueueConfig>) {
-    this.client = client
+    this.blockSource = blockSource
     this.blockIndex = blockIndex
     this.highestBlockIndex = highestBlockIndex
     this.config = { ...blockQueueConfigDefaults, ...config }
@@ -51,7 +52,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     this.requests = this.requests.filter(r => r.blockIndex != blockIndex)
   }
 
-  private removeBlocks(blocks: Block[]) {
+  private removeBlocks(blocks: BlockWrapper<Block>[]) {
     this.blocks = this.blocks.filter(b => blocks.every(b2 => b2.index != b.index))
   }
 
@@ -68,7 +69,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       }
     }
     else {
-      this.blocks.push(block)
+      this.blocks.push({ index: blockIndex, block })
       const listeners = this.listeners
       if (this.listeners.length > 0) {
         const readyBlocks = this.getConsecutiveBlocks()
@@ -76,7 +77,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
           this.listeners = []
           this.removeBlocks(readyBlocks)
           for (let listener of listeners) {
-            listener.resolve(readyBlocks)
+            listener.resolve(readyBlocks.map(w => w.block))
           }
         }
       }
@@ -87,7 +88,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     // console.log('add block', index)
     const tryRequest: SimpleFunction = async () => {
       try {
-        const block = await this.client.getFullBlock(index)
+        const block = await this.blockSource(index)
         await this.onResponse(index, block)
       }
       catch (error) {
@@ -117,7 +118,9 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   private update(requestCount: number) {
-    console.log(requestCount)
+    if (requestCount < 1)
+      return
+
     console.log('Adding blocks', Array.from(new Array(requestCount), (x, i) => i + this.blockIndex).join(', '))
     for (let i = 0; i < requestCount; ++i) {
       this.addRequest(this.blockIndex++)
@@ -125,7 +128,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
   }
 
   // Ensures that batches of blocks are returned in consecutive order
-  private getConsecutiveBlocks(): Block[] {
+  private getConsecutiveBlocks(): BlockWrapper<Block>[] {
     if (this.blocks.length == 0)
       return []
 
@@ -136,7 +139,7 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
       return []
     }
 
-    const blocks: Block[] = []
+    const blocks: BlockWrapper<Block>[] = []
     let i = oldestResult
     for (let r of results) {
       if (r.index != i++)
@@ -157,17 +160,18 @@ export class ExternalBlockQueue<Block extends IndexedBlock> {
     })
   }
 
-  private releaseBlocks(blocks: Block[]): Promise<Block[]> {
+  private releaseBlocks(blocks: BlockWrapper<Block>[]): Promise<Block[]> {
     this.removeBlocks(blocks)
-    return Promise.resolve(blocks)
+    return Promise.resolve(blocks.map(w => w.block))
   }
 
   getBlocks(): Promise<Block[]> {
     const readyBlocks = this.getConsecutiveBlocks()
     const nextRequestCount = this.getNextRequestCount()
 
-    if (nextRequestCount == 0 && readyBlocks.length > 0) {
+    if (nextRequestCount == 0 && this.requests.length == 0) {
       return this.releaseBlocks(readyBlocks)
+
     }
     else {
       this.update(nextRequestCount)
