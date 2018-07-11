@@ -163,7 +163,7 @@ describe('eth-scan', function () {
     assert.isAtLeast(tokens.length, 1)
   })
 
-  it('detects successful token transfers', async function () {
+  it.skip('detects successful token transfers', async function () {
     await model.LastBlock.create({ currency: 2, blockIndex: 447767 })
     await startEthereumMonitor(village, {
       queue: { maxSize: 10, minSize: 10 },
