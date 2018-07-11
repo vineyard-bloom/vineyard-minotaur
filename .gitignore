@@ -2,6 +2,7 @@
 .vscode
 node_modules
 npm-*
+src/*.js.map
 test/**/*.js
 test/**/*.d.ts
 test/config/config.*
@@ -11,3 +12,4 @@ config.*
 yarn-*
 .node*
 package-*
+*.swp
