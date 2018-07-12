@@ -95,10 +95,10 @@ function saveBlocks(ground, blocks) {
         if (blocks.length === 0) {
             throw new Error('blocks array must not be empty');
         }
-        const header = 'INSERT INTO "blocks" ("index", "hash", "timeMined", "coinbase", "difficulty", "parentHash", "created", "modified") VALUES\n';
+        const header = 'INSERT INTO "blocks" ("index", "number", "hash", "timeMined", "coinbase", "difficulty", "parentHash", "created", "modified") VALUES\n';
         let inserts = [];
         for (let block of blocks) {
-            inserts.push(`(${block.index}, '${block.hash}', '${block.timeMined.toISOString()}', '${block.coinbase}', '${block.difficulty}', '${block.parentHash}', NOW(), NOW())`);
+            inserts.push(`(${block.index}, '${block.number}', '${block.hash}', '${block.timeMined.toISOString()}', '${block.coinbase}', '${block.difficulty}', '${block.parentHash}', NOW(), NOW())`);
         }
         const sql = header + inserts.join(',\n') + ' ON CONFLICT DO NOTHING;';
         return ground.querySingle(sql);
