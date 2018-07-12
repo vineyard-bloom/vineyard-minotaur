@@ -3797,8 +3797,8 @@ vineyard-docs@vineyard-bloom/vineyard-docs#1.0.0-beta:
     viz.js "^1.8.0"
 
 vineyard-ethereum@vineyard-bloom/vineyard-ethereum#1.0.0-beta:
-  version "1.0.0-beta.55"
-  resolved "https://codeload.github.com/vineyard-bloom/vineyard-ethereum/tar.gz/c5d3dc5fa799cf5cc4e26ad25ddf73a7f7f610fe"
+  version "1.0.0-beta.56"
+  resolved "https://codeload.github.com/vineyard-bloom/vineyard-ethereum/tar.gz/c4e400ae614d95ee438b5a78e6df9b725b66240e"
   dependencies:
     abi-decoder "^1.1.0"
     axios "^0.18.0"
