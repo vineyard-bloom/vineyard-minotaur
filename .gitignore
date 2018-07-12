@@ -9,5 +9,6 @@ config-btc.*
 config-eth.*
 config.*
 yarn-*
+yarn.lock
 .node*
 package-*
