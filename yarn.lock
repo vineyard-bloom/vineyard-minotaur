@@ -3542,8 +3542,8 @@ verror@1.10.0:
     extsprintf "^1.2.0"
 
 "vineyard-bitcoin@github:vineyard-bloom/vineyard-bitcoin#1.4.0-beta":
-  version "1.4.0-beta.1"
-  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/30a23d4903c00d8143d5e511e83eb3c022fc1971"
+  version "1.4.0-beta.2"
+  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/0a7b02ce07ed46762baeacf3109009350edbdf14"
   dependencies:
     "@types/bitcoinjs-lib" "^3.3.3"
     bignumber.js "^4.0.0"
