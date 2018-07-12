@@ -1,0 +1,9 @@
+{
+    "apps" : [{
+      "name"        : "eth-monitor",
+      "script"      : "./scripts/eth-scan.js"
+    },{
+      "name"       : "btc-monitor",
+      "script"     : "./scripts/btc-scan.js"
+    }]
+}
