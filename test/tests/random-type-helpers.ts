@@ -10,7 +10,7 @@ export function randomBlock(): blockchain.Block {
     hash: getRandomString(10),
     timeMined: new Date(),
     coinbase: getRandomString(10),
-    difficulty: getRandomString(10),
+    difficulty: (Math.random() * 10).toString(),
     parentHash: getRandomString(10)
   }
 }
