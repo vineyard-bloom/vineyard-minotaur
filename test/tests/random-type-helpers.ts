@@ -5,9 +5,13 @@ import { TxIn, TxOut } from "../../src/bitcoin-explorer/bitcoin-model";
 
 export function randomBlock(): blockchain.Block {
   return {
-    hash: getRandomString(10),
     index: getRandomIntInclusive(1, 1000),
-    timeMined: new Date()
+    number: Math.random() * 10,
+    hash: getRandomString(10),
+    timeMined: new Date(),
+    coinbase: getRandomString(10),
+    difficulty: (Math.random() * 10).toString(),
+    parentHash: getRandomString(10)
   }
 }
 
