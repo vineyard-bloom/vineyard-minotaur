@@ -22,6 +22,7 @@ export declare class BlockQueue<Block> {
     private removeBlocks(blocks);
     private onResponse(blockIndex, block);
     private addRequest(index);
+    private incrementDatadogCounters();
     private getNextRequestCount();
     private update(requestCount);
     private getConsecutiveBlocks();

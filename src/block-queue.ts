@@ -1,3 +1,6 @@
+import { StatsD } from "hot-shots" 
+const dogstatsd = new StatsD();
+
 export interface BlockRequest {
   blockIndex: number
   promise: any
@@ -89,6 +92,7 @@ export class BlockQueue<Block> {
     const tryRequest: SimpleFunction = async () => {
       try {
         const block = await this.blockSource(index)
+        this.incrementDatadogCounters()
         await this.onResponse(index, block)
       }
       catch (error) {
@@ -103,6 +107,12 @@ export class BlockQueue<Block> {
       blockIndex: index,
       promise: promise
     })
+  }
+
+  private incrementDatadogCounters(): void {
+    dogstatsd.increment('rpc.getrawtransaction')
+    dogstatsd.increment('rpc.getblockhash')
+    dogstatsd.increment('rpc.getblock')
   }
 
   private getNextRequestCount(): number {
