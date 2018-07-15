@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const hot_shots_1 = require("hot-shots");
+const dogstatsd = new hot_shots_1.StatsD();
 const blockQueueConfigDefaults = {
     maxSize: 10,
     maxBlockRequests: 5,
@@ -63,6 +65,7 @@ class BlockQueue {
         const tryRequest = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 const block = yield this.blockSource(index);
+                this.incrementDatadogCounters();
                 yield this.onResponse(index, block);
             }
             catch (error) {
@@ -76,6 +79,11 @@ class BlockQueue {
             blockIndex: index,
             promise: promise
         });
+    }
+    incrementDatadogCounters() {
+        dogstatsd.increment('rpc.getrawtransaction');
+        dogstatsd.increment('rpc.getblockhash');
+        dogstatsd.increment('rpc.getblock');
     }
     getNextRequestCount() {
         const remaining = this.highestBlockIndex - this.blockIndex;

@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const database_functions_1 = require("./database-functions");
 const block_queue_1 = require("./block-queue");
+const hot_shots_1 = require("hot-shots");
+const dogstatsd = new hot_shots_1.StatsD();
 var ScannedBlockStatus;
 (function (ScannedBlockStatus) {
     ScannedBlockStatus[ScannedBlockStatus["_new"] = 0] = "_new";
@@ -20,6 +22,7 @@ function createBlockQueue(lastBlockDao, client, queueConfig, minConfirmations, s
     return __awaiter(this, void 0, void 0, function* () {
         const blockIndex = yield database_functions_1.getNextBlock(lastBlockDao);
         const highestBlock = yield client.getHeighestBlockIndex();
+        dogstatsd.increment('rpc.getblockcount');
         const blockSource = (index) => client.getBlockBundle(index);
         return new block_queue_1.BlockQueue(blockSource, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig);
     });
