@@ -140,11 +140,11 @@ export async function getNextBlock(lastBlockDao: LastBlockDao) {
 }
 
 export function saveSingleTransactions(ground: any, transactions: blockchain.SingleTransaction[], addresses: AddressMap) {
-  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
+  const header = 'INSERT INTO "transactions" ("status", "txid", "to", "from", "amount", "fee", "gasPrice", "nonce", "currency", "timeReceived", "blockIndex", "created", "modified") VALUES\n'
   const transactionClauses = transactions.map(t => {
     const to = t.to ? addresses[t.to] : 'NULL'
     const from = t.from ? addresses[t.from] : 'NULL'
-    return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
+    return `(${t.status}, '${t.txid}', ${to}, ${from}, ${t.amount}, ${t.fee}, ${t.gasPrice}, ${t.nonce}, 2, '${t.timeReceived.toISOString()}', ${t.blockIndex}, NOW(), NOW())`
   })
 
   if (transactionClauses.length == 0)

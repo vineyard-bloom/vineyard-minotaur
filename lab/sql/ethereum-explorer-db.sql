@@ -14,6 +14,7 @@ CREATE TABLE "public"."addresses" (
 CREATE TABLE "public"."blocks" (
     "index" integer NOT NULL,
     "hash" character(66) DEFAULT '' NOT NULL,
+    "bloom" character(66) DEFAULT '' NOT NULL,
     "timeMined" timestamptz NOT NULL,
     "created" timestamptz NOT NULL,
     "modified" timestamptz NOT NULL,
@@ -48,6 +49,7 @@ CREATE TABLE "public"."transactions" (
     "from" bigint DEFAULT '0' NOT NULL,
     "amount" numeric DEFAULT '0' NOT NULL,
     "fee" numeric DEFAULT '0' NOT NULL,
+    "gasPrice" numeric DEFAULT '0' NOT NULL,
     "nonce" bigint DEFAULT '0' NOT NULL,
     "timeReceived" timestamptz NOT NULL,
     "blockIndex" bigint DEFAULT '0' NOT NULL,
