@@ -20,6 +20,9 @@
         "type": "int",
         "autoIncrement": false
       },
+      "number": {
+        "type": "int"
+      },
       "hash": {
         "type": "char",
         "length": 66,
@@ -27,6 +30,19 @@
       },
       "timeMined": {
         "type": "datetime"
+      },
+      "coinbase": {
+        "type": "char",
+        "length": 66,
+        "unique": false
+      },
+      "difficulty": {
+        "type": "bignumber"
+      },
+      "parentHash": {
+          "type": "char",
+          "length": 66,
+          "unique": true
       }
     }
   },
