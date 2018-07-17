@@ -11,7 +11,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@types/node-dogstatsd": "0.0.2",
     "bignumber.js": "^4.0.0",
+    "hot-shots": "^5.7.0",
+    "node-dogstatsd": "0.0.7",
     "vineyard-blockchain": "github:vineyard-bloom/vineyard-blockchain#1.0.0-beta",
     "vineyard-data": "github:vineyard-bloom/vineyard-data#1.0.0-beta"
   },

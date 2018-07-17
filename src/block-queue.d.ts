@@ -18,14 +18,15 @@ export declare class BlockQueue<Block> {
     private listeners;
     constructor(blockSource: BlockSource<Block>, blockIndex: number, highestBlockIndex: number, config: Partial<BlockQueueConfig>);
     getBlockIndex(): number;
-    private removeRequest;
-    private removeBlocks;
-    private onResponse;
-    private addRequest;
-    private getNextRequestCount;
-    private update;
-    private getConsecutiveBlocks;
-    private addListener;
-    private releaseBlocks;
+    private removeRequest(blockIndex);
+    private removeBlocks(blocks);
+    private onResponse(blockIndex, block);
+    private addRequest(index);
+    private incrementDatadogCounters();
+    private getNextRequestCount();
+    private update(requestCount);
+    private getConsecutiveBlocks();
+    private addListener();
+    private releaseBlocks(blocks);
     getBlocks(): Promise<Block[]>;
 }

@@ -5,6 +5,8 @@ import { LastBlockDao } from "./types";
 import { MonitorConfig } from "./ethereum-explorer";
 import { blockchain } from "vineyard-blockchain"
 import { Modeler } from "vineyard-data/legacy";
+import { StatsD } from "hot-shots" 
+const dogstatsd = new StatsD();
 
 export enum ScannedBlockStatus {
   _new,
@@ -26,6 +28,7 @@ export async function createBlockQueue<Block, Transaction>(lastBlockDao: LastBlo
                                                            startingBlockIndex: number): Promise<BlockQueue<blockchain.BlockBundle<Block, Transaction>>> {
   const blockIndex = await getNextBlock(lastBlockDao)
   const highestBlock = await client.getHeighestBlockIndex()
+  dogstatsd.increment('rpc.getblockcount')
   const blockSource: BlockSource<blockchain.BlockBundle<Block, Transaction>> = (index: number) => client.getBlockBundle(index)
   return new BlockQueue(blockSource, Math.max(blockIndex - minConfirmations, startingBlockIndex), highestBlock, queueConfig)
 }
