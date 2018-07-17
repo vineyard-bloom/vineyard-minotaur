@@ -1,3 +1,6 @@
+// How to call from commandline
+// curl ec2-user@35.160.177.94:8545 -X POST --header 'Content-type: application/json' --data '{"jsonrpc":"2.0", "method":"debug_traceTransaction", "params":["0xa3b5c90f9c9094bdf0cec00f52d5ca46a0791331847e9721bb4c6eb1ec3eb471", {}], "id":1}'
+
 //import { Web3EthereumClient } from "./ethereum-client";
 
 import {Modeler, Schema} from "../../vineyard-ground"
