@@ -1,4 +1,3 @@
-import { blockchain } from "vineyard-blockchain";
 export interface BlockRequest {
     blockIndex: number;
     promise: any;
@@ -8,23 +7,22 @@ export interface BlockQueueConfig {
     maxBlockRequests: number;
     minSize: number;
 }
-export interface IndexedBlock {
-    index: number;
-}
-export declare class ExternalBlockQueue<Block extends IndexedBlock> {
+export declare type BlockSource<T> = (index: number) => Promise<T>;
+export declare class BlockQueue<Block> {
     private blocks;
     private blockIndex;
     private highestBlockIndex;
-    private client;
+    private blockSource;
     private config;
     requests: BlockRequest[];
     private listeners;
-    constructor(client: blockchain.BlockReader<Block>, blockIndex: number, highestBlockIndex: number, config: Partial<BlockQueueConfig>);
+    constructor(blockSource: BlockSource<Block>, blockIndex: number, highestBlockIndex: number, config: Partial<BlockQueueConfig>);
     getBlockIndex(): number;
     private removeRequest(blockIndex);
     private removeBlocks(blocks);
     private onResponse(blockIndex, block);
     private addRequest(index);
+    private incrementDatadogCounters();
     private getNextRequestCount();
     private update(requestCount);
     private getConsecutiveBlocks();

@@ -67,13 +67,28 @@ describe('btc-scan', function () {
     console.log('Initialized village')
     await startBitcoinMonitor(village, {
       queue: { maxSize: 10, minSize: 5 },
-      maxMilliseconds: minute,
+      maxMilliseconds: 30 * second,
       profiling: bitcoinConfig.profiling
     })
-    assert(true)
+
+    const blocks = await model.Block.all()
+    const transactions = await model.Transaction.all()
+
+    assert.isAtLeast(blocks.length, 1)
+    assert.isAtLeast(transactions.length, 1)
   })
 
-  it('retrieves coinbase txs', async function () {
+  it('retrieves coinbase', async function () {
     console.log('Initialized village')
+    await startBitcoinMonitor(village, {
+      queue: { maxSize: 10, minSize: 5 },
+      maxMilliseconds: 30 * second,
+      profiling: bitcoinConfig.profiling
+    })
+
+    const blocks = await model.Block.all()
+    const blocksWithCoinbase = blocks.filter(block => block.coinbase)
+    console.log('blocks with a coinbase field are', blocksWithCoinbase)
+    assert.isAtLeast(blocksWithCoinbase.length, 1)
   })
 })

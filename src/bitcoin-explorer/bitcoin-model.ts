@@ -4,7 +4,6 @@ import { blockchain } from "vineyard-blockchain"
 import { Collection, Modeler } from "vineyard-data/legacy"
 import { createIndexedLastBlockDao } from "../monitor-dao"
 import { saveSingleCurrencyBlock } from "../explorer-helpers"
-import { StrictCollection } from 'vineyard-data'
 
 export interface BitcoinMonitorDao extends MonitorDao {
   ground: Modeler
@@ -24,7 +23,7 @@ export function createBitcoinExplorerDao(model: BitcoinModel): BitcoinMonitorDao
 
 export interface BitcoinModel {
   Address: Collection<Address>
-  Block: StrictCollection<blockchain.Block>
+  Block: Collection<blockchain.Block>
   Currency: Collection<Currency>
   LastBlock: Collection<LastBlock>
 
