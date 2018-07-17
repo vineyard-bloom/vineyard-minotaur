@@ -63,6 +63,10 @@
   version "2.2.48"
   resolved "https://registry.yarnpkg.com/@types/mocha/-/mocha-2.2.48.tgz#3523b126a0b049482e1c3c11877460f76622ffab"
 
+"@types/node-dogstatsd@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@types/node-dogstatsd/-/node-dogstatsd-0.0.2.tgz#3148708ff57cdd2eaa99d922eaaf2d9ef9c097f5"
+
 "@types/node@*":
   version "10.5.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.5.2.tgz#f19f05314d5421fe37e74153254201a7bf00a707"
@@ -1828,6 +1832,10 @@ hosted-git-info@^2.1.4:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.7.1.tgz#97f236977bd6e125408930ff6de3eec6281ec047"
 
+hot-shots@^5.7.0:
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/hot-shots/-/hot-shots-5.7.0.tgz#fe70bd0f49fcb1e79c1b789ff58c7ed499e2208e"
+
 http-signature@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/http-signature/-/http-signature-1.2.0.tgz#9aecd925114772f3d95b65a60abb8f7c18fbace1"
@@ -2487,6 +2495,10 @@ needle@^2.2.1:
 neo-async@^2.5.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.5.1.tgz#acb909e327b1e87ec9ef15f41b8a269512ad41ee"
+
+node-dogstatsd@0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/node-dogstatsd/-/node-dogstatsd-0.0.7.tgz#544d274c91a413426a2f3c40ff7b8e8813cfd930"
 
 node-libs-browser@^2.0.0:
   version "2.1.0"
@@ -3760,8 +3772,8 @@ verror@1.10.0:
     extsprintf "^1.2.0"
 
 "vineyard-bitcoin@github:vineyard-bloom/vineyard-bitcoin#1.4.0-beta":
-  version "1.4.0-beta.2"
-  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/0a7b02ce07ed46762baeacf3109009350edbdf14"
+  version "1.4.0-beta.3"
+  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/338c9c0dae0e77e2e12d1df2eb5fe7f8866c5631"
   dependencies:
     "@types/bitcoinjs-lib" "^3.3.3"
     bignumber.js "^4.0.0"
