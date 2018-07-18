@@ -92,7 +92,6 @@ export class BlockQueue<Block> {
     const tryRequest: SimpleFunction = async () => {
       try {
         const block = await this.blockSource(index)
-        this.incrementDatadogCounters()
         await this.onResponse(index, block)
       }
       catch (error) {
@@ -108,13 +107,7 @@ export class BlockQueue<Block> {
       promise: promise
     })
   }
-
-  private incrementDatadogCounters(): void {
-    dogstatsd.increment('rpc.getrawtransaction')
-    dogstatsd.increment('rpc.getblockhash')
-    dogstatsd.increment('rpc.getblock')
-  }
-
+  
   private getNextRequestCount(): number {
     const remaining = this.highestBlockIndex - this.blockIndex
     const count = Math.min(

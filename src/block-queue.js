@@ -65,7 +65,6 @@ class BlockQueue {
         const tryRequest = () => __awaiter(this, void 0, void 0, function* () {
             try {
                 const block = yield this.blockSource(index);
-                this.incrementDatadogCounters();
                 yield this.onResponse(index, block);
             }
             catch (error) {
@@ -79,11 +78,6 @@ class BlockQueue {
             blockIndex: index,
             promise: promise
         });
-    }
-    incrementDatadogCounters() {
-        dogstatsd.increment('rpc.getrawtransaction');
-        dogstatsd.increment('rpc.getblockhash');
-        dogstatsd.increment('rpc.getblock');
     }
     getNextRequestCount() {
         const remaining = this.highestBlockIndex - this.blockIndex;
