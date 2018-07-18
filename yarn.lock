@@ -1836,6 +1836,10 @@ hot-shots@^5.7.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/hot-shots/-/hot-shots-5.7.0.tgz#fe70bd0f49fcb1e79c1b789ff58c7ed499e2208e"
 
+hot-shots@^5.8.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/hot-shots/-/hot-shots-5.8.0.tgz#5838d03f73bf1e03af86d934e21b54373c60aad2"
+
 http-signature@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/http-signature/-/http-signature-1.2.0.tgz#9aecd925114772f3d95b65a60abb8f7c18fbace1"
@@ -3772,20 +3776,22 @@ verror@1.10.0:
     extsprintf "^1.2.0"
 
 "vineyard-bitcoin@github:vineyard-bloom/vineyard-bitcoin#1.4.0-beta":
-  version "1.4.0-beta.3"
-  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/338c9c0dae0e77e2e12d1df2eb5fe7f8866c5631"
+  version "1.4.0-beta.4"
+  resolved "https://codeload.github.com/vineyard-bloom/vineyard-bitcoin/tar.gz/a3fe8400747ce032d212627d6f7784d3a3396874"
   dependencies:
     "@types/bitcoinjs-lib" "^3.3.3"
     bignumber.js "^4.0.0"
     bitcoin "^3.0.1"
     bitcoin-core "^2.0.0"
     bitcoinjs-lib "^3.3.2"
+    hot-shots "^5.8.0"
     vineyard-blockchain "github:vineyard-bloom/vineyard-blockchain#1.0.0-beta"
 
 "vineyard-blockchain@github:vineyard-bloom/vineyard-blockchain#1.0.0-beta", vineyard-blockchain@vineyard-bloom/vineyard-blockchain#1.0.0-beta:
   version "1.0.0-beta.43"
   resolved "https://codeload.github.com/vineyard-bloom/vineyard-blockchain/tar.gz/aec14a766db5fe207618048422debb2f29817cfd"
   dependencies:
+    "@types/bitcoinjs-lib" "^3.3.3"
     bignumber.js "^4.0.0"
 
 vineyard-cron@vineyard-bloom/vineyard-cron#1.x:
@@ -3809,13 +3815,14 @@ vineyard-docs@vineyard-bloom/vineyard-docs#1.0.0-beta:
     viz.js "^1.8.0"
 
 vineyard-ethereum@vineyard-bloom/vineyard-ethereum#1.0.0-beta:
-  version "1.0.0-beta.56"
-  resolved "https://codeload.github.com/vineyard-bloom/vineyard-ethereum/tar.gz/c4e400ae614d95ee438b5a78e6df9b725b66240e"
+  version "1.0.0-beta.57"
+  resolved "https://codeload.github.com/vineyard-bloom/vineyard-ethereum/tar.gz/28d4ffda2135fc94770f2dae7fe684664baeccef"
   dependencies:
     abi-decoder "^1.1.0"
     axios "^0.18.0"
     bignumber.js "^4.1.0"
     ethereumjs-block "^1.7.1"
+    hot-shots "^5.8.0"
     promise-each2 "^1.0.0"
     truffle-contract "^3.0.0"
     vineyard-blockchain vineyard-bloom/vineyard-blockchain#1.0.0-beta
