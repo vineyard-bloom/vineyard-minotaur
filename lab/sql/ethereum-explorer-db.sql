@@ -312,6 +312,7 @@ CREATE TABLE public.transactions (
     "from" bigint DEFAULT 0 NOT NULL,
     amount numeric DEFAULT 0 NOT NULL,
     fee numeric DEFAULT 0 NOT NULL,
+	"gasPrice" numeric DEFAULT '0' NOT NULL,
     nonce bigint DEFAULT 0 NOT NULL,
     "timeReceived" timestamp with time zone NOT NULL,
     "blockIndex" bigint DEFAULT 0 NOT NULL,
